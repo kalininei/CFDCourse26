@@ -1,0 +1,10 @@
+build*/
+tmp_data/
+~*
+*.swp
+*.swo
+out/
+a.gdb
+.vs/
+.vscode/
+.syntastic_cpp_config_file

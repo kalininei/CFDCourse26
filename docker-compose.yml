@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  dev-environment:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cfd26
+    volumes:
+      - .:/app
+    working_dir: /app
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+    user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+    networks:
+      - dev-net
+
+networks:
+  dev-net:
+    driver: bridge

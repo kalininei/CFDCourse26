@@ -1,0 +1,23 @@
+BasedOnStyle: Microsoft
+BreakBeforeBraces: Attach
+SpaceAfterTemplateKeyword: false
+AccessModifierOffset: -4
+AlwaysBreakAfterReturnType: None
+BreakAfterReturnType: None
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+ColumnLimit: 0
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+AllowShortFunctionsOnASingleLine: Empty
