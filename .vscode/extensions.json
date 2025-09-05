@@ -1,0 +1,16 @@
+{
+    "recommendations": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.cmake-tools",
+        "twxs.cmake",
+        "ms-vscode.cpp-debug",
+        "mhutchie.git-graph",
+        "ms-vscode.hexeditor",
+        "pkief.material-icon-theme",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml"
+    ]
+}

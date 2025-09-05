@@ -9,8 +9,8 @@
 #include <chrono>
 #include <string>
 
-namespace cfd{
-namespace dbg{
+namespace cfd {
+namespace dbg {
 
 /**
  * @brief starts a global timer with string id.
@@ -19,8 +19,8 @@ namespace dbg{
 void Tic(std::string s = "");
 
 /**
-* @brief starts a global timer and stops all others
-*/
+ * @brief starts a global timer and stops all others
+ */
 void Tic1(std::string s = "");
 
 /**

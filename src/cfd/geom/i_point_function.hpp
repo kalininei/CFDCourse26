@@ -3,17 +3,19 @@
 
 #include "cfd/geom/point.hpp"
 
-namespace cfd{
+namespace cfd {
 
-struct IPointFunction{
-	~IPointFunction() = default;
+struct IPointFunction {
+    ~IPointFunction() = default;
 
-	virtual double value(Point) const = 0;
-	virtual Vector grad(Point) const = 0;
+    virtual double value(Point) const = 0;
+    virtual Vector grad(Point) const = 0;
 
-	double operator()(Point p) const{ return value(p); };
+    double operator()(Point p) const {
+        return value(p);
+    };
 };
 
-}
+} // namespace cfd
 
 #endif

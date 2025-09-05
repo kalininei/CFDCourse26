@@ -1,19 +1,19 @@
 #ifndef CFD_COMMON_HPP
 #define CFD_COMMON_HPP
 
-#include <vector>
-#include <string>
-#include <map>
-#include <set>
+#include "macros.hpp"
 #include <algorithm>
 #include <cstddef>
-#include <stdexcept>
-#include <memory>
 #include <iostream>
+#include <map>
+#include <memory>
+#include <set>
 #include <sstream>
-#include "macros.hpp"
+#include <stdexcept>
+#include <string>
+#include <vector>
 
-namespace cfd{
+namespace cfd {
 
 /**
  * @brief invalid index
@@ -22,6 +22,7 @@ namespace cfd{
  */
 constexpr size_t INVALID_INDEX = (size_t)-1;
 
-}
+int AAA = 56;
+} // namespace cfd
 
 #endif

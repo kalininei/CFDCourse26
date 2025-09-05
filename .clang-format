@@ -3,7 +3,6 @@ BreakBeforeBraces: Attach
 SpaceAfterTemplateKeyword: false
 AccessModifierOffset: -4
 AlwaysBreakAfterReturnType: None
-BreakAfterReturnType: None
 BraceWrapping:
   AfterClass: false
   AfterControlStatement: false

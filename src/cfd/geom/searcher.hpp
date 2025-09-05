@@ -1,24 +1,25 @@
 #ifndef CFD_GEOM_SEARCHER_HPP
 #define CFD_GEOM_SEARCHER_HPP
 
+#include "cfd/geom/point.hpp"
 #include <memory>
 #include <vector>
-#include "cfd/geom/point.hpp"
 
-namespace cfd{
+namespace cfd {
 
-template<size_t Dim=3>
-class PointSearcher{
+template<size_t Dim = 3>
+class PointSearcher {
 public:
-	PointSearcher();
-	PointSearcher(const std::vector<Point>& points);
-	void add_points(const std::vector<Point>& points);
+    PointSearcher();
+    PointSearcher(const std::vector<Point> &points);
+    void add_points(const std::vector<Point> &points);
 
-	std::vector<size_t> nearest(const Point& p, size_t n) const;
+    std::vector<size_t> nearest(const Point &p, size_t n) const;
+
 private:
-	struct Impl;
-	std::shared_ptr<Impl> _pimpl;
+    struct Impl;
+    std::shared_ptr<Impl> _pimpl;
 };
 
-}
+} // namespace cfd
 #endif

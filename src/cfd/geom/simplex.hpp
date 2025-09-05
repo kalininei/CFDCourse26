@@ -3,13 +3,13 @@
 
 #include "cfd/geom/point.hpp"
 
-namespace cfd{
+namespace cfd {
 
 /**
  * @brief signed triangle area
  */
-double triangle_area(Point p0, Point p1, Point p2); 
+double triangle_area(Point p0, Point p1, Point p2);
 
-}
+} // namespace cfd
 
 #endif

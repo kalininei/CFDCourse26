@@ -4,14 +4,14 @@
 /**
  * cfd library
  */
-namespace cfd{
+namespace cfd {
 
-/** 
+/**
  * Library ping function
  *
  * @returns 1
  */
 int ping();
 
-}
+} // namespace cfd
 #endif
