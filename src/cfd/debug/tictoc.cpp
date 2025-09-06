@@ -81,10 +81,10 @@ private:
     using time_point_t = hr_clock_t::time_point;
     using duration_t = std::chrono::duration<double>;
 
-    std::string _name;
-    bool _is_working;
-    time_point_t _tp;
-    duration_t _dur;
+    std::string name_;
+    bool is_working_;
+    time_point_t tp_;
+    duration_t dur_;
 };
 
 struct Timers {
@@ -98,7 +98,7 @@ struct Timers {
         return data.find(s) != data.end();
     }
 
-    TicToc &get(std::string s) {
+    TicToc& get(std::string s) {
         auto fnd = data.find(s);
         if (fnd == data.end()) {
             data[s] = TicToc(s, 0);
@@ -108,7 +108,7 @@ struct Timers {
 
     std::vector<std::string> keys() {
         std::vector<std::string> ret;
-        for (auto &v : data) {
+        for (auto& v : data) {
             ret.push_back(v.first);
         }
         return ret;
@@ -116,10 +116,9 @@ struct Timers {
 
     std::vector<std::string> keys_sorted_by_elapsed() {
         std::vector<std::string> ret = keys();
-        std::sort(ret.begin(), ret.end(),
-                  [this](const std::string &key1, const std::string &key2) -> bool {
-                      return get(key1).elapsed() > get(key2).elapsed();
-                  });
+        std::sort(ret.begin(), ret.end(), [this](const std::string& key1, const std::string& key2) -> bool {
+            return get(key1).elapsed() > get(key2).elapsed();
+        });
         return ret;
     }
 
@@ -130,7 +129,7 @@ struct Timers {
     }
 };
 
-Timers _alltimers;
+Timers alltimers_;
 
 } // namespace
 
@@ -138,11 +137,11 @@ void cfd::dbg::Tic(std::string s) {
     if (s.size() == 0) {
         for (int i = 0; i < 99999; ++i) {
             std::string nm = "Timer" + std::to_string(i);
-            if (!_alltimers.has(nm))
+            if (!alltimers_.has(nm))
                 return Tic(nm);
         }
     } else {
-        auto &tm = _alltimers.get(s);
+        auto& tm = alltimers_.get(s);
         tm.tic();
     }
 }
@@ -154,22 +153,22 @@ void cfd::dbg::Tic1(std::string s) {
 
 void cfd::dbg::Toc(std::string s) {
     if (s.size() == 0) {
-        for (auto k : _alltimers.keys())
+        for (auto k : alltimers_.keys())
             Toc(k);
     } else {
-        if (_alltimers.has(s)) {
-            _alltimers.get(s).toc();
+        if (alltimers_.has(s)) {
+            alltimers_.get(s).toc();
         }
     }
 }
 
 void cfd::dbg::Report(std::string s) {
     if (s.size() == 0) {
-        for (auto k : _alltimers.keys())
+        for (auto k : alltimers_.keys())
             Report(k);
     } else {
-        if (_alltimers.has(s)) {
-            _alltimers.get(s).report();
+        if (alltimers_.has(s)) {
+            alltimers_.get(s).report();
         }
     }
 }
@@ -177,55 +176,51 @@ void cfd::dbg::Report(std::string s) {
 void cfd::dbg::FinReport(std::string s) {
     if (s.size() == 0) {
         Toc();
-        for (auto k : _alltimers.keys_sorted_by_elapsed()) {
+        for (auto k : alltimers_.keys_sorted_by_elapsed()) {
             FinReport(k);
         }
     } else {
-        if (_alltimers.has(s)) {
-            _alltimers.get(s).fintoc();
+        if (alltimers_.has(s)) {
+            alltimers_.get(s).fintoc();
         }
-        _alltimers.erase(s);
+        alltimers_.erase(s);
     }
 }
 
-TicToc::TicToc(std::string name, bool start)
-    : _name(name),
-      _is_working(start),
-      _dur(duration_t::zero()) {
+TicToc::TicToc(std::string name, bool start) : name_(name), is_working_(start), dur_(duration_t::zero()) {
     if (start)
         tic();
 }
 
 void TicToc::init() {
-    _dur = duration_t::zero();
-    _tp = hr_clock_t::now();
+    dur_ = duration_t::zero();
+    tp_ = hr_clock_t::now();
 }
 
 void TicToc::tic() {
-    if (!_is_working) {
-        _is_working = true;
-        _tp = hr_clock_t::now();
+    if (!is_working_) {
+        is_working_ = true;
+        tp_ = hr_clock_t::now();
     }
 }
 
 void TicToc::toc() {
-    if (_is_working) {
-        _is_working = false;
-        _dur += std::chrono::duration_cast<duration_t>(hr_clock_t::now() - _tp);
+    if (is_working_) {
+        is_working_ = false;
+        dur_ += std::chrono::duration_cast<duration_t>(hr_clock_t::now() - tp_);
     }
 }
 
 void TicToc::report() const {
     std::ostringstream oss;
-    oss << std::setw(10) << _name << ":  "
-        << std::setprecision(3) << std::setw(5) << std::left << std::setfill('0')
+    oss << std::setw(10) << name_ << ":  " << std::setprecision(3) << std::setw(5) << std::left << std::setfill('0')
         << elapsed() << " sec" << std::endl;
     std::cout << oss.str();
 }
 
 double TicToc::elapsed() const {
-    if (!_is_working)
-        return _dur.count();
+    if (!is_working_)
+        return dur_.count();
     else
-        return (_dur + std::chrono::duration_cast<duration_t>(hr_clock_t::now() - _tp)).count();
+        return (dur_ + std::chrono::duration_cast<duration_t>(hr_clock_t::now() - tp_)).count();
 }

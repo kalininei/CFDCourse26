@@ -6,17 +6,17 @@ using namespace cfd;
 
 namespace {
 
-Point point_from_segment(const Quadrature *segment_quad, size_t i, size_t j) {
+Point point_from_segment(const Quadrature* segment_quad, size_t i, size_t j) {
     return Point(segment_quad->points()[i].x(), segment_quad->points()[j].x());
 }
 
-double weight_from_segment(const Quadrature *segment_quad, size_t i, size_t j) {
+double weight_from_segment(const Quadrature* segment_quad, size_t i, size_t j) {
     return segment_quad->weights()[i] * segment_quad->weights()[j];
 }
 
 } // namespace
 
-const Quadrature *cfd::quadrature_square_gauss1() {
+const Quadrature* cfd::quadrature_square_gauss1() {
     static Quadrature quad(
         {
             point_from_segment(quadrature_segment_gauss1(), 0, 0),
@@ -27,7 +27,7 @@ const Quadrature *cfd::quadrature_square_gauss1() {
     return &quad;
 };
 
-const Quadrature *cfd::quadrature_square_gauss2() {
+const Quadrature* cfd::quadrature_square_gauss2() {
     static Quadrature quad(
         {
             point_from_segment(quadrature_segment_gauss2(), 0, 0),
@@ -44,7 +44,7 @@ const Quadrature *cfd::quadrature_square_gauss2() {
     return &quad;
 };
 
-const Quadrature *cfd::quadrature_square_gauss3() {
+const Quadrature* cfd::quadrature_square_gauss3() {
     static Quadrature quad(
         {
             point_from_segment(quadrature_segment_gauss3(), 0, 0),
@@ -71,7 +71,7 @@ const Quadrature *cfd::quadrature_square_gauss3() {
     return &quad;
 };
 
-const Quadrature *cfd::quadrature_square_gauss4() {
+const Quadrature* cfd::quadrature_square_gauss4() {
     static Quadrature quad(
         {
             point_from_segment(quadrature_segment_gauss4(), 0, 0),

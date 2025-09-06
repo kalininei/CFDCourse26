@@ -19,16 +19,16 @@ public:
     virtual double value(size_t irow, size_t icol) const = 0;
 
     /// @brief matrix-vector multiplication
-    virtual std::vector<double> mult_vec_p(const double *u) const = 0;
+    virtual std::vector<double> mult_vec_p(const double* u) const = 0;
     /// @brief matrix-vector multiplication
-    std::vector<double> mult_vec(const std::vector<double> &u) const {
+    std::vector<double> mult_vec(const std::vector<double>& u) const {
         return mult_vec_p(u.data());
     }
 
     /// @brif matrix-vector multiplication for the specified row
-    virtual double mult_vec_p(size_t irow, const double *u) const = 0;
+    virtual double mult_vec_p(size_t irow, const double* u) const = 0;
     /// @brif matrix-vector multiplication for the specified row
-    double mult_vec(size_t irow, const std::vector<double> &u) const {
+    double mult_vec(size_t irow, const std::vector<double>& u) const {
         return mult_vec_p(irow, u.data());
     }
 

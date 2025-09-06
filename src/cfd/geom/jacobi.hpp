@@ -19,17 +19,17 @@ struct JacobiMatrix {
     double modj = 1.0;
 };
 
-void fill_jacobi_modj(JacobiMatrix &jac);
-void fill_jacobi_modj_1d(JacobiMatrix &jac);
-void fill_jacobi_modj_2d(JacobiMatrix &jac);
+void fill_jacobi_modj(JacobiMatrix& jac);
+void fill_jacobi_modj_1d(JacobiMatrix& jac);
+void fill_jacobi_modj_2d(JacobiMatrix& jac);
 
-Vector gradient_to_parametric(const JacobiMatrix &jac, Vector grad_x);
-Vector gradient_to_parametric_1d(const JacobiMatrix &jac, Vector grad_x);
-Vector gradient_to_parametric_2d(const JacobiMatrix &jac, Vector grad_x);
+Vector gradient_to_parametric(const JacobiMatrix& jac, Vector grad_x);
+Vector gradient_to_parametric_1d(const JacobiMatrix& jac, Vector grad_x);
+Vector gradient_to_parametric_2d(const JacobiMatrix& jac, Vector grad_x);
 
-Vector gradient_to_physical(const JacobiMatrix &jac, Vector grad_xi);
-Vector gradient_to_physical_1d(const JacobiMatrix &jac, Vector grad_xi);
-Vector gradient_to_physical_2d(const JacobiMatrix &jac, Vector grad_xi);
+Vector gradient_to_physical(const JacobiMatrix& jac, Vector grad_xi);
+Vector gradient_to_physical_1d(const JacobiMatrix& jac, Vector grad_xi);
+Vector gradient_to_physical_2d(const JacobiMatrix& jac, Vector grad_xi);
 
 } // namespace cfd
 #endif

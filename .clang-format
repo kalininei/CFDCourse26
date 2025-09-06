@@ -15,8 +15,10 @@ BraceWrapping:
   BeforeCatch: false
   BeforeElse: false
   IndentBraces: false
-ColumnLimit: 0
+ColumnLimit: 120
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
 AllowShortFunctionsOnASingleLine: Empty
+PointerAlignment: Left
+DerivePointerAlignment: false

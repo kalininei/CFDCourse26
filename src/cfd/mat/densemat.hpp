@@ -8,27 +8,27 @@ namespace cfd {
 class DenseMatrix : public IMatrix {
 public:
     DenseMatrix(size_t nrows, size_t ncols);
-    DenseMatrix(size_t nrows, size_t ncols, const std::vector<double> &values);
+    DenseMatrix(size_t nrows, size_t ncols, const std::vector<double>& values);
 
     void set_value(size_t irow, size_t icol, double value);
 
     DenseMatrix transpose() const;
-    DenseMatrix mult_mat(const DenseMatrix &mat) const;
+    DenseMatrix mult_mat(const DenseMatrix& mat) const;
     DenseMatrix inverse() const;
 
     size_t n_cols() const;
-    const std::vector<double> &vals() const;
+    const std::vector<double>& vals() const;
 
     // overriden
     size_t n_rows() const override;
     double value(size_t irow, size_t icol) const override;
-    std::vector<double> mult_vec_p(const double *u) const override;
-    double mult_vec_p(size_t irow, const double *u) const override;
+    std::vector<double> mult_vec_p(const double* u) const override;
+    double mult_vec_p(size_t irow, const double* u) const override;
 
 private:
-    const size_t _nrows;
-    const size_t _ncols;
-    std::vector<double> _data;
+    const size_t nrows_;
+    const size_t ncols_;
+    std::vector<double> data_;
 };
 
 } // namespace cfd

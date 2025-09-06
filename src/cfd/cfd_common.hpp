@@ -21,8 +21,6 @@ namespace cfd {
  * Used in grid connectivity tables to define blank connection
  */
 constexpr size_t INVALID_INDEX = (size_t)-1;
-
-int AAA = 56;
 } // namespace cfd
 
 #endif

@@ -4,31 +4,31 @@
 using namespace cfd;
 
 Grid1D::Grid1D(double left, double right, size_t n_cells) {
-    _points.push_back(Point(left));
+    points_.push_back(Point(left));
     double h = (right - left) / n_cells;
     for (size_t i = 0; i < n_cells; ++i) {
-        _points.push_back(Point(_points.back()[0] + h));
+        points_.push_back(Point(points_.back()[0] + h));
     }
 }
 
 size_t Grid1D::n_points() const {
-    return _points.size();
+    return points_.size();
 }
 
 size_t Grid1D::n_cells() const {
-    return _points.size() - 1;
+    return points_.size() - 1;
 }
 
 size_t Grid1D::n_faces() const {
-    return _points.size();
+    return points_.size();
 }
 
 Point Grid1D::cell_center(size_t icell) const {
-    return (_points.at(icell) + _points.at(icell + 1)) / 2.0;
+    return (points_.at(icell) + points_.at(icell + 1)) / 2.0;
 }
 
 double Grid1D::cell_volume(size_t icell) const {
-    return _points.at(icell + 1).x() - _points.at(icell).x();
+    return points_.at(icell + 1).x() - points_.at(icell).x();
 }
 
 Vector Grid1D::face_normal(size_t iface) const {
@@ -40,15 +40,15 @@ double Grid1D::face_area(size_t iface) const {
 }
 
 Point Grid1D::face_center(size_t iface) const {
-    return _points.at(iface);
+    return points_.at(iface);
 }
 
 Point Grid1D::point(size_t ipoint) const {
-    return _points.at(ipoint);
+    return points_.at(ipoint);
 }
 
 std::vector<Point> Grid1D::points() const {
-    return _points;
+    return points_;
 }
 
 std::vector<size_t> Grid1D::tab_cell_point(size_t icell) const {
@@ -62,7 +62,7 @@ std::vector<size_t> Grid1D::tab_face_point(size_t iface) const {
 std::array<size_t, 2> Grid1D::tab_face_cell(size_t iface) const {
     if (iface == 0) {
         return {INVALID_INDEX, 0};
-    } else if (iface == _points.size() - 1) {
+    } else if (iface == points_.size() - 1) {
         return {iface - 1, INVALID_INDEX};
     } else {
         return {iface - 1, iface};

@@ -15,85 +15,81 @@ public:
     using matrix_t = amgcl::backend::crs<double, size_t>;
     using backend_t = amgcl::backend::builtin<double>;
     using solver_t = amgcl::make_solver<
-        amgcl::amg<
-            backend_t,
-            amgcl::runtime::coarsening::wrapper,
-            amgcl::runtime::relaxation::wrapper>,
+        amgcl::amg<backend_t, amgcl::runtime::coarsening::wrapper, amgcl::runtime::relaxation::wrapper>,
         amgcl::runtime::solver::wrapper<backend_t>>;
 
-    Impl(matrix_t mat, param_t param)
-        : _solver(mat, param), _dim(mat.nrows), _maxit(param.get("solver.maxiter", -1)) {}
+    Impl(matrix_t mat, param_t param) : solver_(mat, param), dim_(mat.nrows), maxit_(param.get("solver.maxiter", -1)) {}
 
-    void solve(const std::vector<double> &rhs, std::vector<double> &x) const {
-        x.resize(_dim, 0);
+    void solve(const std::vector<double>& rhs, std::vector<double>& x) const {
+        x.resize(dim_, 0);
         int n_iters;
         double err;
-        std::tie(n_iters, err) = _solver(rhs, x);
+        std::tie(n_iters, err) = solver_(rhs, x);
 
-        if (n_iters >= _maxit) {
+        if (n_iters >= maxit_) {
             if (std::isnan(err)) {
                 throw std::runtime_error("Sparse matrix solver got NaN");
             }
             std::ostringstream os;
-            os << "WARNING: Sparse matrix solution failed to converge with tolerance: "
-               << std::scientific << std::setprecision(2) << err << std::endl;
+            os << "WARNING: Sparse matrix solution failed to converge with tolerance: " << std::scientific
+               << std::setprecision(2) << err << std::endl;
             std::cout << os.str();
         }
     }
 
 private:
-    solver_t _solver;
-    int _dim;
-    int _maxit;
+    solver_t solver_;
+    int dim_;
+    int maxit_;
 };
 
-AmgcMatrixSolver::AmgcMatrixSolver(int maxit, double tolerance)
-    : _maxit(maxit), _tolerance(tolerance) {}
+AmgcMatrixSolver::AmgcMatrixSolver(int maxit, double tolerance) : maxit_(maxit), tolerance_(tolerance) {}
 AmgcMatrixSolver::AmgcMatrixSolver(std::initializer_list<std::pair<std::string, std::string>> amgc_params)
     : AmgcMatrixSolver() {
     for (auto it : amgc_params) {
-        _params[it.first] = it.second;
+        params_[it.first] = it.second;
     }
 }
 
 AmgcMatrixSolver::~AmgcMatrixSolver() = default;
 
-void AmgcMatrixSolver::set_matrix(const CsrMatrix &mat) {
+void AmgcMatrixSolver::set_matrix(const CsrMatrix& mat) {
     set_matrix(mat, mat.vals());
 }
 
-void AmgcMatrixSolver::set_matrix(const CsrStencil &stencil, const std::vector<double> &mat_values) {
+void AmgcMatrixSolver::set_matrix(const CsrStencil& stencil, const std::vector<double>& mat_values) {
     Impl::matrix_t amgcl_matrix;
     amgcl_matrix.own_data = false;
     amgcl_matrix.nrows = amgcl_matrix.ncols = stencil.n_rows();
     amgcl_matrix.nnz = stencil.n_nonzeros();
-    amgcl_matrix.ptr = const_cast<size_t *>(stencil.addr().data());
-    amgcl_matrix.col = const_cast<size_t *>(stencil.cols().data());
-    amgcl_matrix.val = const_cast<double *>(mat_values.data());
+    amgcl_matrix.ptr = const_cast<size_t*>(stencil.addr().data());
+    amgcl_matrix.col = const_cast<size_t*>(stencil.cols().data());
+    amgcl_matrix.val = const_cast<double*>(mat_values.data());
 
     Impl::param_t prm;
     prm.put("solver.type", "fgmres");
-    prm.put("solver.tol", _tolerance);
-    prm.put("solver.maxiter", _maxit);
+    prm.put("solver.tol", tolerance_);
+    prm.put("solver.maxiter", maxit_);
     prm.put("precond.coarsening.type", "smoothed_aggregation");
     prm.put("precond.relax.type", "spai0");
     // prm.put("precond.relax.type", "gauss_seidel");
 
-    for (auto it : _params) {
+    for (auto it : params_) {
         prm.put(it.first, it.second);
     }
 
-    _pimpl.reset(new Impl(amgcl_matrix, prm));
+    pimpl_.reset(new Impl(amgcl_matrix, prm));
 }
 
-void AmgcMatrixSolver::solve(const std::vector<double> &rhs, std::vector<double> &ret) const {
-    if (!_pimpl) {
+void AmgcMatrixSolver::solve(const std::vector<double>& rhs, std::vector<double>& ret) const {
+    if (!pimpl_) {
         throw std::runtime_error("Matrix was not passed to the solver");
     }
-    _pimpl->solve(rhs, ret);
+    pimpl_->solve(rhs, ret);
 }
 
-void AmgcMatrixSolver::solve_slae(const CsrMatrix &mat, const std::vector<double> &rhs, std::vector<double> &x, int maxit, double eps) {
+void AmgcMatrixSolver::solve_slae(const CsrMatrix& mat, const std::vector<double>& rhs, std::vector<double>& x,
+                                  int maxit, double eps) {
     AmgcMatrixSolver slv(maxit, eps);
     slv.set_matrix(mat);
     slv.solve(rhs, x);

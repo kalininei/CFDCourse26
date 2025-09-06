@@ -13,12 +13,12 @@ public:
      * @param points      points vector
      * @param cell_point  cell_point connectivity in counter_clockwise direction
      */
-    UnstructuredGrid2D(const std::vector<Point> &points, const std::vector<std::vector<size_t>> &cell_point);
+    UnstructuredGrid2D(const std::vector<Point>& points, const std::vector<std::vector<size_t>>& cell_point);
 
     /**
      * @brief converts abstract 2d grid into unstructured format
      */
-    UnstructuredGrid2D(const IGrid2D &grid);
+    UnstructuredGrid2D(const IGrid2D& grid);
 
     /*
      * @brief Read grid from vtk file
@@ -58,11 +58,11 @@ private:
         std::vector<std::vector<size_t>> tab_cell_face;
 
         void clear();
-        void need_cell_centers(const UnstructuredGrid2D &grid);
-        void need_cell_volumes(const UnstructuredGrid2D &grid);
-        void need_face_normals(const UnstructuredGrid2D &grid);
-        void need_face_areas(const UnstructuredGrid2D &grid);
-        void need_tab_cell_face(const UnstructuredGrid2D &grid);
+        void need_cell_centers(const UnstructuredGrid2D& grid);
+        void need_cell_volumes(const UnstructuredGrid2D& grid);
+        void need_face_normals(const UnstructuredGrid2D& grid);
+        void need_face_areas(const UnstructuredGrid2D& grid);
+        void need_tab_cell_face(const UnstructuredGrid2D& grid);
     };
     mutable Cache _cache;
 

@@ -6,7 +6,7 @@
 
 using namespace cfd;
 
-void dbg::print(const ISparseMatrix &mat) {
+void dbg::print(const ISparseMatrix& mat) {
     size_t n = mat.n_rows();
     std::cout << "-- SIZE = " << n << "x" << n << std::endl;
     for (size_t irow = 0; irow < n; ++irow) {
@@ -23,11 +23,11 @@ void dbg::print(const ISparseMatrix &mat) {
     }
 }
 
-void dbg::print(size_t irow, const ISparseMatrix &mat) {
+void dbg::print(size_t irow, const ISparseMatrix& mat) {
     dbg::print(irow, mat, 0, mat.n_rows());
 }
 
-void dbg::print(size_t irow, const ISparseMatrix &mat, size_t col0, size_t col1) {
+void dbg::print(size_t irow, const ISparseMatrix& mat, size_t col0, size_t col1) {
     std::cout << "-- ROW = " << irow << std::endl;
     for (size_t icol = col0; icol < col1; ++icol) {
         if (mat.is_in_stencil(irow, icol)) {
@@ -38,14 +38,14 @@ void dbg::print(size_t irow, const ISparseMatrix &mat, size_t col0, size_t col1)
     }
 }
 
-void dbg::print(const std::vector<double> &vec) {
+void dbg::print(const std::vector<double>& vec) {
     std::cout << "-- SIZE = " << vec.size() << std::endl;
     for (double v : vec) {
         std::cout << v << std::endl;
     }
 }
 
-void dbg::print_feat(const std::vector<double> &vec) {
+void dbg::print_feat(const std::vector<double>& vec) {
     double abs_sum = 0;
     double abs_min = std::numeric_limits<double>::max();
     for (double v : vec) {

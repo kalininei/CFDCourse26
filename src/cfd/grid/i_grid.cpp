@@ -10,7 +10,7 @@ void IGrid::Cache::clear() {
     boundary_points.clear();
 }
 
-void IGrid::Cache::need_boundary_faces(const IGrid &grid) {
+void IGrid::Cache::need_boundary_faces(const IGrid& grid) {
     if (boundary_faces.size() > 0) {
         return;
     }
@@ -22,7 +22,7 @@ void IGrid::Cache::need_boundary_faces(const IGrid &grid) {
     }
 }
 
-void IGrid::Cache::need_boundary_points(const IGrid &grid) {
+void IGrid::Cache::need_boundary_points(const IGrid& grid) {
     if (boundary_points.size() > 0) {
         return;
     }

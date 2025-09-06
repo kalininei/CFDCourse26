@@ -5,10 +5,10 @@
 
 namespace cfd {
 
-const Quadrature *quadrature_square_gauss1();
-const Quadrature *quadrature_square_gauss2();
-const Quadrature *quadrature_square_gauss3();
-const Quadrature *quadrature_square_gauss4();
+const Quadrature* quadrature_square_gauss1();
+const Quadrature* quadrature_square_gauss2();
+const Quadrature* quadrature_square_gauss3();
+const Quadrature* quadrature_square_gauss4();
 
 } // namespace cfd
 #endif

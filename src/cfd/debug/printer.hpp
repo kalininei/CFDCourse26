@@ -17,7 +17,7 @@ void ping_printer_cpp();
  *
  * prints '*' for entries that do not present in the stencil.
  */
-void print(const ISparseMatrix &mat);
+void print(const ISparseMatrix& mat);
 
 /**
  * @brief prints sparse matrix row to std::cout
@@ -27,7 +27,7 @@ void print(const ISparseMatrix &mat);
  *
  * prints only entries that are in the stencil
  */
-void print(size_t irow, const ISparseMatrix &mat);
+void print(size_t irow, const ISparseMatrix& mat);
 
 /**
  * @brief prints sparse matrix row to std::cout
@@ -39,21 +39,21 @@ void print(size_t irow, const ISparseMatrix &mat);
  *
  * prints only entries that are in the stencil
  */
-void print(size_t irow, const ISparseMatrix &mat, size_t col0, size_t col1);
+void print(size_t irow, const ISparseMatrix& mat, size_t col0, size_t col1);
 
 /**
  * @brief prints dense vector to std::cout
  *
  * @param vec  vector to print
  */
-void print(const std::vector<double> &vec);
+void print(const std::vector<double>& vec);
 
 /**
  * @brief prints vector data features
  *
  * @param vec input vector
  */
-void print_feat(const std::vector<double> &vec);
+void print_feat(const std::vector<double>& vec);
 } // namespace dbg
 } // namespace cfd
 #endif

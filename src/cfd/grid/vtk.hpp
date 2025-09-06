@@ -11,10 +11,10 @@ namespace cfd {
  */
 struct VtkUtils {
     /// adds vtk caption
-    static void append_header(std::string caption, std::ostream &fs);
+    static void append_header(std::string caption, std::ostream& fs);
 
     /// adds point list
-    static void append_points(const std::vector<Point> &points, std::ostream &fs);
+    static void append_points(const std::vector<Point>& points, std::ostream& fs);
 
     /**
      * @brief adds cell data to saved vtk grid
@@ -23,9 +23,7 @@ struct VtkUtils {
      * @param fname     file name of saved vtk grid
      * @param ndata     length of data vector. If =0 uses data.size() as its length
      */
-    static void add_cell_data(const std::vector<double> &data,
-                              std::string data_cap,
-                              std::string fname,
+    static void add_cell_data(const std::vector<double>& data, std::string data_cap, std::string fname,
                               size_t ndata = 0);
 
     /**
@@ -35,9 +33,7 @@ struct VtkUtils {
      * @param fname     saved vtk file name
      * @param ndata     length of data vector. If =0 uses data.size() as its length
      */
-    static void add_cell_vector(const std::vector<Vector> &data,
-                                std::string data_cap,
-                                std::string fname,
+    static void add_cell_vector(const std::vector<Vector>& data, std::string data_cap, std::string fname,
                                 size_t ndata = 0);
 
     /**
@@ -48,11 +44,8 @@ struct VtkUtils {
      * @param fname     saved vtk file name
      * @param ndata     length of data vector. If =0 uses ux.size() as its length
      */
-    static void add_cell_vector(const std::vector<double> &ux,
-                                const std::vector<double> &uy,
-                                std::string data_cap,
-                                std::string fname,
-                                size_t ndata = 0);
+    static void add_cell_vector(const std::vector<double>& ux, const std::vector<double>& uy, std::string data_cap,
+                                std::string fname, size_t ndata = 0);
 
     /**
      * @brief adds 3d cell vector data to saved vtk file
@@ -63,11 +56,8 @@ struct VtkUtils {
      * @param fname     saved vtk file name
      * @param ndata     length of data vector. If =0 uses ux.size() as its length
      */
-    static void add_cell_vector(const std::vector<double> &ux,
-                                const std::vector<double> &uy,
-                                const std::vector<double> &uz,
-                                std::string data_cap,
-                                std::string fname,
+    static void add_cell_vector(const std::vector<double>& ux, const std::vector<double>& uy,
+                                const std::vector<double>& uz, std::string data_cap, std::string fname,
                                 size_t ndata = 0);
 
     /**
@@ -77,9 +67,7 @@ struct VtkUtils {
      * @param fname     saved vtk file name
      * @param ndata     length of data vector. If =0 uses data.size() as its length
      */
-    static void add_point_data(const std::vector<double> &data,
-                               std::string data_cap,
-                               std::string fname,
+    static void add_point_data(const std::vector<double>& data, std::string data_cap, std::string fname,
                                size_t ndata = 0);
 
     /**
@@ -89,9 +77,7 @@ struct VtkUtils {
      * @param fname     saved vtk file name
      * @param ndata     length of data vector. If =0 uses data.size() as its length
      */
-    static void add_point_vector(const std::vector<Vector> &data,
-                                 std::string data_cap,
-                                 std::string fname,
+    static void add_point_vector(const std::vector<Vector>& data, std::string data_cap, std::string fname,
                                  size_t ndata = 0);
 
     /**
@@ -102,11 +88,8 @@ struct VtkUtils {
      * @param fname     saved vtk file name
      * @param ndata     length of data vector. If =0 uses ux.size() as its length
      */
-    static void add_point_vector(const std::vector<double> &ux,
-                                 const std::vector<double> &uy,
-                                 std::string data_cap,
-                                 std::string fname,
-                                 size_t ndata = 0);
+    static void add_point_vector(const std::vector<double>& ux, const std::vector<double>& uy, std::string data_cap,
+                                 std::string fname, size_t ndata = 0);
 
     /**
      * @brief adds 3d point vector data to saved vtk file
@@ -117,11 +100,8 @@ struct VtkUtils {
      * @param fname     saved vtk file name
      * @param ndata     length of data vector. If =0 uses ux.size() as its length
      */
-    static void add_point_vector(const std::vector<double> &ux,
-                                 const std::vector<double> &uy,
-                                 const std::vector<double> &uz,
-                                 std::string data_cap,
-                                 std::string fname,
+    static void add_point_vector(const std::vector<double>& ux, const std::vector<double>& uy,
+                                 const std::vector<double>& uz, std::string data_cap, std::string fname,
                                  size_t ndata = 0);
 
     /**
@@ -163,12 +143,12 @@ struct VtkUtils {
         void set_time_step(double tm_step, double eps = 1e-6);
 
     private:
-        const std::string _stem;
-        const std::string _series_fn;
-        std::string _fileslist;
-        double _step = 0;
-        double _step_eps = 0;
-        int _last_saved_point = -1;
+        const std::string stem_;
+        const std::string series_fn_;
+        std::string fileslist_;
+        double step_ = 0;
+        double step_eps_ = 0;
+        int last_saved_point_ = -1;
         void save_series() const;
         int get_time_point_index(double tm) const;
     };

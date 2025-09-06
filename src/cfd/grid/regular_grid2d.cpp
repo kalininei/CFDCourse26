@@ -4,48 +4,47 @@
 using namespace cfd;
 
 RegularGrid2D::RegularGrid2D(double x0, double x1, double y0, double y1, size_t nx, size_t ny) {
-    _x.push_back(x0);
+    x_.push_back(x0);
     double hx = (x1 - x0) / nx;
     for (size_t i = 0; i < nx; ++i) {
-        _x.push_back(_x.back() + hx);
+        x_.push_back(x_.back() + hx);
     }
-    _y.push_back(y0);
+    y_.push_back(y0);
     double hy = (y1 - y0) / ny;
     for (size_t i = 0; i < ny; ++i) {
-        _y.push_back(_y.back() + hy);
+        y_.push_back(y_.back() + hy);
     }
-    _actnum.resize(n_cells(), 1);
+    actnum_.resize(n_cells(), 1);
     set_face_types();
 }
 
-RegularGrid2D::RegularGrid2D(const std::vector<double> &x, const std::vector<double> &y)
-    : _x(x), _y(y) {
+RegularGrid2D::RegularGrid2D(const std::vector<double>& x, const std::vector<double>& y) : x_(x), y_(y) {
 
-    _actnum.resize(n_cells(), 1);
+    actnum_.resize(n_cells(), 1);
 }
 
 double RegularGrid2D::Lx() const {
-    return _x.back() - _x[0];
+    return x_.back() - x_[0];
 }
 
 double RegularGrid2D::Ly() const {
-    return _y.back() - _y[0];
+    return y_.back() - y_[0];
 }
 
 size_t RegularGrid2D::nx() const {
-    return _x.size() - 1;
+    return x_.size() - 1;
 }
 
 size_t RegularGrid2D::ny() const {
-    return _y.size() - 1;
+    return y_.size() - 1;
 }
 
 size_t RegularGrid2D::n_points() const {
-    return _x.size() * _y.size();
+    return x_.size() * y_.size();
 }
 
 size_t RegularGrid2D::n_cells() const {
-    return (_x.size() - 1) * (_y.size() - 1);
+    return (x_.size() - 1) * (y_.size() - 1);
 }
 
 size_t RegularGrid2D::n_faces() const {
@@ -53,22 +52,21 @@ size_t RegularGrid2D::n_faces() const {
 }
 
 Point RegularGrid2D::point(size_t ipoint) const {
-    size_t ix = ipoint % _x.size();
-    size_t iy = ipoint / _x.size();
-    return Point(_x[ix], _y[iy]);
+    size_t ix = ipoint % x_.size();
+    size_t iy = ipoint / x_.size();
+    return Point(x_[ix], y_[iy]);
 }
 
 Point RegularGrid2D::cell_center(size_t icell) const {
-    size_t ix = icell % (_x.size() - 1);
-    size_t iy = icell / (_x.size() - 1);
-    return Point(0.5 * (_x[ix] + _x[ix + 1]),
-                 0.5 * (_y[iy] + _y[iy + 1]));
+    size_t ix = icell % (x_.size() - 1);
+    size_t iy = icell / (x_.size() - 1);
+    return Point(0.5 * (x_[ix] + x_[ix + 1]), 0.5 * (y_[iy] + y_[iy + 1]));
 }
 
 double RegularGrid2D::cell_volume(size_t icell) const {
-    size_t ix = icell % (_x.size() - 1);
-    size_t iy = icell / (_x.size() - 1);
-    return (_x[ix + 1] - _x[ix]) * (_y[iy + 1] - _y[iy]);
+    size_t ix = icell % (x_.size() - 1);
+    size_t iy = icell / (x_.size() - 1);
+    return (x_[ix + 1] - x_[ix]) * (y_[iy + 1] - y_[iy]);
 }
 
 Vector RegularGrid2D::face_normal(size_t iface) const {
@@ -84,10 +82,10 @@ double RegularGrid2D::face_area(size_t iface) const {
     size_t n_xfaces = (ny() + 1) * nx();
     if (iface < n_xfaces) {
         size_t ix = iface % nx();
-        return _x[ix + 1] - _x[ix];
+        return x_[ix + 1] - x_[ix];
     } else {
         size_t iy = (iface - n_xfaces) / (nx() + 1);
-        return _y[iy + 1] - _y[iy];
+        return y_[iy + 1] - y_[iy];
     }
 }
 
@@ -96,11 +94,11 @@ Point RegularGrid2D::face_center(size_t iface) const {
     if (iface < n_xfaces) {
         size_t ix = iface % nx();
         size_t iy = iface / nx();
-        return {0.5 * (_x[ix + 1] + _x[ix]), _y[iy]};
+        return {0.5 * (x_[ix + 1] + x_[ix]), y_[iy]};
     } else {
         size_t ix = (iface - n_xfaces) % (nx() + 1);
         size_t iy = (iface - n_xfaces) / (nx() + 1);
-        return {_x[ix], 0.5 * (_y[iy + 1] + _y[iy])};
+        return {x_[ix], 0.5 * (y_[iy + 1] + y_[iy])};
     }
 }
 
@@ -113,13 +111,13 @@ std::vector<Point> RegularGrid2D::points() const {
 }
 
 std::vector<size_t> RegularGrid2D::tab_cell_point(size_t icell) const {
-    size_t ix = icell % (_x.size() - 1);
-    size_t iy = icell / (_x.size() - 1);
+    size_t ix = icell % (x_.size() - 1);
+    size_t iy = icell / (x_.size() - 1);
 
-    size_t n0 = ix + iy * _x.size();
-    size_t n1 = ix + 1 + iy * _x.size();
-    size_t n2 = ix + 1 + (iy + 1) * _x.size();
-    size_t n3 = ix + (iy + 1) * _x.size();
+    size_t n0 = ix + iy * x_.size();
+    size_t n1 = ix + 1 + iy * x_.size();
+    size_t n2 = ix + 1 + (iy + 1) * x_.size();
+    size_t n3 = ix + (iy + 1) * x_.size();
     return {n0, n1, n2, n3};
 }
 
@@ -162,14 +160,11 @@ std::vector<size_t> RegularGrid2D::tab_face_point(size_t iface) const {
 }
 
 std::vector<size_t> RegularGrid2D::tab_cell_face(size_t icell) const {
-    size_t ix = icell % (_x.size() - 1);
-    size_t iy = icell / (_x.size() - 1);
+    size_t ix = icell % (x_.size() - 1);
+    size_t iy = icell / (x_.size() - 1);
     size_t n_xfaces = (ny() + 1) * nx();
 
-    return {iy * nx() + ix,
-            n_xfaces + iy * (nx() + 1) + ix + 1,
-            (iy + 1) * nx() + ix,
-            n_xfaces + iy * (nx() + 1) + ix};
+    return {iy * nx() + ix, n_xfaces + iy * (nx() + 1) + ix + 1, (iy + 1) * nx() + ix, n_xfaces + iy * (nx() + 1) + ix};
 }
 
 void RegularGrid2D::save_vtk(std::string fname) const {
@@ -188,90 +183,85 @@ void RegularGrid2D::save_vtk(std::string fname) const {
 }
 
 size_t RegularGrid2D::to_linear_point_index(split_index_t point_split_index) const {
-    return point_split_index[0] + _x.size() * point_split_index[1];
+    return point_split_index[0] + x_.size() * point_split_index[1];
 }
 
 auto RegularGrid2D::to_split_point_index(size_t ipoint) const -> split_index_t {
-    return split_index_t{
-        ipoint % _x.size(),
-        ipoint / _x.size()};
+    return split_index_t{ipoint % x_.size(), ipoint / x_.size()};
 }
 
 size_t RegularGrid2D::cell_centered_grid_index_ip_jp(size_t i, size_t j) const {
-    if (i >= _x.size() - 1 || j >= _y.size() - 1) {
+    if (i >= x_.size() - 1 || j >= y_.size() - 1) {
         std::ostringstream oss;
         oss << "Invalid RegularGrid2d::cell_centered_grid_index_ip_jp() arguments: ";
-        oss << std::endl
-            << "    ";
+        oss << std::endl << "    ";
         oss << "i=" << i << ", j=" << j;
         throw std::runtime_error(oss.str());
     }
-    return i + j * (_x.size() - 1);
+    return i + j * (x_.size() - 1);
 }
 
 size_t RegularGrid2D::xface_grid_index_ip_j(size_t i, size_t j) const {
-    if (i >= _x.size() - 1 || j >= _y.size()) {
+    if (i >= x_.size() - 1 || j >= y_.size()) {
         std::ostringstream oss;
         oss << "Invalid RegularGrid2d::xface_grid_index_ip_j() arguments: ";
-        oss << std::endl
-            << "    ";
+        oss << std::endl << "    ";
         oss << "i=" << i << ", j=" << j;
         throw std::runtime_error(oss.str());
     }
-    return i + j * (_x.size() - 1);
+    return i + j * (x_.size() - 1);
 }
 
 size_t RegularGrid2D::yface_grid_index_i_jp(size_t i, size_t j) const {
-    if (i >= _x.size() || j >= _y.size() - 1) {
+    if (i >= x_.size() || j >= y_.size() - 1) {
         std::ostringstream oss;
         oss << "Invalid RegularGrid2d::yface_grid_index_ip_j() arguments: ";
-        oss << std::endl
-            << "    ";
+        oss << std::endl << "    ";
         oss << "i=" << i << ", j=" << j;
         throw std::runtime_error(oss.str());
     }
-    return i + j * _x.size();
+    return i + j * x_.size();
 }
 
 RegularGrid2D RegularGrid2D::cell_centered_grid() const {
     std::vector<double> ret_x;
-    for (size_t i = 0; i < _x.size() - 1; ++i) {
-        ret_x.push_back((_x[i] + _x[i + 1]) / 2);
+    for (size_t i = 0; i < x_.size() - 1; ++i) {
+        ret_x.push_back((x_[i] + x_[i + 1]) / 2);
     }
     std::vector<double> ret_y;
-    for (size_t i = 0; i < _y.size() - 1; ++i) {
-        ret_y.push_back((_y[i] + _y[i + 1]) / 2);
+    for (size_t i = 0; i < y_.size() - 1; ++i) {
+        ret_y.push_back((y_[i] + y_[i + 1]) / 2);
     }
     return RegularGrid2D(ret_x, ret_y);
 }
 
 RegularGrid2D RegularGrid2D::xface_centered_grid() const {
     std::vector<double> ret_x;
-    for (size_t i = 0; i < _x.size() - 1; ++i) {
-        ret_x.push_back((_x[i] + _x[i + 1]) / 2);
+    for (size_t i = 0; i < x_.size() - 1; ++i) {
+        ret_x.push_back((x_[i] + x_[i + 1]) / 2);
     }
-    return RegularGrid2D(ret_x, _y);
+    return RegularGrid2D(ret_x, y_);
 }
 
 RegularGrid2D RegularGrid2D::yface_centered_grid() const {
     std::vector<double> ret_y;
-    for (size_t i = 0; i < _y.size() - 1; ++i) {
-        ret_y.push_back((_y[i] + _y[i + 1]) / 2);
+    for (size_t i = 0; i < y_.size() - 1; ++i) {
+        ret_y.push_back((y_[i] + y_[i + 1]) / 2);
     }
-    return RegularGrid2D(_x, ret_y);
+    return RegularGrid2D(x_, ret_y);
 }
 
 bool RegularGrid2D::is_active_cell(size_t icell) const {
-    return _actnum[icell];
+    return actnum_[icell];
 }
 
 void RegularGrid2D::deactivate_cells(Point bot_left, Point top_right) {
     std::vector<double> xcenters, ycenters;
-    for (size_t i = 0; i < _x.size() - 1; ++i) {
-        xcenters.push_back((_x[i] + _x[i + 1]) / 2);
+    for (size_t i = 0; i < x_.size() - 1; ++i) {
+        xcenters.push_back((x_[i] + x_[i + 1]) / 2);
     }
-    for (size_t j = 0; j < _y.size() - 1; ++j) {
-        ycenters.push_back((_y[j] + _y[j + 1]) / 2);
+    for (size_t j = 0; j < y_.size() - 1; ++j) {
+        ycenters.push_back((y_[j] + y_[j + 1]) / 2);
     }
     size_t i_begin = std::upper_bound(xcenters.begin(), xcenters.end(), bot_left.x()) - xcenters.begin();
     size_t i_end = std::upper_bound(xcenters.begin(), xcenters.end(), top_right.x()) - xcenters.begin();
@@ -280,43 +270,43 @@ void RegularGrid2D::deactivate_cells(Point bot_left, Point top_right) {
 
     for (size_t i = i_begin; i < i_end; ++i)
         for (size_t j = j_begin; j < j_end; ++j) {
-            _actnum[i + j * nx()] = 0;
+            actnum_[i + j * nx()] = 0;
         }
     set_face_types();
 }
 
-const std::vector<char> &RegularGrid2D::actnum() const {
-    return _actnum;
+const std::vector<char>& RegularGrid2D::actnum() const {
+    return actnum_;
 }
 
 RegularGrid2D::FaceType RegularGrid2D::yface_type(size_t yface_index) const {
-    return _yface_types[yface_index];
+    return yface_types_[yface_index];
 }
 
 RegularGrid2D::FaceType RegularGrid2D::xface_type(size_t xface_index) const {
-    return _xface_types[xface_index];
+    return xface_types_[xface_index];
 }
 
-const std::vector<RegularGrid2D::split_index_t> &RegularGrid2D::boundary_xfaces() const {
-    return _boundary_xfaces;
+const std::vector<RegularGrid2D::split_index_t>& RegularGrid2D::boundary_xfaces() const {
+    return boundary_xfaces_;
 }
 
-const std::vector<RegularGrid2D::split_index_t> &RegularGrid2D::boundary_yfaces() const {
-    return _boundary_yfaces;
+const std::vector<RegularGrid2D::split_index_t>& RegularGrid2D::boundary_yfaces() const {
+    return boundary_yfaces_;
 }
 
 void RegularGrid2D::set_face_types() {
     // ==== yfaces;
-    _yface_types.resize((nx() + 1) * ny(), FaceType::Internal);
-    _boundary_yfaces.clear();
+    yface_types_.resize((nx() + 1) * ny(), FaceType::Internal);
+    boundary_yfaces_.clear();
     // left/right boundary
     for (size_t j = 0; j < ny(); ++j) {
         size_t ind_left = yface_grid_index_i_jp(0, j);
         size_t ind_right = yface_grid_index_i_jp(nx(), j);
-        _yface_types[ind_left] = FaceType::Boundary;
-        _yface_types[ind_right] = FaceType::Boundary;
-        _boundary_yfaces.push_back({0, j});
-        _boundary_yfaces.push_back({nx(), j});
+        yface_types_[ind_left] = FaceType::Boundary;
+        yface_types_[ind_right] = FaceType::Boundary;
+        boundary_yfaces_.push_back({0, j});
+        boundary_yfaces_.push_back({nx(), j});
     }
     // internal faces
     for (size_t i = 1; i < nx(); ++i)
@@ -329,23 +319,23 @@ void RegularGrid2D::set_face_types() {
             if (active_left && active_right) {
                 // pass
             } else if (!active_left && !active_right) {
-                _yface_types[face_index] = FaceType::Deactivated;
+                yface_types_[face_index] = FaceType::Deactivated;
             } else {
-                _yface_types[face_index] = FaceType::Boundary;
-                _boundary_yfaces.push_back({i, j});
+                yface_types_[face_index] = FaceType::Boundary;
+                boundary_yfaces_.push_back({i, j});
             }
         }
     // ==== xfaces;
-    _xface_types.resize((ny() + 1) * nx(), FaceType::Internal);
-    _boundary_xfaces.clear();
+    xface_types_.resize((ny() + 1) * nx(), FaceType::Internal);
+    boundary_xfaces_.clear();
     // top/bot boundary
     for (size_t i = 0; i < nx(); ++i) {
         size_t ind_bot = xface_grid_index_ip_j(i, 0);
         size_t ind_top = xface_grid_index_ip_j(i, ny());
-        _xface_types[ind_bot] = FaceType::Boundary;
-        _xface_types[ind_top] = FaceType::Boundary;
-        _boundary_xfaces.push_back({i, 0});
-        _boundary_xfaces.push_back({i, ny()});
+        xface_types_[ind_bot] = FaceType::Boundary;
+        xface_types_[ind_top] = FaceType::Boundary;
+        boundary_xfaces_.push_back({i, 0});
+        boundary_xfaces_.push_back({i, ny()});
     }
     // internal faces
     for (size_t i = 0; i < nx(); ++i)
@@ -358,10 +348,10 @@ void RegularGrid2D::set_face_types() {
             if (active_bot && active_top) {
                 // pass
             } else if (!active_bot && !active_top) {
-                _xface_types[face_index] = FaceType::Deactivated;
+                xface_types_[face_index] = FaceType::Deactivated;
             } else {
-                _xface_types[face_index] = FaceType::Boundary;
-                _boundary_xfaces.push_back({i, j});
+                xface_types_[face_index] = FaceType::Boundary;
+                boundary_xfaces_.push_back({i, j});
             }
         }
 }

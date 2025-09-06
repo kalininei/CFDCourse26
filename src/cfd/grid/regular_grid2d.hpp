@@ -40,7 +40,7 @@ public:
      *
      * The resulting number of points in the grid will be `x.size()*y.size()`
      */
-    RegularGrid2D(const std::vector<double> &x, const std::vector<double> &y);
+    RegularGrid2D(const std::vector<double>& x, const std::vector<double>& y);
 
     double Lx() const;
     double Ly() const;
@@ -129,7 +129,7 @@ public:
     /**
      * @brief actnum vector for cells
      */
-    const std::vector<char> &actnum() const;
+    const std::vector<char>& actnum() const;
 
     enum struct FaceType {
         Internal,
@@ -139,8 +139,8 @@ public:
 
     FaceType yface_type(size_t yface_index) const;
     FaceType xface_type(size_t xface_index) const;
-    const std::vector<split_index_t> &boundary_yfaces() const;
-    const std::vector<split_index_t> &boundary_xfaces() const;
+    const std::vector<split_index_t>& boundary_yfaces() const;
+    const std::vector<split_index_t>& boundary_xfaces() const;
 
     // overridden methods
     size_t n_points() const override;
@@ -160,13 +160,13 @@ public:
     void save_vtk(std::string fname) const override;
 
 private:
-    std::vector<double> _x;
-    std::vector<double> _y;
-    std::vector<char> _actnum;
-    std::vector<FaceType> _yface_types;
-    std::vector<FaceType> _xface_types;
-    std::vector<split_index_t> _boundary_xfaces;
-    std::vector<split_index_t> _boundary_yfaces;
+    std::vector<double> x_;
+    std::vector<double> y_;
+    std::vector<char> actnum_;
+    std::vector<FaceType> yface_types_;
+    std::vector<FaceType> xface_types_;
+    std::vector<split_index_t> boundary_xfaces_;
+    std::vector<split_index_t> boundary_yfaces_;
 
     void set_face_types();
 };

@@ -17,6 +17,6 @@ set (HEADERS
 
 add_executable(cfd26_test ${SRC} ${HEADERS})
 target_link_libraries(cfd26_test PRIVATE ${CFD_TARGET})
-target_include_directories(cfd26_test PRIVATE ${catch_SOURCE_DIR}/single_include/)
+target_link_libraries(cfd26_test PRIVATE Catch2::Catch2)
 target_include_directories(cfd26_test PRIVATE ${CMAKE_SOURCE_DIR}/src/test)
 target_compile_definitions(cfd26_test PUBLIC TEST_DIRECTORY="${CMAKE_SOURCE_DIR}/test_data/")

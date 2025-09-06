@@ -1,29 +1,28 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 RUN apt-get update
-RUN apt-get install -y \
-    gcc \
-    g++ \
-    gdb \
-    valgrind \
-    libboost-all-dev \
-    openmpi-bin \
-    libopenmpi-dev \
-    git \
-    python3 \
-    python3-pip \
-    libfmt-dev \
-    libtbb-dev \
-    mc
-RUN apt-get install -y catch2  cmake
-RUN apt-get install -y vim curl wget sudo 
+RUN apt-get install -y gcc-14  g++-14 cmake gdb valgrind
+RUN apt-get install -y libboost-dev
+RUN apt-get install -y openmpi-bin libopenmpi-dev
+RUN apt-get install -y git
+RUN apt-get install -y python3 python3-pip
+RUN apt-get install -y libfmt-dev libtbb-dev catch2
+RUN apt-get install -y mc vim curl wget sudo 
 RUN apt-get install -y clang-format clang-tidy clangd
 
-RUN groupadd -g 1000 user && \
-    useradd -u 1000 -g 1000 -m -s /bin/bash user && \
-    echo "user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
-    echo "Set disable_coredump false" >> /etc/sudo.conf
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100 && \
+    update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-14 100
+
+RUN usermod -l user ubuntu && \
+    groupmod -n user ubuntu && \
+    usermod -d /home/user -m user && \
+    echo "user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 USER user
-WORKDIR /app
+
+RUN echo 'export CC=/usr/bin/gcc-14' >> /home/user/.bashrc
+RUN echo 'export CXX=/usr/bin/g++-14' >> /home/user/.bashrc 
+
+#WORKDIR /app
 CMD tail -f /dev/null

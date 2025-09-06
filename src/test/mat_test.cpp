@@ -71,10 +71,7 @@ TEST_CASE("Block matrix", "[block_matrix]") {
     // [1, *, *]
     // [*, 3, 1]
     // [1, *, 3]
-    CsrMatrix M1(
-        {0, 1, 3, 5},
-        {0, 1, 2, 0, 2},
-        {1, 3, 1, 1, 3});
+    CsrMatrix M1({0, 1, 3, 5}, {0, 1, 2, 0, 2}, {1, 3, 1, 1, 3});
 
     {
         CsrMatrix r = assemble_block_matrix(3, 3, {{&M1}});

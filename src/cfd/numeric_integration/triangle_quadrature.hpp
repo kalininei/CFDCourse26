@@ -5,12 +5,12 @@
 
 namespace cfd {
 
-const Quadrature *quadrature_triangle_gauss1();
-const Quadrature *quadrature_triangle_gauss2();
-const Quadrature *quadrature_triangle_gauss3();
-const Quadrature *quadrature_triangle_gauss4();
-const Quadrature *quadrature_triangle_gauss5();
-const Quadrature *quadrature_triangle_gauss6();
+const Quadrature* quadrature_triangle_gauss1();
+const Quadrature* quadrature_triangle_gauss2();
+const Quadrature* quadrature_triangle_gauss3();
+const Quadrature* quadrature_triangle_gauss4();
+const Quadrature* quadrature_triangle_gauss5();
+const Quadrature* quadrature_triangle_gauss6();
 
 } // namespace cfd
 #endif

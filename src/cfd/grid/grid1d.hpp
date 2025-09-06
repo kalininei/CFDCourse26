@@ -37,7 +37,7 @@ public:
     void save_vtk(std::string fname) const override;
 
 private:
-    std::vector<Point> _points;
+    std::vector<Point> points_;
 };
 
 } // namespace cfd

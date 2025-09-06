@@ -19,7 +19,7 @@ void UnstructuredGrid2D::Cache::clear() {
     tab_cell_face.clear();
 }
 
-void UnstructuredGrid2D::Cache::need_cell_centers(const UnstructuredGrid2D &grid) {
+void UnstructuredGrid2D::Cache::need_cell_centers(const UnstructuredGrid2D& grid) {
     if (cell_centers.size() > 0) {
         return;
     }
@@ -27,7 +27,7 @@ void UnstructuredGrid2D::Cache::need_cell_centers(const UnstructuredGrid2D &grid
         double sum_area = 0;
         double sum_x = 0;
         double sum_y = 0;
-        const auto &cp = grid.tab_cell_point(icell);
+        const auto& cp = grid.tab_cell_point(icell);
         Point p0 = grid.point(cp[0]);
         for (size_t i = 1; i < cp.size() - 1; ++i) {
             Point p1 = grid.point(cp[i]);
@@ -44,11 +44,11 @@ void UnstructuredGrid2D::Cache::need_cell_centers(const UnstructuredGrid2D &grid
     }
 }
 
-void UnstructuredGrid2D::Cache::need_cell_volumes(const UnstructuredGrid2D &grid) {
+void UnstructuredGrid2D::Cache::need_cell_volumes(const UnstructuredGrid2D& grid) {
     return need_cell_centers(grid);
 }
 
-void UnstructuredGrid2D::Cache::need_face_normals(const UnstructuredGrid2D &grid) {
+void UnstructuredGrid2D::Cache::need_face_normals(const UnstructuredGrid2D& grid) {
     if (face_normals.size() > 0) {
         return;
     }
@@ -60,7 +60,7 @@ void UnstructuredGrid2D::Cache::need_face_normals(const UnstructuredGrid2D &grid
     }
 }
 
-void UnstructuredGrid2D::Cache::need_face_areas(const UnstructuredGrid2D &grid) {
+void UnstructuredGrid2D::Cache::need_face_areas(const UnstructuredGrid2D& grid) {
     if (face_areas.size() > 0) {
         return;
     }
@@ -72,7 +72,7 @@ void UnstructuredGrid2D::Cache::need_face_areas(const UnstructuredGrid2D &grid) 
     }
 }
 
-void UnstructuredGrid2D::Cache::need_tab_cell_face(const UnstructuredGrid2D &grid) {
+void UnstructuredGrid2D::Cache::need_tab_cell_face(const UnstructuredGrid2D& grid) {
     if (tab_cell_face.size() > 0) {
         return;
     }
@@ -92,14 +92,15 @@ void UnstructuredGrid2D::Cache::need_tab_cell_face(const UnstructuredGrid2D &gri
 // Unstructured Grid
 ///////////////////////////////////////////////////////////////////////////////
 
-UnstructuredGrid2D::UnstructuredGrid2D(const std::vector<Point> &points, const std::vector<std::vector<size_t>> &cell_point)
+UnstructuredGrid2D::UnstructuredGrid2D(const std::vector<Point>& points,
+                                       const std::vector<std::vector<size_t>>& cell_point)
     : _points(points), _cells(cell_point) {
     initialize();
 }
 
 namespace {
 
-std::vector<std::vector<size_t>> assemble_cell_point(const IGrid2D &grid) {
+std::vector<std::vector<size_t>> assemble_cell_point(const IGrid2D& grid) {
     std::vector<std::vector<size_t>> ret;
     for (size_t i = 0; i < grid.n_cells(); ++i) {
         ret.push_back(grid.tab_cell_point(i));
@@ -109,7 +110,7 @@ std::vector<std::vector<size_t>> assemble_cell_point(const IGrid2D &grid) {
 
 } // namespace
 
-UnstructuredGrid2D::UnstructuredGrid2D(const IGrid2D &grid)
+UnstructuredGrid2D::UnstructuredGrid2D(const IGrid2D& grid)
     : UnstructuredGrid2D(grid.points(), assemble_cell_point(grid)) {}
 
 void UnstructuredGrid2D::validate() {
@@ -134,7 +135,7 @@ void UnstructuredGrid2D::initialize() {
             std::swap(p0, p1);
         }
     }
-    auto sorter_less = [](const std::array<size_t, 3> &v1, const std::array<size_t, 3> &v2) -> bool {
+    auto sorter_less = [](const std::array<size_t, 3>& v1, const std::array<size_t, 3>& v2) -> bool {
         size_t min1 = std::min(v1[0], v1[1]);
         size_t max1 = std::max(v1[0], v1[1]);
         size_t min2 = std::min(v2[0], v2[1]);
@@ -151,7 +152,7 @@ void UnstructuredGrid2D::initialize() {
     };
     std::sort(point_point_cell.begin(), point_point_cell.end(), sorter_less);
 
-    auto add_face = [this](const std::array<size_t, 3> &v) {
+    auto add_face = [this](const std::array<size_t, 3>& v) {
         _face_points.push_back({v[0], v[1]});
         _face_cells.push_back({v[2], INVALID_INDEX});
     };
@@ -259,11 +260,10 @@ void UnstructuredGrid2D::save_vtk(std::string fname) const {
 namespace {
 
 struct ELineNotFound : public std::runtime_error {
-    ELineNotFound(std::string s)
-        : std::runtime_error(s + " line not found while reading input"){};
+    ELineNotFound(std::string s) : std::runtime_error(s + " line not found while reading input"){};
 };
 
-std::string get_line_by_start(std::string start, std::istream &is) {
+std::string get_line_by_start(std::string start, std::istream& is) {
     std::string line;
     while (is) {
         std::getline(is, line);
@@ -325,7 +325,7 @@ UnstructuredGrid2D UnstructuredGrid2D::vtk_read(std::string filename, bool silen
     }
 
     std::vector<std::vector<size_t>> cell_points;
-    int *cursor = &totals[0];
+    int* cursor = &totals[0];
     // assemble vtk cells
     for (int i = 0; i < n_cells; ++i) {
         int len = cursor[0];
@@ -342,10 +342,8 @@ UnstructuredGrid2D UnstructuredGrid2D::vtk_read(std::string filename, bool silen
         case 6:
             throw std::runtime_error("Triangle strips are not supported");
         case 8:
-            cell_points.push_back({(size_t)*cursor,
-                                   (size_t) * (cursor + 1),
-                                   (size_t) * (cursor + 3),
-                                   (size_t) * (cursor + 2)});
+            cell_points.push_back(
+                {(size_t)*cursor, (size_t) * (cursor + 1), (size_t) * (cursor + 3), (size_t) * (cursor + 2)});
             break;
         default:
             break;

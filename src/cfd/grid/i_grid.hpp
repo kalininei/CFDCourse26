@@ -93,8 +93,8 @@ private:
         std::vector<size_t> boundary_points;
 
         void clear();
-        void need_boundary_faces(const IGrid &grid);
-        void need_boundary_points(const IGrid &grid);
+        void need_boundary_faces(const IGrid& grid);
+        void need_boundary_points(const IGrid& grid);
     };
     mutable Cache _cache;
 };

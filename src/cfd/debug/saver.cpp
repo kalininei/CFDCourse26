@@ -9,7 +9,7 @@ namespace {
 const std::string dbg_vtk_filename = "dbg.vtk";
 const std::string dbg_vtk_cap = "data";
 
-void save_faces(const IGrid &grid) {
+void save_faces(const IGrid& grid) {
     std::vector<Point> points;
     for (size_t i = 0; i < grid.n_points(); ++i) {
         points.push_back(grid.point(i));
@@ -47,7 +47,7 @@ void save_faces(const IGrid &grid) {
         fs << types[i] << std::endl;
 }
 
-size_t save_extended_colloc(const IGrid &grid) {
+size_t save_extended_colloc(const IGrid& grid) {
     std::vector<Point> points;
     for (size_t i = 0; i < grid.n_points(); ++i) {
         points.push_back(grid.point(i));
@@ -105,37 +105,37 @@ size_t save_extended_colloc(const IGrid &grid) {
 
 } // namespace
 
-void cfd::dbg::save_point_data(const IGrid &grid, const std::vector<double> &data) {
+void cfd::dbg::save_point_data(const IGrid& grid, const std::vector<double>& data) {
     grid.save_vtk(dbg_vtk_filename);
     std::vector<double> d2(data.begin(), data.begin() + grid.n_points());
     VtkUtils::add_point_data(d2, dbg_vtk_cap, dbg_vtk_filename);
 }
 
-void cfd::dbg::save_cell_data(const IGrid &grid, const std::vector<double> &data) {
+void cfd::dbg::save_cell_data(const IGrid& grid, const std::vector<double>& data) {
     grid.save_vtk(dbg_vtk_filename);
     std::vector<double> d2(data.begin(), data.begin() + grid.n_cells());
     VtkUtils::add_cell_data(d2, dbg_vtk_cap, dbg_vtk_filename);
 }
 
-void cfd::dbg::save_extended_colloc_data(const IGrid &grid, const std::vector<double> &data) {
+void cfd::dbg::save_extended_colloc_data(const IGrid& grid, const std::vector<double>& data) {
     size_t n_colloc = save_extended_colloc(grid);
     std::vector<double> d2(data.begin(), data.begin() + n_colloc);
     VtkUtils::add_cell_data(d2, dbg_vtk_cap, dbg_vtk_filename);
 }
 
-void cfd::dbg::save_extended_colloc_data(const IGrid &grid, const double *data) {
+void cfd::dbg::save_extended_colloc_data(const IGrid& grid, const double* data) {
     size_t n_colloc = save_extended_colloc(grid);
     std::vector<double> d2(data, data + n_colloc);
     VtkUtils::add_cell_data(d2, dbg_vtk_cap, dbg_vtk_filename);
 }
 
-void cfd::dbg::save_face_data(const IGrid &grid, const std::vector<double> &data) {
+void cfd::dbg::save_face_data(const IGrid& grid, const std::vector<double>& data) {
     save_faces(grid);
     std::vector<double> d2(data.begin(), data.begin() + grid.n_faces());
     VtkUtils::add_cell_data(d2, dbg_vtk_cap, dbg_vtk_filename);
 }
 
-void cfd::dbg::save_cell_vector(const IGrid &grid, const std::vector<Vector> &vec) {
+void cfd::dbg::save_cell_vector(const IGrid& grid, const std::vector<Vector>& vec) {
     grid.save_vtk(dbg_vtk_filename);
     std::vector<Vector> d2(vec.begin(), vec.begin() + grid.n_cells());
     VtkUtils::add_cell_vector(d2, dbg_vtk_cap, dbg_vtk_filename);
