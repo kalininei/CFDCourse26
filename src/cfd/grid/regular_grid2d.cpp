@@ -5,12 +5,12 @@ using namespace cfd;
 
 RegularGrid2D::RegularGrid2D(double x0, double x1, double y0, double y1, size_t nx, size_t ny) {
     x_.push_back(x0);
-    double hx = (x1 - x0) / nx;
+    double hx = (x1 - x0) / (double)nx;
     for (size_t i = 0; i < nx; ++i) {
         x_.push_back(x_.back() + hx);
     }
     y_.push_back(y0);
-    double hy = (y1 - y0) / ny;
+    double hy = (y1 - y0) / (double)ny;
     for (size_t i = 0; i < ny; ++i) {
         y_.push_back(y_.back() + hy);
     }
@@ -193,7 +193,8 @@ auto RegularGrid2D::to_split_point_index(size_t ipoint) const -> split_index_t {
 size_t RegularGrid2D::cell_centered_grid_index_ip_jp(size_t i, size_t j) const {
     if (i >= x_.size() - 1 || j >= y_.size() - 1) {
         std::ostringstream oss;
-        oss << "Invalid RegularGrid2d::cell_centered_grid_index_ip_jp() arguments: ";
+        oss << "Invalid RegularGrid2d::cell_centered_grid_index_ip_jp() "
+               "arguments: ";
         oss << std::endl << "    ";
         oss << "i=" << i << ", j=" << j;
         throw std::runtime_error(oss.str());

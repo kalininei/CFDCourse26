@@ -5,7 +5,7 @@ using namespace cfd;
 
 Grid1D::Grid1D(double left, double right, size_t n_cells) {
     points_.push_back(Point(left));
-    double h = (right - left) / n_cells;
+    double h = (right - left) / (double)n_cells;
     for (size_t i = 0; i < n_cells; ++i) {
         points_.push_back(Point(points_.back()[0] + h));
     }
@@ -31,11 +31,11 @@ double Grid1D::cell_volume(size_t icell) const {
     return points_.at(icell + 1).x() - points_.at(icell).x();
 }
 
-Vector Grid1D::face_normal(size_t iface) const {
+Vector Grid1D::face_normal(size_t) const {
     return Vector(1.0, 0.0, 0.0);
 }
 
-double Grid1D::face_area(size_t iface) const {
+double Grid1D::face_area(size_t) const {
     return 1.0;
 }
 

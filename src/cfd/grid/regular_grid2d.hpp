@@ -8,10 +8,8 @@ namespace cfd {
 /**
  * @brief structured 2D quadraliteral grid with
  *
- * Fast indexing for points and cells goes along x dimension, so that the linear index equals
- * \f$
- * 	i = i_x + (n_x+1) i_y
- * \f$
+ * Fast indexing for points and cells goes along x dimension, so that the linear
+ * index equals \f$ i = i_x + (n_x+1) i_y \f$
  */
 class RegularGrid2D : public IGrid2D {
 public:
@@ -46,7 +44,8 @@ public:
     double Ly() const;
 
     /**
-     * @brief Builds grid with its points located in the centers of this grid cells
+     * @brief Builds grid with its points located in the centers of this grid
+     * cells
      */
     RegularGrid2D cell_centered_grid() const;
 
@@ -77,7 +76,8 @@ public:
     split_index_t to_split_point_index(size_t ipoint) const;
 
     /**
-     * @brief builds linear index for [i+1/2, j+1/2] point in the cell_centered grid.
+     * @brief builds linear index for [i+1/2, j+1/2] point in the cell_centered
+     * grid.
      *
      * @param i  x-index
      * @param j  y-index

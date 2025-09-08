@@ -8,7 +8,8 @@ namespace cfd {
 class UnstructuredGrid2D : public IGrid2D {
 public:
     /**
-     * @brief Builds unstructured 2d grid using points table and cell_point connectivity
+     * @brief Builds unstructured 2d grid using points table and cell_point
+     * connectivity
      *
      * @param points      points vector
      * @param cell_point  cell_point connectivity in counter_clockwise direction

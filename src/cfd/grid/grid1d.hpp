@@ -5,18 +5,9 @@
 
 namespace cfd {
 
-/**
- * @brief 1D grid with ordered points
- */
+// 1D grid with ordered points
 class Grid1D : public IGrid1D {
 public:
-    /**
-     * Builds regular equidistant 1d grid
-     *
-     * @param left     left boundary
-     * @param right    right boundary
-     * @param n_cells  number of cells
-     */
     Grid1D(double left, double right, size_t n_cells);
 
     // overridden methods

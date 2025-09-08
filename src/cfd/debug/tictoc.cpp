@@ -192,11 +192,6 @@ TicToc::TicToc(std::string name, bool start) : name_(name), is_working_(start), 
         tic();
 }
 
-void TicToc::init() {
-    dur_ = duration_t::zero();
-    tp_ = hr_clock_t::now();
-}
-
 void TicToc::tic() {
     if (!is_working_) {
         is_working_ = true;

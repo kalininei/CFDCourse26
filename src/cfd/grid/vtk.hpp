@@ -21,7 +21,8 @@ struct VtkUtils {
      * @param data      data vector
      * @param data_cap  data caption as it should appear in vtk
      * @param fname     file name of saved vtk grid
-     * @param ndata     length of data vector. If =0 uses data.size() as its length
+     * @param ndata     length of data vector. If =0 uses data.size() as its
+     * length
      */
     static void add_cell_data(const std::vector<double>& data, std::string data_cap, std::string fname,
                               size_t ndata = 0);
@@ -31,7 +32,8 @@ struct VtkUtils {
      * @param data      data vector
      * @param data_cap  data caption as it should appear in vtk
      * @param fname     saved vtk file name
-     * @param ndata     length of data vector. If =0 uses data.size() as its length
+     * @param ndata     length of data vector. If =0 uses data.size() as its
+     * length
      */
     static void add_cell_vector(const std::vector<Vector>& data, std::string data_cap, std::string fname,
                                 size_t ndata = 0);
@@ -65,7 +67,8 @@ struct VtkUtils {
      * @param data      data vector
      * @param data_cap  data caption as it should appear in vtk
      * @param fname     saved vtk file name
-     * @param ndata     length of data vector. If =0 uses data.size() as its length
+     * @param ndata     length of data vector. If =0 uses data.size() as its
+     * length
      */
     static void add_point_data(const std::vector<double>& data, std::string data_cap, std::string fname,
                                size_t ndata = 0);
@@ -75,7 +78,8 @@ struct VtkUtils {
      * @param data      data vector
      * @param data_cap  data caption as it should appear in vtk
      * @param fname     saved vtk file name
-     * @param ndata     length of data vector. If =0 uses data.size() as its length
+     * @param ndata     length of data vector. If =0 uses data.size() as its
+     * length
      */
     static void add_point_vector(const std::vector<Vector>& data, std::string data_cap, std::string fname,
                                  size_t ndata = 0);
@@ -122,12 +126,12 @@ struct VtkUtils {
         /**
          * @brief adds new time point to the series file
          * @param   tm time point value
-         * @returns file name in <stem> directory or empty string if the given time point is
-         *          not valid for save due to the time step condition
+         * @returns file name in <stem> directory or empty string if the given time
+         * point is not valid for save due to the time step condition
          *
-         * This function only makes a record in the series file but does not create vtk file with
-         * instant data in the "<stem>" directory. The latter should be done manually using
-         * the returned filename.
+         * This function only makes a record in the series file but does not create
+         * vtk file with instant data in the "<stem>" directory. The latter should
+         * be done manually using the returned filename.
          */
         std::string add(double tm);
 
@@ -136,9 +140,10 @@ struct VtkUtils {
          * @param tm_step step value
          *
          * Default step value is zero, that will make saving for each time point.
-         * If non zero value is set as a step then time save points will be calculated
-         * only a single time point will be chosen for [N*tm_step-eps, (N+1)*tm_step] time period.
-         * TimeDependentWriter::add() calls with ignored time points will return empty strings.
+         * If non zero value is set as a step then time save points will be
+         * calculated only a single time point will be chosen for [N*tm_step-eps,
+         * (N+1)*tm_step] time period. TimeDependentWriter::add() calls with ignored
+         * time points will return empty strings.
          */
         void set_time_step(double tm_step, double eps = 1e-6);
 

@@ -65,15 +65,15 @@ bool CsrStencil::is_in_stencil(size_t irow, size_t icol) const {
     return false;
 }
 
-double CsrStencil::value(size_t irow, size_t icol) const {
+double CsrStencil::value(size_t, size_t) const {
     throw std::runtime_error("CsrStencil has no values");
 }
 
-std::vector<double> CsrStencil::mult_vec_p(const double* u) const {
+std::vector<double> CsrStencil::mult_vec_p(const double*) const {
     throw std::runtime_error("CsrStencil has no values");
 }
 
-double CsrStencil::mult_vec_p(size_t irow, const double* u) const {
+double CsrStencil::mult_vec_p(size_t, const double*) const {
     throw std::runtime_error("CsrStencil has no values");
 }
 

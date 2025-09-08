@@ -70,7 +70,8 @@ public:
      * The first returned cell index corresponds to negative face side, and
      * the second - to positive. Positive face side lies towards face normal.
      *
-     * If this is a boundary face then the respective cell index will be equal to INVALID_INDEX.
+     * If this is a boundary face then the respective cell index will be equal to
+     * INVALID_INDEX.
      */
     virtual std::array<size_t, 2> tab_face_cell(size_t iface) const = 0;
 

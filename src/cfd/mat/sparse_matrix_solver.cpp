@@ -18,7 +18,8 @@ public:
         amgcl::amg<backend_t, amgcl::runtime::coarsening::wrapper, amgcl::runtime::relaxation::wrapper>,
         amgcl::runtime::solver::wrapper<backend_t>>;
 
-    Impl(matrix_t mat, param_t param) : solver_(mat, param), dim_(mat.nrows), maxit_(param.get("solver.maxiter", -1)) {}
+    Impl(matrix_t mat, param_t param)
+        : solver_(mat, param), dim_((int)mat.nrows), maxit_(param.get("solver.maxiter", -1)) {}
 
     void solve(const std::vector<double>& rhs, std::vector<double>& x) const {
         x.resize(dim_, 0);
@@ -31,8 +32,9 @@ public:
                 throw std::runtime_error("Sparse matrix solver got NaN");
             }
             std::ostringstream os;
-            os << "WARNING: Sparse matrix solution failed to converge with tolerance: " << std::scientific
-               << std::setprecision(2) << err << std::endl;
+            os << "WARNING: Sparse matrix solution failed to converge with "
+                  "tolerance: "
+               << std::scientific << std::setprecision(2) << err << std::endl;
             std::cout << os.str();
         }
     }

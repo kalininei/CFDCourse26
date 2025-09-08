@@ -10,6 +10,8 @@ services:
       - .:/app
       - ./.vscode-server:/home/user/.vscode-server
     working_dir: /app
+    environment:
+      - TZ=Europe/Moscow
     tty: true
     stdin_open: true
     restart: unless-stopped

@@ -27,29 +27,29 @@ std::vector<size_t> find_strings_in_stream(std::string fname, const std::vector<
     return ret;
 }
 
-std::ostream& vtk_string(std::ostream& os, const Point& p) {
-    os << p[0] << " " << p[1] << " " << p[2];
-    return os;
-}
-
-std::ostream& vtk_string(std::ostream& s, double v) {
-    s << v;
-    return s;
-}
-
-std::ostream& vtk_string(std::ostream& s, const std::vector<double>& v) {
-    for (double d : v) {
-        s << d << std::endl;
-    }
-    return s;
-}
-
-std::ostream& vtk_string(std::ostream& s, const std::vector<Vector>& v) {
-    for (Vector d : v) {
-        s << d[0] << " " << d[1] << " " << d[2] << std::endl;
-    }
-    return s;
-}
+// std::ostream& vtk_string(std::ostream& os, const Point& p) {
+//     os << p[0] << " " << p[1] << " " << p[2];
+//     return os;
+// }
+//
+// std::ostream& vtk_string(std::ostream& s, double v) {
+//     s << v;
+//     return s;
+// }
+//
+// std::ostream& vtk_string(std::ostream& s, const std::vector<double>& v) {
+//     for (double d : v) {
+//         s << d << std::endl;
+//     }
+//     return s;
+// }
+//
+// std::ostream& vtk_string(std::ostream& s, const std::vector<Vector>& v) {
+//     for (Vector d : v) {
+//         s << d[0] << " " << d[1] << " " << d[2] << std::endl;
+//     }
+//     return s;
+// }
 
 std::ostream& vtk_string(std::ostream& s, std::vector<double>::const_iterator v, size_t ndata) {
     for (size_t i = 0; i < ndata; ++i) {

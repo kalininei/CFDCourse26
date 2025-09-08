@@ -8,7 +8,7 @@ RUN apt-get install -y git
 RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y libfmt-dev libtbb-dev catch2
 RUN apt-get install -y mc vim curl wget sudo 
-RUN apt-get install -y clang-format clang-tidy clangd
+RUN apt-get install -y clang-format
 RUN apt-get install -y iputils-ping
 
 RUN pip3 install --break-system-packages --no-cache-dir black

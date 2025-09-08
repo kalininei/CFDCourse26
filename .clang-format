@@ -22,3 +22,6 @@ UseTab: Never
 AllowShortFunctionsOnASingleLine: Empty
 PointerAlignment: Left
 DerivePointerAlignment: false
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: 1

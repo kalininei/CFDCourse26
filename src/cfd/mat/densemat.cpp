@@ -71,10 +71,10 @@ double DenseMatrix::value(size_t irow, size_t icol) const {
     return data_[irow * ncols_ + icol];
 }
 
-std::vector<double> DenseMatrix::mult_vec_p(const double* u) const {
+std::vector<double> DenseMatrix::mult_vec_p(const double*) const {
     _THROW_NOT_IMP_;
 }
 
-double DenseMatrix::mult_vec_p(size_t irow, const double* u) const {
+double DenseMatrix::mult_vec_p(size_t, const double*) const {
     _THROW_NOT_IMP_;
 }
