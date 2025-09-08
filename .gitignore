@@ -1,8 +1,10 @@
 build*/
 */__pycache__/
 tmp_data/
+.vscode-server/
 ~*
 *.swp
 *.swo
+*.kate-swp
 a.gdb
 .syntastic_cpp_config_file
