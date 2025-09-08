@@ -8,14 +8,9 @@ services:
     container_name: cfd26
     volumes:
       - .:/app
+      - ./.vscode-server:/home/user/.vscode-server
     working_dir: /app
     tty: true
     stdin_open: true
     restart: unless-stopped
     user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
-    networks:
-      - dev-net
-
-networks:
-  dev-net:
-    driver: bridge
