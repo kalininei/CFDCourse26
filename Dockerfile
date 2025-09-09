@@ -10,6 +10,7 @@ RUN apt-get install -y libfmt-dev libtbb-dev catch2
 RUN apt-get install -y mc vim curl wget sudo 
 RUN apt-get install -y clang-format
 RUN apt-get install -y iputils-ping
+RUN apt-get install -y rsync
 
 RUN pip3 install --break-system-packages --no-cache-dir black
 RUN pip3 install --break-system-packages --no-cache-dir cmake-format
@@ -31,4 +32,4 @@ RUN echo 'export CXX=/usr/bin/g++-14' >> /home/user/.bashrc
 RUN mkdir -p /home/user/.vscode-server
 
 WORKDIR /app
-CMD tail -f /dev/null
+CMD /app/scripts/init/init_container.sh

@@ -57,10 +57,10 @@ TEST_CASE("RegularGrid2d-nonuniform", "[reggrid2-nonuni]") {
     CHECK(grid.face_center(13).y() == Approx(-5.5));
     CHECK(grid.face_center(16).x() == Approx(16));
     CHECK(grid.face_center(16).y() == Approx(-5.5));
-    CHECK(grid.face_normal(4).x() == 0.0);
-    CHECK(grid.face_normal(4).y() == 1.0);
-    CHECK(grid.face_normal(10).x() == 1.0);
-    CHECK(grid.face_normal(10).y() == 0.0);
+    CHECK(grid.face_normal(4).x() == Approx(0.0));
+    CHECK(grid.face_normal(4).y() == Approx(1.0));
+    CHECK(grid.face_normal(10).x() == Approx(1.0));
+    CHECK(grid.face_normal(10).y() == Approx(0.0));
     CHECK(grid.face_area(6) == Approx(2));
     CHECK(grid.face_area(12) == Approx(2));
 }
@@ -84,10 +84,10 @@ TEST_CASE("UnstructuredGrid2d", "[unstructured-grid2]") {
     CHECK(ugrid.face_center(8).y() == Approx(-5.5));
     CHECK(ugrid.face_center(13).x() == Approx(16));
     CHECK(ugrid.face_center(13).y() == Approx(-5.5));
-    CHECK(ugrid.face_normal(9).x() == 0.0);
-    CHECK(ugrid.face_normal(9).y() == -1.0);
-    CHECK(ugrid.face_normal(3).x() == 1.0);
-    CHECK(ugrid.face_normal(3).y() == 0.0);
+    CHECK(ugrid.face_normal(9).x() == Approx(0.0));
+    CHECK(ugrid.face_normal(9).y() == Approx(-1.0));
+    CHECK(ugrid.face_normal(3).x() == Approx(1.0));
+    CHECK(ugrid.face_normal(3).y() == Approx(0.0));
     CHECK(ugrid.face_area(14) == Approx(2));
     CHECK(ugrid.face_area(6) == Approx(2));
 }

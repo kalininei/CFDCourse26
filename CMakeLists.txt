@@ -7,9 +7,8 @@ set(CMAKE_CXX_STANDARD 20)
 include(FetchContent)
 
 add_compile_options(
-#  $<$<CONFIG:Release>:-Werror>
-#  $<$<CONFIG:Debug>:-Wno-error>
-#  $<$<CONFIG:RelWithDebInfo>:-Werror>
+  # $<$<CONFIG:Release>:-Werror> $<$<CONFIG:Debug>:-Wno-error>
+  # $<$<CONFIG:RelWithDebInfo>:-Werror>
   -Werror
   -Wall
   -Wextra
@@ -24,13 +23,12 @@ add_compile_options(
   -Wzero-as-null-pointer-constant
   -Wsuggest-override
   -Wshadow
-#  -Wfloat-equal
+  -Wfloat-equal
   -Wcast-qual
   -Wlogical-op
   -Wcast-align
-#  -Wold-style-cast
-  -Wmissing-field-initializers
-)
+  # -Wold-style-cast
+  -Wmissing-field-initializers)
 
 # Boost search paths
 find_package(Boost REQUIRED)

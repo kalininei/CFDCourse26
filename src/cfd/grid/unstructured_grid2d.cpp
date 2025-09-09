@@ -301,7 +301,7 @@ UnstructuredGrid2D UnstructuredGrid2D::vtk_read(std::string filename, bool silen
     double z;
     for (int i = 0; i < n_points; ++i) {
         ifs >> points[i].x() >> points[i].y() >> z;
-        if (z != 0) {
+        if (std::abs(z) > 0) {
             throw std::runtime_error("Z-coordinate for 2d grids should be zero");
         }
     }
