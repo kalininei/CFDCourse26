@@ -1,0 +1,14 @@
+*.aux
+*.backup
+*.toc
+*.bbl
+*.blg
+*.log
+*.out
+*.brf
+*.pytxcode
+*.pdf
+*.tmp
+__pycache__
+_minted-cfd_course*
+pythontex-files-cfd_course*

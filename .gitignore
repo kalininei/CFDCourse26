@@ -1,7 +1,9 @@
 build*/
 */__pycache__/
+local_data/
 tmp_data/
 .vscode-server/
+.vscode/
 ~*
 *.swp
 *.swo

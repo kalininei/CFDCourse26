@@ -1,0 +1,60 @@
+\newcommand{\Ren}{\mathrm{Re}}
+\newcommand{\Pen}{\mathrm{Pe}}
+\newcommand{\Nun}{\mathrm{Nu}}
+\renewcommand{\vec}[1]{\boldsymbol{\rm #1}}
+\newcommand{\tensor}[1]{\boldsymbol{\overline{\rm #1}}}
+\newcommand{\dfr}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\dfrq}[2]{\frac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\ddfr}[2]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\ddfrq}[2]{\dfrac{\partial^2 #1}{\partial #2^2}}
+\newcommand{\sfrac}[2]{\left.#1\middle/#2\right.}
+\newcommand{\dsfr}[2]{\left.\partial #1\middle/\partial#2\right.}
+\newcommand{\FL}[2]{#1\cdot10^{#2}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\hence}{\quad\Rightarrow\quad}
+\newcommand{\imi}{\mathbf{i}}
+\newcommand{\upx}[1]{{\mathrm{upx}\left[#1\right]}}
+\newcommand{\upy}[1]{{\mathrm{upy}\left[#1\right]}}
+\definecolor{ename-color}{rgb}{0.9, 0.9, 0.9}
+\newcommand\lword[1]{\leavevmode\nobreak\hskip0pt plus\linewidth\penalty50\hskip0pt plus-\linewidth\nobreak#1}
+\newcommand{\ename}[1]{\lword\colorbox{ename-color}{\Verb!#1!}}
+\newcommand{\cvar}[1]{\lword\mintinline{text}{#1}}
+\newcommand{\figref}[1]{рис.~\ref{#1}}
+\newenvironment{shelloutput}%
+  {\VerbatimEnvironment
+    \begin{mdframed}[backgroundcolor=beige]
+    \begin{Verbatim}}
+  {\end{Verbatim}%
+    \end{mdframed}}
+\newcommand{\dt}{\triangle t}
+\newcommand{\pluseq}{{{+}{=}}}
+\newcommand{\minuseq}{{{-}{=}}}
+\newcommand{\multeq}{{{*}{=}}}
+\newcommand{\sminus}{\text{-}}
+\newcommand{\arint}[3]{\displaystyle\int\limits_{#2}#1 \, d #3}
+\newcommand{\feint}[1]{\arint{#1}{\Omega}{\vec x}}
+\newcommand{\febint}[1]{\arint{#1}{\partial\Omega}{s}}
+\newcommand\vecangle[2]{
+  \setbox0=\hbox{$\!\vec{#1},\vec{#2}\!$}
+  \ht0=\dimexpr\ht0-1pt\relax
+  \widehat{\copy0}\,
+}
+\newcommand{\gvec}[1]{\left\{#1\right\}}
+\newcommand{\quo}[1]{``#1''}
+\newcommand{\const}{{\rm const}}
+\newcommand{\mat}[1]{{\rm #1}}
+
+\tcbset{
+  osstyle/.style={
+	colback=white,
+	colframe=lightgray,
+	coltitle=black,
+	boxsep=2pt,
+	arc=5pt,
+	width=0.95\textwidth,
+	title=Ubuntu,
+	fonttitle=\bfseries,
+	toptitle=3pt,
+	bottomtitle=3pt
+  },
+}

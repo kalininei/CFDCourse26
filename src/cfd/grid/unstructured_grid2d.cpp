@@ -260,7 +260,7 @@ void UnstructuredGrid2D::save_vtk(std::string fname) const {
 namespace {
 
 struct ELineNotFound : public std::runtime_error {
-    ELineNotFound(std::string s) : std::runtime_error(s + " line not found while reading input") {};
+    ELineNotFound(std::string s) : std::runtime_error(s + " line not found while reading input"){};
 };
 
 std::string get_line_by_start(std::string start, std::istream& is) {
@@ -343,7 +343,7 @@ UnstructuredGrid2D UnstructuredGrid2D::vtk_read(std::string filename, bool silen
             throw std::runtime_error("Triangle strips are not supported");
         case 8:
             cell_points.push_back(
-                {(size_t)*cursor, (size_t)*(cursor + 1), (size_t)*(cursor + 3), (size_t)*(cursor + 2)});
+                {(size_t)*cursor, (size_t) * (cursor + 1), (size_t) * (cursor + 3), (size_t) * (cursor + 2)});
             break;
         default:
             break;

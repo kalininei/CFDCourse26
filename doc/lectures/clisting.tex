@@ -1,0 +1,27 @@
+\usepackage{pythontex}
+\usepackage{minted}
+\definecolor{beige}{rgb}{0.96, 0.96, 0.86}
+
+\setminted{
+        bgcolor=beige,
+        linenos,
+        xleftmargin=0pt,
+        breaklines=true,
+        numbersep=2pt,
+        tabsize=2
+    }
+
+\begin{pycode}
+from clisting import *
+\end{pycode}
+
+\newcommand{\clisting}[2]{\pyc{clisting_func("#1", #2)}}
+
+\newenvironment{cppcode}
+  {
+    \VerbatimEnvironment%
+    \begin{minted}[linenos=false]{c++}%
+  }
+  {
+    \end{minted}%
+  }

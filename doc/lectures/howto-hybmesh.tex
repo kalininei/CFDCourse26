@@ -1,0 +1,80 @@
+\subsection{Hybmesh}
+\label{sec:hybmesh}
+
+Генератор сеток на основе композитного подхода.
+Работает на основе python-скрипотов.
+Полная документация \url{http://kalininei.github.io/HybMesh/index.html}
+
+\subsubsection{Работа в Windows}
+Инсталлятор программы следует скачать по ссылке
+\url{https://github.com/kalininei/HybMesh/releases}
+и установить стандартным образом.
+
+Для запуска скрипта построения \ename{script.py} нужно
+открыть консоль, перейти в папку с нужным скриптом,
+оттуда выполнить (при условии, что программа была установлена в папку \ename{C:\Program Files}):
+\begin{shelloutput}
+> "C:\Program Files\HybMesh\bin\hybmesh.exe" -sx script.py
+\end{shelloutput}
+
+\subsubsection{Работа в Linux}
+Версию для линукса нужно собирать из исходников.
+Либо, если собрать не получилось,
+можно строить сетки в Windows и переносить
+полученные vtk-файлы на рабочую систему. 
+
+Перед сборкой в систему необходимо установить dev-версии
+пакетов \ename{suitesparse} и \ename{libxml2}. Также 
+должны быть доступны компилляторы \ename{gcc-c++} и \ename{gcc-fortan} и \ename{cmake}.
+Программа работает со скиптами python2.
+Лучше установить среду anaconda (\url{https://docs.anaconda.com/free/anaconda/install/index.html})
+И в ней создать окружение c python-2.7:
+\begin{shelloutput}
+> conda create -n py27 python=2.7   # создать среду с именем py27
+> conda activate py27               # активировать среду py27
+> pip install decorator             # установить пакет decorator
+\end{shelloutput}
+
+Сначала следует склонировать репозиторий в папку с репозиториями гита:
+\begin{shelloutput}
+> cd D:/git_repos
+> git clone https://github.com/kalininei/HybMesh
+\end{shelloutput}
+
+Поскольку программа не предназначена для запуска из под анаконды,
+в сборочные скрипты нужно внести некоторые изменения.
+В корневом сборочном файле \ename{HybMesh/CMakeLists.txt} 
+нужно закомментировать все строки в диапазоне
+\begin{minted}[linenos=false]{text}
+# ========================== Python check
+....
+# ========================== Windows installer options
+\end{minted}
+а в файле \ename{HybMesh/src/CMakeLists.txt} последнюю строку
+\begin{minted}[linenos=false]{text}
+#add_subdirectory(bindings)
+\end{minted}
+
+Далее, находясь в корневой директории репозитория HybMesh, запустить сборку
+\begin{shelloutput}
+> mkdir build
+> cd build
+> cmake .. -DCMAKE_BUILD_TYPE=Release
+> make -j8
+> sudo make install
+\end{shelloutput}
+
+Для запуска скриптов нужно создать скрипт-прокладку
+\begin{minted}[linenos=false]{python}
+import sys
+sys.path.append("/path/to/HybMesh/src/py/")  # вставить полный путь к Hybmesh/src/py
+execfile(sys.argv[1])
+\end{minted}
+и сохранить его в любое место. Например в \ename{path/to/HybMesh/hybmesh.py}.
+
+Для запуска скрипта построения сетки следует перейти в папку, где находится нужный скрипт \ename{script.py},
+убедится, что анаконда работает в нужной среде (то есть \ename{conda activate py27} был вызван),
+и запустить
+\begin{shelloutput}
+> python /path/to/HybMesh/hybmesh.py script.py
+\end{shelloutput}

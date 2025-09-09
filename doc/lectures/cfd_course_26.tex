@@ -1,0 +1,73 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{float}%"Плавающие" картинки
+\usepackage{wrapfig}%Обтекание фигур (таблиц, картинок и прочего)
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage[T1, T2A]{fontenc}
+\usepackage[english, russian]{babel}
+\usepackage[left=1cm,right=1cm, top=1cm, bottom=2cm]{geometry}
+% Межстрочный интервал = 1.5pt
+\usepackage{setspace}
+\onehalfspacing
+% % Абзацный отступ = 1.25см
+%\usepackage{indentfirst}
+%\setlength\parindent{0mm}
+% Путь до папки с изображениями
+\graphicspath{ {../img/} }
+% listings
+\usepackage{minted}
+% Активные ссылки на формулы и лит-ру
+\usepackage[
+  colorlinks=true,
+  citecolor=blue,
+  linkcolor=blue,
+  linktoc=page,
+]{hyperref}
+\usepackage[all]{hypcap}
+\usepackage{makecell}
+
+% cleverref
+\usepackage{cleveref}
+\newcommand{\crefrangeconjunction}{~--~}
+\newcommand{\crefpairconjunction}{, }
+\newcommand{\creflastconjunction}{, }
+\crefname{equation}{}{}
+
+% enumeration
+\numberwithin{equation}{section}
+
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{cancel}
+\usepackage{tcolorbox}
+\include{latex_defs}
+\include{clisting}
+\include{sub3}
+
+\usepackage{tikz}
+\usetikzlibrary{calc, arrows.meta, bending, decorations.pathreplacing}
+\usepackage{witharrows}
+
+\begin{document}
+
+\newpage
+\tableofcontents
+\newpage
+
+\include{lect01}
+
+\appendix
+\section{Формулы и обозначения}
+\include{eq-vectors}
+\include{eq-partint}
+\include{eq-basis}
+\include{eq-geometry}
+
+\section{Работа с инфраструктурой проекта CFDCourse}
+\include{howto-build}
+\include{howto-git}
+\include{howto-paraview}
+\include{howto-hybmesh}
+
+\end{document}

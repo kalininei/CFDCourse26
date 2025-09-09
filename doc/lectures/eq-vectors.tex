@@ -1,0 +1,123 @@
+\subsection{Векторы}
+
+\subsubsection{Обозначение}
+
+Геометрические вектора обозначаются жирным шрифтом $\vec v$.
+Скалярные координаты вектора -- через нижний индекс с обозначением
+оси координат: $\left(v_x, v_y, v_z\right)$.
+Если вектор $\vec u$ -- вектор скорости, то его декартовые координаты
+имеют специальное обозначение $\vec u = \left(u, v, w\right)$.
+Единичные вектора, соответствующие осям координат, обозначаются 
+знаком $\hat\cdot$: $\vec{\hat x}$, $\vec{\hat y}$, $\vec{\hat z}$.
+Координатные векторы обозначаются по символу первой оси. Например, $\vec x = (x, y, z)$ или $\vec \xi = (\xi, \eta, \zeta)$.
+
+Операции в векторами имеют следующее обозначение (расписывая в декартовых координатах):
+\begin{itemize}
+\item
+Умножение на скалярную функцию
+\begin{equation}
+\label{eq:vec_scalar}
+f \vec u = (f u_x)\vec{\hat x} + (f u_y)\vec{\hat y} + (f u_z)\vec{\hat z};
+\end{equation}
+\item
+Скалярное произведение
+\begin{equation}
+\label{eq:vec_dot}
+\vec u \cdot \vec v = u_x v_x + u_y v_y + u_z v_z;
+\end{equation}
+\item
+Векторное произведение
+\begin{equation}
+\label{eq:vec_cross}
+\vec u\times\vec v = 
+\left|
+\begin{array}{ccc}
+\vec{\hat x} & \vec{\hat y} & \vec{\hat z} \\
+u_x & u_y & u_z \\
+v_x & v_y & v_z
+\end{array}
+\right| = 
+\left(u_y v_z - u_z v_y\right)\vec{\hat x} -
+\left(u_x v_z - u_z v_x\right)\vec{\hat y} +
+\left(u_x v_y - u_y v_x\right)\vec{\hat z}.
+\end{equation}
+
+\end{itemize}
+
+В двумерном случае можно считать, что $u_z = v_z = 0$.
+Тогда результатом векторного произведения согласно \cref{eq:vec_cross} 
+будет вектор, направленный перпендикулярно плоскости $xy$:
+$$
+\vec u \times \vec v = (u_x v_y - u_y v_x)\vec{\hat z}.
+$$
+При работе с двумерными задачами, где ось $\vec z$ отсутствует,
+обычно результатом векторного произведения считают скаляр
+\begin{equation}
+\label{eq:vec_cross_2d}
+2D: \; \vec u \times \vec v = u_x v_y - u_y v_x.
+\end{equation}
+Геометрический смысл этого скаляра: площадь
+параллелограмма, построенного на векторах $\vec u$ и $\vec v$.
+
+
+\subsubsection{Набла--нотация}
+
+Символ $\nabla$ -- есть псевдовектор, который выражает
+покоординатные производные.
+Для декартовой системы координат $(x, y, z)$ он запишется в виде
+$$
+\nabla = \left( \dfr{}{x}, \; \dfr{}{y}, \; \dfr{}{z} \right).
+$$
+В радиальной $(r, \phi, z)$:
+$$
+\nabla = \left( \dfr{}{r}, \; \frac{1}{r}\dfr{}{\phi}, \; \dfr{}{z} \right).
+$$
+В цилиндрической $(r, \theta, \phi)$:
+$$
+\nabla = \left( \dfr{}{r}, \; \frac{1}{r}\dfr{}{\theta}, \; \frac{1}{r\sin\theta}\dfr{}{\phi} \right).
+$$
+Удобство записи дифференциальных выражений с использованием $\nabla$ заключается в независимости записи от
+вида системы координат.
+Но если требуется обозначить производную по конкретной координате,
+то, по аналогии с обычными векторами, это делается через нижний индекс:
+$$
+\nabla_n f = \dfr{f}{n}.
+$$
+
+Для этого символа справедливы все векторные операции, описанные ранее.
+Так, применение $\nabla$ к скалярной функции аналогично умножению вектора
+на скаляр \cref{eq:vec_scalar} (здесь и далее приводятся покоординатные выражения для декартовой системы):
+\begin{equation}
+\label{eq:del_grad}
+\nabla f  = \left(\nabla_x f, \; \nabla_y f, \; \nabla_z f\right) = \dfr{f}{x}\vec{\hat x} + \dfr{f}{y}\vec{\hat y} + \dfr{f}{z}\vec{\hat z}.
+\end{equation}
+Результатом этой операции является вектор.
+
+Скалярное умножение $\nabla$ на вектор $\vec v$ по аналогии с \cref{eq:vec_dot} -- есть дивергенция:
+\begin{equation}
+\label{eq:del_div}
+\nabla \cdot \vec v  = \dfr{v_x}{x} + \dfr{v_y}{y} + \dfr{v_z}{z}
+\end{equation}
+результат которой -- скалярная функция.
+
+Двойное применение $\nabla$ к скалярной функции -- это оператор Лапласа:
+\begin{equation}
+\label{eq:del_laplace}
+\nabla \cdot \nabla f  = \nabla^2 f = \dfrq{f}{x} + \dfrq{f}{y} + \dfrq{f}{z}
+\end{equation}
+
+Ротор -- аналог векторного умножнения \cref{eq:vec_cross}:
+\begin{equation}
+\label{eq:del_rotor}
+\nabla\times\vec v = 
+\left|
+\begin{array}{ccc}
+\vec{\hat x} & \vec{\hat y} & \vec{\hat z} \\
+\nabla_x & \nabla_y & \nabla_z \\
+v_x & v_y & v_z
+\end{array}
+\right| = 
+\left(\dfr{v_z}{y} - \dfr{v_y}{z}\right)\vec{\hat x} -
+\left(\dfr{v_z}{x} - \dfr{v_x}{z}\right)\vec{\hat y} +
+\left(\dfr{v_y}{x} - \dfr{v_x}{y}\right)\vec{\hat z}.
+\end{equation}
