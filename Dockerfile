@@ -31,5 +31,20 @@ RUN echo 'export CXX=/usr/bin/g++-14' >> /home/user/.bashrc
 
 RUN mkdir -p /home/user/.vscode-server
 
+RUN printf '\n\
+# run mc remembering last mc directory on exit\n\
+function mcc() {\n\
+    MC_TMP_FILE=~/.mclast.txt\n\
+    /usr/bin/mc --printwd="$MC_TMP_FILE"\n\
+    if [ $? -eq 0 ] && [ -f "$MC_TMP_FILE" ]; then\n\
+        NEW_DIR=$(cat "$MC_TMP_FILE" 2>/dev/null)\n\
+        if [ -d "$NEW_DIR" ] && [ "$NEW_DIR" != "$ORIG_DIR" ]; then\n\
+            echo $NEW_DIR\n\
+            cd "$NEW_DIR" || return\n\
+        fi\n\
+    fi\n\
+    rm -f "$MC_TMP_FILE"\n\
+}\n' >> ~/.bashrc
+
 WORKDIR /app
 CMD /app/scripts/init/init_container.sh
