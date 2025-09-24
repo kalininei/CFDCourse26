@@ -264,10 +264,10 @@ void RegularGrid2D::deactivate_cells(Point bot_left, Point top_right) {
     for (size_t j = 0; j < y_.size() - 1; ++j) {
         ycenters.push_back((y_[j] + y_[j + 1]) / 2);
     }
-    size_t i_begin = std::upper_bound(xcenters.begin(), xcenters.end(), bot_left.x()) - xcenters.begin();
-    size_t i_end = std::upper_bound(xcenters.begin(), xcenters.end(), top_right.x()) - xcenters.begin();
-    size_t j_begin = std::lower_bound(ycenters.begin(), ycenters.end(), bot_left.y()) - ycenters.begin();
-    size_t j_end = std::lower_bound(ycenters.begin(), ycenters.end(), top_right.y()) - ycenters.begin();
+    size_t i_begin = std::upper_bound(xcenters.begin(), xcenters.end(), bot_left.x) - xcenters.begin();
+    size_t i_end = std::upper_bound(xcenters.begin(), xcenters.end(), top_right.x) - xcenters.begin();
+    size_t j_begin = std::lower_bound(ycenters.begin(), ycenters.end(), bot_left.y) - ycenters.begin();
+    size_t j_end = std::lower_bound(ycenters.begin(), ycenters.end(), top_right.y) - ycenters.begin();
 
     for (size_t i = i_begin; i < i_end; ++i)
         for (size_t j = j_begin; j < j_end; ++j) {

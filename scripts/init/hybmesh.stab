@@ -1,0 +1,38 @@
+#!/bin/bash
+
+HYBMESH_BIN="/usr/local/bin/hybmesh"
+HYBMESH_BUILD_SCRIPT="/app/scripts/init/build_hybmesh.sh"
+
+echo "================================================"
+echo "   HybMesh is not installed!"
+echo "================================================"
+echo ""
+echo "HybMesh needs to be compiled and installed before first use."
+echo "This may take several minutes."
+echo ""
+echo "Do you want to install HybMesh now? [y/N]"
+
+read -r answer
+case "$answer" in
+    [yY]|[yY][eE][sS])
+        echo "Starting HybMesh installation..."
+        
+        if [ -x "$HYBMESH_BUILD_SCRIPT" ]; then
+            if sudo "$HYBMESH_BUILD_SCRIPT"; then
+                echo "-- HybMesh installed successfully!"
+                echo "Running hybmesh with arguments: $*"
+                exec "$HYBMESH_BIN" "$@"
+            else
+                echo " HybMesh installation failed!"
+                exit 1
+            fi
+        else
+            echo "Build script not found or not executable: $HYBMESH_BUILD_SCRIPT"
+            exit 1
+        fi
+        ;;
+    *)
+        echo "Installation cancelled. HybMesh will not start."
+        exit 1
+        ;;
+esac

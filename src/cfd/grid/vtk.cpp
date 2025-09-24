@@ -76,7 +76,7 @@ std::ostream& vtk_string(std::ostream& s, std::vector<double>::const_iterator x,
 
 std::ostream& vtk_string(std::ostream& s, std::vector<Vector>::const_iterator v, size_t ndata) {
     for (size_t i = 0; i < ndata; ++i) {
-        s << (*v)[0] << " " << (*v)[1] << " " << (*v)[2] << std::endl;
+        s << (*v).x << " " << (*v).y << " " << (*v).z << std::endl;
         v++;
     }
     return s;
@@ -177,7 +177,7 @@ void VtkUtils::append_points(const std::vector<Point>& points, std::ostream& fs)
     fs << "DATASET UNSTRUCTURED_GRID" << std::endl;
     fs << "POINTS " << points.size() << " double" << std::endl;
     for (const auto& point : points) {
-        fs << point[0] << " " << point[1] << " " << point[2];
+        fs << point.x << " " << point.y << " " << point.z;
         fs << std::endl;
     }
 }

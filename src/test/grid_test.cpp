@@ -31,10 +31,10 @@ TEST_CASE("RegularGrid2d", "[reggrid2]") {
     CHECK(grid.to_linear_point_index({0, 0}) == 0);
     CHECK(grid.to_linear_point_index({2, 0}) == 2);
     CHECK(grid.to_linear_point_index({3, 1}) == 7);
-    CHECK(grid.cell_center(0).x() == Approx(0.1666).margin(1e-2));
-    CHECK(grid.cell_center(0).y() == Approx(1.5).margin(1e-2));
-    CHECK(grid.cell_center(4).x() == Approx(0.5).margin(1e-2));
-    CHECK(grid.cell_center(4).y() == Approx(2.5).margin(1e-2));
+    CHECK(grid.cell_center(0).x == Approx(0.1666).margin(1e-2));
+    CHECK(grid.cell_center(0).y == Approx(1.5).margin(1e-2));
+    CHECK(grid.cell_center(4).x == Approx(0.5).margin(1e-2));
+    CHECK(grid.cell_center(4).y == Approx(2.5).margin(1e-2));
 
     grid.save_vtk("out2.vtk");
     VtkUtils::add_point_data(std::vector<double>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, "data1", "out2.vtk");
@@ -47,20 +47,20 @@ TEST_CASE("RegularGrid2d-nonuniform", "[reggrid2-nonuni]") {
 
     CHECK(grid.Lx() == Approx(6));
     CHECK(grid.Ly() == Approx(7));
-    CHECK(grid.cell_center(4).x() == Approx(13.5));
-    CHECK(grid.cell_center(4).y() == Approx(-5.5));
+    CHECK(grid.cell_center(4).x == Approx(13.5));
+    CHECK(grid.cell_center(4).y == Approx(-5.5));
 
     CHECK(grid.n_faces() == 17);
-    CHECK(grid.face_center(8).x() == Approx(15.5));
-    CHECK(grid.face_center(8).y() == Approx(-3));
-    CHECK(grid.face_center(13).x() == Approx(10));
-    CHECK(grid.face_center(13).y() == Approx(-5.5));
-    CHECK(grid.face_center(16).x() == Approx(16));
-    CHECK(grid.face_center(16).y() == Approx(-5.5));
-    CHECK(grid.face_normal(4).x() == Approx(0.0));
-    CHECK(grid.face_normal(4).y() == Approx(1.0));
-    CHECK(grid.face_normal(10).x() == Approx(1.0));
-    CHECK(grid.face_normal(10).y() == Approx(0.0));
+    CHECK(grid.face_center(8).x == Approx(15.5));
+    CHECK(grid.face_center(8).y == Approx(-3));
+    CHECK(grid.face_center(13).x == Approx(10));
+    CHECK(grid.face_center(13).y == Approx(-5.5));
+    CHECK(grid.face_center(16).x == Approx(16));
+    CHECK(grid.face_center(16).y == Approx(-5.5));
+    CHECK(grid.face_normal(4).x == Approx(0.0));
+    CHECK(grid.face_normal(4).y == Approx(1.0));
+    CHECK(grid.face_normal(10).x == Approx(1.0));
+    CHECK(grid.face_normal(10).y == Approx(0.0));
     CHECK(grid.face_area(6) == Approx(2));
     CHECK(grid.face_area(12) == Approx(2));
 }
@@ -75,19 +75,19 @@ TEST_CASE("UnstructuredGrid2d", "[unstructured-grid2]") {
     CHECK(ugrid.n_points() == 12);
     CHECK(ugrid.n_faces() == 17);
 
-    CHECK(ugrid.cell_center(4).x() == Approx(13.5));
-    CHECK(ugrid.cell_center(4).y() == Approx(-5.5));
+    CHECK(ugrid.cell_center(4).x == Approx(13.5));
+    CHECK(ugrid.cell_center(4).y == Approx(-5.5));
 
-    CHECK(ugrid.face_center(16).x() == Approx(15.5));
-    CHECK(ugrid.face_center(16).y() == Approx(-3));
-    CHECK(ugrid.face_center(8).x() == Approx(10));
-    CHECK(ugrid.face_center(8).y() == Approx(-5.5));
-    CHECK(ugrid.face_center(13).x() == Approx(16));
-    CHECK(ugrid.face_center(13).y() == Approx(-5.5));
-    CHECK(ugrid.face_normal(9).x() == Approx(0.0));
-    CHECK(ugrid.face_normal(9).y() == Approx(-1.0));
-    CHECK(ugrid.face_normal(3).x() == Approx(1.0));
-    CHECK(ugrid.face_normal(3).y() == Approx(0.0));
+    CHECK(ugrid.face_center(16).x == Approx(15.5));
+    CHECK(ugrid.face_center(16).y == Approx(-3));
+    CHECK(ugrid.face_center(8).x == Approx(10));
+    CHECK(ugrid.face_center(8).y == Approx(-5.5));
+    CHECK(ugrid.face_center(13).x == Approx(16));
+    CHECK(ugrid.face_center(13).y == Approx(-5.5));
+    CHECK(ugrid.face_normal(9).x == Approx(0.0));
+    CHECK(ugrid.face_normal(9).y == Approx(-1.0));
+    CHECK(ugrid.face_normal(3).x == Approx(1.0));
+    CHECK(ugrid.face_normal(3).y == Approx(0.0));
     CHECK(ugrid.face_area(14) == Approx(2));
     CHECK(ugrid.face_area(6) == Approx(2));
 }
@@ -102,11 +102,11 @@ TEST_CASE("UnstructuredGrid2d, read from vtk", "[unstructured2-vtk]") {
     CHECK(grid.cell_volume(34) == Approx(0.0238095).margin(1e-6));
     CHECK(grid.tab_face_cell(53)[0] == 5);
     CHECK(grid.tab_face_cell(53)[1] == 21);
-    CHECK(grid.cell_center(36).x() == Approx(0.714286).margin(1e-6));
-    CHECK(grid.cell_center(36).y() == Approx(0.583333).margin(1e-6));
-    CHECK(grid.cell_center(0).x() == Approx(0.037037037).margin(1e-6));
-    CHECK(grid.cell_center(0).y() == Approx(0.037037037).margin(1e-6));
-    CHECK(grid.cell_center(7).y() == Approx((grid.point(12).y() + grid.point(13).y()) / 2.0).margin(1e-6));
+    CHECK(grid.cell_center(36).x == Approx(0.714286).margin(1e-6));
+    CHECK(grid.cell_center(36).y == Approx(0.583333).margin(1e-6));
+    CHECK(grid.cell_center(0).x == Approx(0.037037037).margin(1e-6));
+    CHECK(grid.cell_center(0).y == Approx(0.037037037).margin(1e-6));
+    CHECK(grid.cell_center(7).y == Approx((grid.point(12).y + grid.point(13).y) / 2.0).margin(1e-6));
 
     CHECK_NOTHROW(grid.save_vtk("hexa.vtk"));
 }

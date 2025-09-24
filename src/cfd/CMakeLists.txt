@@ -18,7 +18,8 @@ set(SRC
     numeric_integration/triangle_quadrature.cpp
     debug/printer.cpp
     debug/saver.cpp
-    debug/tictoc.cpp)
+    debug/tictoc.cpp
+)
 
 set(HEADERS
     cfd26.hpp
@@ -42,6 +43,12 @@ set(HEADERS
     grid/unstructured_grid2d.hpp
     debug/printer.hpp
     debug/saver.hpp
-    debug/tictoc.hpp)
+    debug/tictoc.hpp
+)
 
-add_library(${CFD_TARGET} STATIC ${SRC} ${HEADERS})
+add_library(
+    ${CFD_TARGET}
+    STATIC
+    ${SRC}
+    ${HEADERS}
+)

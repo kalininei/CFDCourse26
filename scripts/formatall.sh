@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-exclude_paths=(-not -path "./.*" -not -path "./build*" -not -path "*/venv/*" -not -path "*/env/*" -not -path "*/__pycache__/*")
+exclude_paths=(-not -path "./.*" -not -path "./build*" -not -path "*/venv/*" -not -path "*/env/*" -not -path "*/__pycache__/*" -not -path "./extern/*")
 
 echo "=== START FORMATTING ==="
 

@@ -21,11 +21,11 @@ def clisting_read_prev():
 
 
 def clisting_read(line):
-    while(True):
+    while True:
         try:
             clisting_read_next()
         except IndexError:
-            raise Exception(f"Failed to find \"{line}\" in file {clisting_filename}")
+            raise Exception(f'Failed to find "{line}" in file {clisting_filename}')
         if clisting_cur_line.find(line) >= 0:
             break
     else:
@@ -46,7 +46,7 @@ def minted_output(start, end):
 def current_indent():
     l1 = len(clisting_cur_line)
     l2 = len(clisting_cur_line.lstrip())
-    return clisting_cur_line[:l1-l2]
+    return clisting_cur_line[: l1 - l2]
 
 
 def clisting_open(fn):
@@ -56,7 +56,7 @@ def clisting_open(fn):
     global clisting_cur_line
 
     clisting_filename = fn
-    fd = open(clisting_filename, 'r')
+    fd = open(clisting_filename, "r")
     clisting_all_lines = fd.readlines()
     clisting_cur_lineno = -1
     clisting_cur_line = ""

@@ -7,7 +7,7 @@ using namespace cfd;
 namespace {
 
 Point point_from_segment(const Quadrature* segment_quad, size_t i, size_t j) {
-    return Point(segment_quad->points()[i].x(), segment_quad->points()[j].x());
+    return Point(segment_quad->points()[i].x, segment_quad->points()[j].x);
 }
 
 double weight_from_segment(const Quadrature* segment_quad, size_t i, size_t j) {

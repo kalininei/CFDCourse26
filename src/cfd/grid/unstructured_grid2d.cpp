@@ -33,8 +33,8 @@ void UnstructuredGrid2D::Cache::need_cell_centers(const UnstructuredGrid2D& grid
             Point p1 = grid.point(cp[i]);
             Point p2 = grid.point(cp[i + 1]);
             double area = triangle_area(p0, p1, p2);
-            double x = (p0.x() + p1.x() + p2.x()) / 3.0;
-            double y = (p0.y() + p1.y() + p2.y()) / 3.0;
+            double x = (p0.x + p1.x + p2.x) / 3.0;
+            double y = (p0.y + p1.y + p2.y) / 3.0;
             sum_x += x * area;
             sum_y += y * area;
             sum_area += area;
@@ -56,7 +56,7 @@ void UnstructuredGrid2D::Cache::need_face_normals(const UnstructuredGrid2D& grid
         Point p0 = grid.point(grid._face_points[iface][0]);
         Point p1 = grid.point(grid._face_points[iface][1]);
         Vector s = p1 - p0;
-        face_normals.push_back(Vector(s.y(), -s.x()) / vector_abs(s));
+        face_normals.push_back(Vector(s.y, -s.x) / vector_abs(s));
     }
 }
 
@@ -300,7 +300,7 @@ UnstructuredGrid2D UnstructuredGrid2D::vtk_read(std::string filename, bool silen
     std::vector<Point> points(n_points);
     double z;
     for (int i = 0; i < n_points; ++i) {
-        ifs >> points[i].x() >> points[i].y() >> z;
+        ifs >> points[i].x >> points[i].y >> z;
         if (std::abs(z) > 0) {
             throw std::runtime_error("Z-coordinate for 2d grids should be zero");
         }

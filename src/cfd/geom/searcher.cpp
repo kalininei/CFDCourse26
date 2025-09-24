@@ -13,11 +13,11 @@ template<size_t Dim> struct PointSearcher<Dim>::Impl {
 
     static point_t build_point_t(Point p) {
         if constexpr (Dim == 1) {
-            return point_t{p.x()};
+            return point_t{p.x};
         } else if constexpr (Dim == 2) {
-            return point_t{p.x(), p.y()};
+            return point_t{p.x, p.y};
         } else {
-            return point_t{p.x(), p.y(), p.z()};
+            return point_t{p.x, p.y, p.z};
         }
     }
 

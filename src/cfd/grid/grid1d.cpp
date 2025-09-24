@@ -7,7 +7,7 @@ Grid1D::Grid1D(double left, double right, size_t n_cells) {
     points_.push_back(Point(left));
     double h = (right - left) / (double)n_cells;
     for (size_t i = 0; i < n_cells; ++i) {
-        points_.push_back(Point(points_.back()[0] + h));
+        points_.push_back(Point(points_.back().x + h));
     }
 }
 
@@ -28,7 +28,7 @@ Point Grid1D::cell_center(size_t icell) const {
 }
 
 double Grid1D::cell_volume(size_t icell) const {
-    return points_.at(icell + 1).x() - points_.at(icell).x();
+    return points_.at(icell + 1).x - points_.at(icell).x;
 }
 
 Vector Grid1D::face_normal(size_t) const {

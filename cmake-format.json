@@ -1,0 +1,10 @@
+{
+  "format": {
+    "line_width": 120,
+    "tab_size": 4,
+    "max_pargs_hwrap": 1,
+    "max_subargs_hwrap": 1,
+    "dangle_parens": true,
+    "bullet_char": "*"
+  }
+}
