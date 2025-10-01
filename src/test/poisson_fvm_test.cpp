@@ -1,3 +1,6 @@
+#include "cfd/fvm/fvm_dfdn.hpp"
+#include "cfd/fvm/fvm_extended_collocations.hpp"
+#include "cfd/fvm/fvm_gradient.hpp"
 #include "cfd/grid/grid1d.hpp"
 #include "cfd/grid/unstructured_grid2d.hpp"
 #include "cfd/grid/vtk.hpp"
@@ -48,6 +51,10 @@ public:
         VtkUtils::add_cell_data(exact, "exact", filename);
     }
 
+    std::shared_ptr<const IGrid> grid() {
+        return grid_;
+    }
+
 protected:
     ITestPoissonFvmWorker(std::shared_ptr<IGrid> grid) : grid_(grid){};
 
@@ -87,7 +94,7 @@ protected:
         }
     }
 
-    CsrMatrix approximate_lhs() const {
+    virtual CsrMatrix approximate_lhs() const {
         LodMatrix mat(grid_->n_cells());
 
         for (size_t icell = 0; icell < grid_->n_cells(); ++icell) {
@@ -115,7 +122,7 @@ protected:
         return mat.to_csr();
     }
 
-    std::vector<double> approximate_rhs() const {
+    virtual std::vector<double> approximate_rhs() const {
         std::vector<double> rhs(grid_->n_cells(), 0.0);
         // internal
         for (size_t icell = 0; icell < grid_->n_cells(); ++icell) {
@@ -204,4 +211,107 @@ TEST_CASE("Poisson 1D solver, Finite Volume Method", "[poisson1-fvm]") {
             CHECK(n2 == Approx(found->second).margin(1e-6));
         }
     }
+}
+
+namespace {
+
+/////////////////////////////////////////////////
+// 2D Worker
+/////////////////////////////////////////////////
+
+class TestPoissonFvmWorker_2D : public ITestPoissonFvmWorker {
+public:
+    TestPoissonFvmWorker_2D(std::string grid_fn)
+        : ITestPoissonFvmWorker(std::make_shared<UnstructuredGrid2D>(UnstructuredGrid2D::vtk_read(grid_fn, true))),
+          ecol_(*grid()), grad_computer_(std::make_shared<LeastSquaresFvmFaceGradient>(*grid(), ecol_)) {
+        initialize();
+        u_.resize(ecol_.size());
+        std::fill(u_.begin(), u_.end(), 0.0);
+    }
+
+    double exact_solution(Point p) const override {
+        double x = p.x;
+        double y = p.y;
+        return cos(10 * x * x) * sin(10 * y) + sin(10 * x * x) * cos(10 * x);
+    }
+
+    double exact_rhs(Point p) const override {
+        double x = p.x;
+        double y = p.y;
+        return (20 * sin(10 * x * x) + (400 * x * x + 100) * cos(10 * x * x)) * sin(10 * y) +
+               (400 * x * x + 100) * cos(10 * x) * sin(10 * x * x) +
+               (400 * x * sin(10 * x) - 20 * cos(10 * x)) * cos(10 * x * x);
+    }
+
+    CsrMatrix approximate_lhs() const override {
+        LodMatrix mat(ecol_.size());
+        // internal
+        for (size_t iface = 0; iface < grid_->n_faces(); ++iface) {
+            auto [i, j] = ecol_.tab_face_colloc(iface);
+            double area = grid_->face_area(iface);
+            double hij = vector_abs(ecol_.points[i] - ecol_.points[j]);
+            double coef = area / hij;
+
+            mat.add_value(i, i, coef);
+            mat.add_value(i, j, -coef);
+            mat.add_value(j, j, coef);
+            mat.add_value(j, i, -coef);
+        }
+        // dirichlet faces
+        for (auto& dir : dirichlet_faces_) {
+            size_t icolloc = ecol_.boundary_colloc(dir.iface);
+            mat.set_unit_row(icolloc);
+        }
+
+        return mat.to_csr();
+    }
+
+    std::vector<double> approximate_rhs() const override {
+        std::vector<double> rhs(ecol_.size(), 0.0);
+
+        // non-orhtogonality
+        std::vector<Vector> gradu = grad_computer_->compute(u_);
+        for (size_t iface = 0; iface < grid_->n_faces(); ++iface) {
+            auto [i, j] = ecol_.tab_face_colloc(iface);
+            double area = grid_->face_area(iface);
+            Vector cij = ecol_.points[j] - ecol_.points[i];
+            double hij = vector_abs(cij);
+            Vector a = grid_->face_normal(iface) - cij / hij;
+            double val = dot_product(gradu[iface], a) * area;
+
+            rhs[i] += val;
+            rhs[j] -= val;
+        }
+        // internal
+        for (size_t icell = 0; icell < grid_->n_cells(); ++icell) {
+            double value = exact_rhs(grid_->cell_center(icell));
+            double volume = grid_->cell_volume(icell);
+            rhs[icell] += value * volume;
+        }
+        // dirichlet faces
+        for (const DirichletFace& dir : dirichlet_faces_) {
+            size_t icolloc = ecol_.boundary_colloc(dir.iface);
+            rhs[icolloc] = dir.value;
+        }
+
+        return rhs;
+    }
+
+private:
+    FvmExtendedCollocations ecol_;
+    std::shared_ptr<IFvmFaceGradient> grad_computer_;
+};
+
+} // namespace
+
+TEST_CASE("Poisson 2D solver, unstructured", "[poisson2-fvm]") {
+    std::cout << std::endl << "--- [poisson2-fvm] --- " << std::endl;
+
+    TestPoissonFvmWorker_2D worker(test_directory_file("tetragrid_500.vtk"));
+    double n2;
+    for (size_t i = 0; i < 10; ++i) {
+        n2 = worker.solve();
+        std::cout << n2 << std::endl;
+    }
+    CHECK(n2 == Approx(0.0411111).margin(1e-6));
 }

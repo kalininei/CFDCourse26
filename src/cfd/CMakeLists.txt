@@ -19,6 +19,9 @@ set(SRC
     debug/printer.cpp
     debug/saver.cpp
     debug/tictoc.cpp
+    fvm/fvm_extended_collocations.cpp
+    fvm/fvm_gradient.cpp
+    fvm/fvm_dfdn.cpp
 )
 
 set(HEADERS
@@ -44,6 +47,9 @@ set(HEADERS
     debug/printer.hpp
     debug/saver.hpp
     debug/tictoc.hpp
+    fvm/fvm_extended_collocations.hpp
+    fvm/fvm_gradient.hpp
+    fvm/fvm_dfdn.hpp
 )
 
 add_library(

@@ -30,7 +30,13 @@ ARG HOST_UID=1000
 ARG HOST_GID=1000
 
 RUN if [ "$HOST_UID" != "1000" ]; then usermod -u $HOST_UID user; fi && \
-    if [ "$HOST_GID" != "1000" ]; then groupmod -g $HOST_GID user; fi
+    if [ "$HOST_GID" != "1000" ]; then \
+        if ! getent group $HOST_GID >/dev/null; then \
+            groupmod -g $HOST_GID user; \
+        else \
+            usermod -g $HOST_GID user; \
+        fi \
+    fi
 
 USER user
 

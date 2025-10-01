@@ -6,7 +6,7 @@ set autoindent
 set smartindent
 
 let g:syntastic_cpp_compiler = '/home/ek/Work/cfd_lectures/CFDCourse26/scripts/docker-g++.sh'
-let g:syntastic_cpp_compiler_options = '-Wall -Wextra -std=c++20 -I build/_deps/amgcl-src'
+let g:syntastic_cpp_compiler_options = '-Wall -Wextra -std=c++20 -I build/_deps/amgcl-src -I /app/src/'
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
