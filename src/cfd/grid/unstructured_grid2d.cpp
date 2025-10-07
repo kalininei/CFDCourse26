@@ -373,3 +373,11 @@ UnstructuredGrid2D UnstructuredGrid2D::vtk_read(std::string filename, bool silen
         return ret;
     }
 }
+
+UnstructuredGrid2D UnstructuredGrid2D::copy_modify(std::function<Point(Point)> modifier) const {
+    std::vector<Point> new_points(n_points());
+    for (size_t i = 0; i < n_points(); ++i) {
+        new_points[i] = modifier(point(i));
+    }
+    return UnstructuredGrid2D(new_points, _cells);
+}

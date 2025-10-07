@@ -367,6 +367,7 @@ cуществует взаимноодносзначная точка $\vec x'\i
 \end{figure}
 
 \subsubsection{Конечнообъёмная аппроксимация}
+\label{sec:fvm_appr}
 
 Проинтегрируем исходное уравнение по одной из подобластей $E_i$:
 \begin{equation*}
@@ -659,7 +660,7 @@ $$
 \begin{equation}
 \label{eq:fvm_assem_bc_extended}
 \begin{array}{ll}
-\textbf{for } s \in\overline{1, N_f - 1}            & \textrm{-- цикл по всем граням}\\
+\textbf{for } s \in\overline{0, N_f - 1}            & \textrm{-- цикл по всем граням}\\
 \qquad i,j = \textrm{nei\_colloc(s)}                & \textrm{-- инцидентные точки коллокаций}\\
 \qquad v = \sfrac{|\gamma_{ij}|}{h_{ij}}            & \\
 \qquad A_{ii} \pluseq  v, \quad A_{ij} \minuseq v   & \textrm{-- $i$-ая строка}\\ 
@@ -920,9 +921,9 @@ $$
 
 Для реализации алгоритма с учётом этой поправки нужно решить следующие подзадачи:
 \begin{itemize}
-\item Задать длину $|\vec c'|$,
-\item Задать способ определения касательной производной $\nabla u\cdot \vec a$, 
-\item Собрать полученные соотношения в результирующую систему уравнений.
+\item Задать длину $|\vec c'|$ (\secref{sec:cprime_a}),
+\item Задать способ определения касательной производной $\nabla u\cdot \vec a$ (\secref{sec:fvm_duda}),
+\item Собрать полученные соотношения в результирующую систему уравнений (\secref{sec:ortho_correction_assembly}).
 \end{itemize}
 
 \subsubsubsection{Методы разложения нормали}
@@ -1062,7 +1063,7 @@ TODO
 \begin{equation}
 \label{eq:fvm_assem_extended_explicit_corr_lhs}
 \begin{array}{ll}
-\textbf{for } s \in\overline{1, N_f - 1}            & \textrm{-- цикл по всем граням}\\
+\textbf{for } s \in\overline{0, N_f - 1}            & \textrm{-- цикл по всем граням}\\
 \qquad i,j = \textrm{nei\_colloc(s)}                & \textrm{-- инцидентные точки коллокаций}\\
 \qquad c = |\vec c'|_s                              & \textrm{-- поправка}\\
 \qquad v = c \sfrac{|\gamma_{ij}|}{h_{ij}}          & \\
@@ -1076,7 +1077,7 @@ TODO
 \begin{equation}
 \label{eq:fvm_assem_extended_explicit_corr_rhs}
 \begin{array}{ll}
-\textbf{for } s \in\overline{1, N_f - 1}            & \textrm{-- цикл по всем граням}\\
+\textbf{for } s \in\overline{0, N_f - 1}            & \textrm{-- цикл по всем граням}\\
 \qquad i,j = \textrm{nei\_colloc(s)}                & \textrm{-- инцидентные точки коллокаций}\\
 \qquad v = \textrm{corr}_s |\gamma_{ij}|            & \\
 \qquad b_i \pluseq v                                & \\
@@ -1186,3 +1187,157 @@ $$
 один раз для каждого узла коллокации на этапе инициализации.
 Тогда определение градиента в центрах ячеек на этапе решения задачи 
 сведётся к сборке вектора $f$ и умножении его на это выражение.
+
+\subsubsection{Неоднородный коэффициент диффузии}
+\label{sec:fvm_nonconst_lambda}
+Рассмотрим задачу в постановке \cref{eq:poissonnd_lam}.
+Применение конечнообъёмных проеобразований по аналогии с 
+\secref{sec:fvm_appr} даст следующие уравнения для конечного объёма $|E_i|$:
+\begin{equation}
+\label{eq:fvm_lambda_ij_scheme}
+-\sum_j \lambda_{ij} \left(\dfr{u}{n}\right)_{ij} |\gamma_{ij}| = |E_i| f_i
+\end{equation}
+Здесь $\lambda_{ij}$ -- значение коэффициента диффузии
+на грани между точками коллокации $i$ и $j$.
+При этом в конечнообъёмной схеме все неизвестные скалярные поля, в том числе коэффициент диффузии, заданы только
+в точках коллокаций. То есть задача состоит в том, чтобы зная $\lambda_i$, $\lambda_j$ выразить $\lambda_{ij}$.
+
+Простейшим выходом будет использовать среднее арифметическое:
+\begin{equation}
+\label{eq:fvm_lambda_ij_0}
+\lambda_{ij} = \frac{\lambda_{i} + \lambda_{j}}{2}
+\end{equation}
+Однако, это выражение не сохраняет порядок аппроксимации схемы.
+Для записи более точного выражения, запишем выражение потоков слева и справа от грани $\gamma_{ij}$.
+Для этого введём значение $u_{ij}$ на грани. В ортогональном приближении получим:
+\begin{align*}
+&\lambda_i \left( \dfr{u}{n} \right)_i \approx \lambda_{i}\frac{u_{ij} - u_i}{h_{ij}^-} , \\
+&\lambda_j \left( \dfr{u}{n} \right)_j \approx \lambda_{j}\frac{u_{j} - u_{ij}}{h_{ij}^+}.
+\end{align*}
+Здесь $h_{ij}^+, h_{ij}^-$ -- доли расстояния $h_{ij}$, находящиеся в $i$-ой и $j$-ой ячейках, такие что 
+$$h_{ij}^+ + h_{ij}^- = h_{ij}.$$
+Эти выражения равны друг другу и равны суммарному потоку, вычисляемому через $\lambda_{ij}$:
+\begin{equation}
+\label{eq:fvm_dudn_lambda}
+\lambda_{ij} \left(\dfr{u}{n}\right)_{ij} = \lambda_{ij} \frac{u_j - u_i}{h_{ij}}.
+\end{equation}
+Таким образом, мы получили систему из двух линейных уравнений
+относительно неизвестных $\lambda_{ij}, u_{ij}$.
+Выразим из это системы искомый коэффициент диффузии как среднее взвешенное гармоническое выражение
+\begin{equation}
+\label{eq:fvm_lambda_ij_1}
+\lambda_{ij} = \frac{(h^+_{ij} + h^-_{ij}) \lambda_i \lambda_j}{\lambda_i h^+_{ij} + \lambda_j h^-_{ij}}.
+\end{equation}
+которое в приближении $h^+_{ij} \approx h^-_{ij}$ может быть упрощено до обычного среднегармонического
+\begin{equation}
+\label{eq:fvm_lambda_ij_2}
+\lambda_{ij} = \frac{2\lambda_i\lambda_j}{\lambda_i + \lambda_j}.
+\end{equation}
+
+Нетрудно показать, что вычисление нормальной производной с учётом поправки на ортогональность
+сохраняет эти выражения. Распишем поток слева и в центре с поправкой:
+\begin{align*}
+&\lambda_i \left( \dfr{u}{n} \right)_i = \lambda_{i}\left(\frac{u_{ij} - u_i}{h_{ij}^-} + \left(\nabla u\right)_i \cdot \vec a\right), \\
+&\lambda_{ij} \left(\dfr{u}{n}\right)_{ij} = \lambda_{ij} \left(\frac{u_j - u_i}{h_{ij}} + \left(\nabla u\right)_{ij} \cdot \vec a\right).
+\end{align*}
+Если вычислять градиент на грани
+как среднее взвешенное арифметическое:
+\begin{equation*}
+\left(\nabla u\right)_{ij} = \frac{h^-_{ij} \left(\nabla u\right)_i + h^+_{ij} \left(\nabla u\right)_j}{h^+_{ij} + h^-_{ij}}
+\end{equation*}
+то формула \cref{eq:fvm_lambda_ij_1} выполнится точно.
+
+\subsubsection{Аппроксимация нормальной производной с учётом логарифмической особенности}
+\label{sec:fvm_log_singularity}
+Рассмотрим уравнение Лапласа ($f=0$) в двусвязной области, образованной
+внешним контуром и внутренним кругом с центром в точке $\vec C$ (\figref{fig:radial_singularity}).
+Будем считать, что значение искомой функции на внутренней границе постоянно.
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.4\linewidth]{radial_singularity.pdf}
+\caption{Двусвязная область решения}
+\label{fig:radial_singularity}
+\end{figure}
+
+Возьмём приграничную ячейку $i$ и граничную точку коллокации $j$.
+Пусть точки $\vec C$, $\vec c_i$, $\vec c_j$ лежат на одной прямой. Координату
+вдоль этой прямой будем называть $r$.
+Будем считать, что граничное значение на внутреннем круге
+сильно отличается (в большую или меньшую сторону) от
+характерного значения $u$ в области расчёта.
+Тогда в некотором приближении
+решении в окрестности внутреннего круга можно
+считать радиально симметричным: зависящим
+только от $r$, но не от угла поворота радиус-вектора $\vec r$.
+В приближении постоянного коэффициента диффузии такое решение будет удовлетворять уравнению 
+\begin{equation*}
+\frac 1r \dfr{}{r}\left( r \dfr{u}{r} \right) = 0.
+\end{equation*}
+Общим решением этого уравнение будет выражение
+\begin{equation*}
+u = A \ln r + B.
+\end{equation*}
+Коэффициенты $A$, $B$ выразим через значения
+функции в точках коллокации:
+\begin{equation*}
+u(r_i) = u_i, \quad u(r_j) = u_j.
+\end{equation*}
+Тогда решение примет вид
+\begin{equation*}
+u(r) = \frac{\ln r - \ln r_i}{\ln r_j - \ln r_i}\left(u_j - u_i\right) + u_i.
+\end{equation*}
+Отсюда выразим нормальную производную на грани $\gamma_{ij}$:
+\begin{equation} 
+\label{eq:fvm_dudn_radial}
+\left.\dfr{u}{n}\right|_{\gamma_{ij}} = -\left.\dfr{u}{r}\right|_{r=r_j} =  
+\frac {1} {r_j} \, \frac{1}{\ln r_i - \ln r_j}\left(u_j - u_i\right).
+\end{equation}
+Это выражение будем использовать вместо
+\cref{eq:fvm_dudn_dudc} для вычисления производной
+на грани с логарифмической особенностью.
+
+Учёт этой особенности можно реализовать за счёт модификации
+коэффициента диффузии $\lambda_{ij}$ на граничной грани.
+Выражение \cref{eq:fvm_dudn_radial}
+можно свести к 
+\cref{eq:fvm_dudn_lambda},
+если считать диффузию в виде
+\begin{equation}
+\label{eq:fvm_ln_singularity_hij}
+\lambda'_{ij} = \frac{\lambda_{ij}}{r_j} \frac{h_{ij}}{\ln r_i - \ln r_j}
+\end{equation}
+
+\subsubsection{Радиально-симметричная постановка}
+\label{sec:fvm_radsym}
+Теперь рассмотрим уравнение
+\cref{eq:poissonnd_lam}
+в цилиндрических координатах $(r, \theta, z)$ и радиально-симметричной постановке.
+В частных производных определяющее уравнение запишется как
+\begin{equation*}
+\frac{1}{r}\dfr{}{r}\left( \lambda r \dfr{u}{r} \right) + \dfr{}{z}\left(\lambda \dfr{u}{z}\right) = f, \quad \dfr{u}{\theta} = 0.
+\end{equation*}
+Заметим, что общий вывод конечнообъёмной схемы
+\cref{eq:fvm_lambda_ij_scheme}
+использует только формулу Гаусса--Остроградского
+\cref{eq:partint_div} в операторном виде.
+Поэтому она будет справедлива в любой системе координат.
+
+Особенность выбора радиально-симметричной постановки
+проявится только в вычислении площади грани $|\gamma|$
+и объёма ячейки $|E|$, которые в этой постановке являются телами
+вращения вокруг оси $Oz$.
+Вычислим объём как
+\begin{equation*}
+|E| = \int\limits_{E} d\vec x = \int\limits_0^{2\pi}\left(\iint\limits_{|E|_{rz}} r d r d z\right) d\phi  =
+    2\pi \underbrace{\frac{1}{|E|_{rz}}\iint r \, d r d z}_{r_E} \, |E|_{rz} 
+\end{equation*}
+где $|E|_{rz}$ и $r_E$ -- объём и $r$--координата центра масс ячейки
+в декартовой двумерной системе координат $(r, z)$.
+Аналогичные рассуждения справедливы и для определения площади грани
+через её двумерную площадь $|\gamma|_{rz}$ и центр масс $r_\gamma$.
+Тогда окончательно запишем
+\begin{equation}
+\label{eq:fvm_radsym_measures}
+\left|E\right| = 2 \pi r_E |E|_{rz}, \qquad
+\left|\gamma\right| = 2 \pi r_\gamma |\gamma|_{rz}
+\end{equation}

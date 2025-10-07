@@ -2,6 +2,7 @@
 #define CFD_UNSTRUCTURED_GRID_2D_HPP
 
 #include "cfd/grid/i_grid.hpp"
+#include <functional>
 
 namespace cfd {
 
@@ -20,6 +21,11 @@ public:
      * @brief converts abstract 2d grid into unstructured format
      */
     UnstructuredGrid2D(const IGrid2D& grid);
+
+    /**
+     * @brief create a copy with modified point locations.
+     */
+    UnstructuredGrid2D copy_modify(std::function<Point(Point)> modifier) const;
 
     /*
      * @brief Read grid from vtk file

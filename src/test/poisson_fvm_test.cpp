@@ -315,3 +315,122 @@ TEST_CASE("Poisson 2D solver, unstructured", "[poisson2-fvm]") {
     }
     CHECK(n2 == Approx(0.0411111).margin(1e-6));
 }
+
+namespace {
+
+class RadialGrid1D : public Grid1D {
+public:
+    RadialGrid1D(double r0, double r1, size_t n_cells) : Grid1D(r0, r1, n_cells) {}
+
+    double face_area(size_t iface) const override {
+        return 2 * M_PI * face_center(iface).x * Grid1D::face_area(iface);
+    }
+    double cell_volume(size_t icell) const override {
+        return 2 * M_PI * cell_center(icell).x * Grid1D::cell_volume(icell);
+    }
+};
+
+/////////////////////////////////////////////////
+// Radial1D Worker
+/////////////////////////////////////////////////
+
+class TestPoissonFvmWorker_Radial1D : public ITestPoissonFvmWorker {
+public:
+    TestPoissonFvmWorker_Radial1D(double r0, double lambda0, size_t n_cells)
+        : ITestPoissonFvmWorker(std::make_shared<RadialGrid1D>(r0, 1.0 + r0, n_cells)), ecol_(*grid()), r0_(r0) {
+
+        // lambda
+        lambda_.resize(ecol_.size());
+        for (size_t i = 0; i < ecol_.size(); ++i) {
+            lambda_[i] = (ecol_.points[i].x < r0 + 0.5) ? lambda0 : 1.0;
+        }
+
+        // solution vector
+        u_.resize(ecol_.size());
+        std::fill(u_.begin(), u_.end(), 0.0);
+
+        // initialize
+        initialize();
+    }
+    double exact_solution(Point p) const override {
+        const double r = p.x;
+        const double r0 = r0_;
+        const double r1 = r0_ + 1.0;
+        const double rk = r0_ + 0.5;
+        const double k0 = lambda_.front();
+        const double k1 = lambda_.back();
+        const double a = 1.0;
+        const double b = 0.0;
+        const double B = std::log(rk / r0) / k0 + std::log(r1 / rk) / k1;
+        if (r < rk) {
+            return a + (b - a) / (B * k0) * std::log(r / r0);
+        } else {
+            return b + (b - a) / (B * k1) * std::log(r / r1);
+        }
+    }
+    double exact_rhs(Point) const override {
+        return 0;
+    }
+
+    CsrMatrix approximate_lhs() const override {
+        LodMatrix mat(ecol_.size());
+        // internal
+        for (size_t iface = 0; iface < grid_->n_faces(); ++iface) {
+            auto [i, j] = ecol_.tab_face_colloc(iface);
+            double area = grid_->face_area(iface);
+            double hij = vector_abs(ecol_.points[i] - ecol_.points[j]);
+            double coef = face_lambda(iface) * area / hij;
+
+            mat.add_value(i, i, coef);
+            mat.add_value(i, j, -coef);
+            mat.add_value(j, j, coef);
+            mat.add_value(j, i, -coef);
+        }
+        // dirichlet faces
+        for (auto& dir : dirichlet_faces_) {
+            size_t icolloc = ecol_.boundary_colloc(dir.iface);
+            mat.set_unit_row(icolloc);
+        }
+
+        return mat.to_csr();
+    }
+
+    std::vector<double> approximate_rhs() const override {
+        std::vector<double> rhs(ecol_.size(), 0.0);
+        // internal
+        for (size_t icell = 0; icell < grid_->n_cells(); ++icell) {
+            double value = exact_rhs(grid_->cell_center(icell));
+            double volume = grid_->cell_volume(icell);
+            rhs[icell] += value * volume;
+        }
+        // dirichlet faces
+        for (const DirichletFace& dir : dirichlet_faces_) {
+            size_t icolloc = ecol_.boundary_colloc(dir.iface);
+            rhs[icolloc] = dir.value;
+        }
+
+        return rhs;
+    }
+
+    double face_lambda(size_t iface) const {
+        auto [i, j] = ecol_.tab_face_colloc(iface);
+        return (lambda_[i] + lambda_[j]) / 2.0;
+    }
+
+private:
+    FvmExtendedCollocations ecol_;
+    const double r0_;
+    std::vector<double> lambda_;
+};
+
+} // namespace
+
+TEST_CASE("Poisson radial solver 1D", "[poisson1-fvm-radial]") {
+    std::cout << std::endl << "--- [poisson1-fvm-radial] --- " << std::endl;
+
+    size_t n_cells = 10;
+    TestPoissonFvmWorker_Radial1D worker(0.05, 10, n_cells);
+    double n2 = worker.solve();
+    std::cout << n_cells << " " << n2 << std::endl;
+    CHECK(n2 == Approx(0.0252116).margin(1e-6));
+}
