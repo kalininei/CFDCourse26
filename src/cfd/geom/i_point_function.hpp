@@ -6,7 +6,7 @@
 namespace cfd {
 
 struct IPointFunction {
-    ~IPointFunction() = default;
+    virtual ~IPointFunction() = default;
 
     virtual double value(Point) const = 0;
     virtual Vector grad(Point) const = 0;

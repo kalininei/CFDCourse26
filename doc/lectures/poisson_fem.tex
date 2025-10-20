@@ -1,0 +1,183 @@
+\subsection{Метод конечных элементов}
+\subsubsection{Формулировка}
+Формулировка классического метода конечных элементов состоит из последовательного применения трёх методик:
+\begin{itemize}
+\item слабая (интегральная) постановка задачи с помощью метода взвешенных невязок,
+\item использование метода Бубнова--Галёркина для записи интегральных соотношений для коэффициентов СЛАУ,
+\item построение базисных функций с локальным носителем на основе конечноэлементной сетки.
+\end{itemize}
+\subsubsubsection{Метод взвешенных невязок}
+TODO
+\subsubsubsection{Метод Бубнова--Галёркина}
+TODO
+\paragraph{Пример с применением степенных базисных функций}
+TODO
+\subsubsubsection{Конечноэлементные базисные функции}
+TODO
+\subsubsection{Вывод СЛАУ для аппроксимации уравнения Пуассона}
+\paragraph{Метод взвешенных невязок}
+Исходное уравнение \cref{eq:poissonnd}
+домножим на пробную функцию $q$ и проинтегрируем по
+области решения
+\begin{equation*}
+-\arint{\nabla^2 u \, q}{\Omega}{\vec x} = \arint{f \, q}{\Omega}{\vec x}.
+\end{equation*}
+Чтобы сравнять порядок производной перед искомой функций $u$ и пробной
+функцией $q$ применим формулу интегрирования по частям \cref{eq:partint_laplace_fg}:
+\begin{equation*}
+-\arint{\dfr{u}{n}\, q}{\partial\Omega}{s} + \arint{\nabla u \cdot \nabla q}{\Omega}{\vec x} = \arint{f \, q}{\Omega}{\vec x}.
+\end{equation*}
+Полученное выражение -- есть окончательная слабая постановка задачи.
+\paragraph{Метод Бубнова--Галёркина}
+В качестве пробной функции $q$ будем испльзовать набор базисных функций $\phi_i$, $i\in\overline{0, N-1}$.
+По этому же базису разложим входящие в постановку скалярные функции $u$ и $f$.
+Получим систему из $N$ линейных уравнений
+\begin{equation*}
+-\arint{\dfr{u}{n}\, \phi_i}{\partial\Omega}{s} +
+\sum_{j=0}^{N-1}\left(\arint{\nabla \phi_j \cdot \nabla \phi_i}{\Omega}{\vec x}\right) u_j = \sum_{j=0}^{N-1}\left(\arint{\phi_j \, \phi_i}{\Omega}{\vec x}\right) f_j.
+\end{equation*}
+Первый из интегралов будет не равным нулю только для строк $i$, соответсвтующих
+граничным узлам (базисам). Во всех остальных базисная функция 
+согласно свойству согласованности будет равна нулю.
+Тогда строки СЛАУ, соответсвующие внутренним узлам, примут вид
+\begin{equation*}
+\mat{S} u = \mat{b},
+\quad \mat {b} = \mat M f,
+\end{equation*}
+где элементы матрицы масс $\mat M$ и матрицы жёсткости $\mat S$ будут равны
+\begin{align}
+\label{eq:fem_mass_mat}
+&M_{ij} = \arint{\phi_j \phi_i}{\Omega}{\vec x},\\
+\label{eq:fem_stiff_mat}
+&S_{ij} = \arint{\nabla \phi_j \cdot \nabla \phi_i}{\Omega}{\vec x}.
+\end{align}
+
+Отдельно рассмотрим вычисление интеграла от некоторой функции $g$ в 
+рамках аппроксимации Бубнова--Галёркина:
+\begin{equation*}
+\arint{g}{\Omega}{\vec x} = \sum_{j=0}^{N-1}V_i g_i,
+\end{equation*}
+где элементы ветора нагрузок $\mat V$ будут равны
+\begin{equation}
+\label{eq:fem_load_vec}
+V_{i} = \arint{\phi_i}{\Omega}{\vec x}.
+\end{equation}
+
+\subsubsubsection{Одномерный пример}
+TODO
+\subsubsection{Техника сборки конечноэлементных векторов и матриц}
+\subsubsubsection{Элементные вектора}
+Распишем интеграл \cref{eq:fem_load_vec} по области $\Omega$
+как сумму интегралов по отдельным элементам $E_m$.
+При вследствии свойства локальности конечноэелементных базисов
+в сумме можно оставить лишь элементы, инцидентные базису $i$:
+\begin{equation*}
+V_{i} = \arint{\phi_i}{\Omega}{\vec x} = \sum_{m \in \rm J^i} \arint{\phi^{(m)}_i}{E_m}{\vec x}.
+\end{equation*}
+Определим элементный вектор нагрузок $V^{(m)}$ 
+как 
+\begin{equation}
+\label{eq:fem_elem_load_vector}
+V^{(m)}_j = \arint{\phi^{(m)}_{g(j)}}{E_m}{\vec x}.
+\end{equation}
+Его размерность равна количеству степеней свободы элемента $N^{(m)}$.
+Здесь запись $g(j)$ -- это перевод локального внутриэлементного индекса $j\in\overline{0, N^{(m)}-1}$
+в глобальный индекс $i\in\overline{0, N}$.
+\subsubsubsection{Элементные матрицы}
+Аналогично можно расписать интегралы из \cref{eq:fem_mass_mat,eq:fem_stiff_mat}
+через элементные интегралы. В частности для матрицы масс получим
+\begin{equation*}
+M_{ij} = \arint{\phi_i \phi_j}{\Omega}{\vec x} = \sum_{m \in \rm J^i} \arint{\phi^{(m)}_i \, \phi^{(m)}_j}{E_m}{\vec x}.
+\end{equation*}
+а выражение для локальной матрицы масс размерности $N^{(m)}\times N^{(m)}$ примет вид
+\begin{equation}
+\label{eq:fem_elem_mass_matrix}
+M^{(m)}_{kl} = \arint{\phi^{(m)}_{g(k)} \, \phi^{(m)}_{g(l)}}{E_m}{\vec x}.
+\end{equation}
+По аналогии элементная матрица жёсткости запишется как
+\begin{equation}
+\label{eq:fem_elem_stiff_matrix}
+S^{(m)}_{kl} = \arint{\nabla \phi^{(m)}_{g(k)} \cdot \nabla \phi^{(m)}_{g(l)}}{E_m}{\vec x}.
+\end{equation}
+
+\subsubsubsection{Алгоритм сборки}
+После того, как элементные вектора/матрицы для
+искомого интеграла определены, следует применить алгоритм
+элементной сборки. Для этого понадобится
+таблица связность \quo{элемент-индексы базисов}.
+В простейшем случае линейных лагранжевых базисов
+эта таблица эквивалентна геометрической таблице \quo{ячейка-узлы}.
+Назовём эту таблицу $glob$. Тогда псеводкод для сборки вектора примет вид
+\begin{equation}
+\label{eq:fem_vector_assemble}
+\begin{array}{ll}
+V_i = 0                                                      & \textrm{-- инициализируем глобальный вектор нулями}\\
+\textbf{for } m = \overline{0, N-1}                          & \textrm{-- цикл по конечным элементам}\\
+\qquad N^m = dof(m)                                                   & \textrm{-- количество степеней свободы у элемента}\\ 
+\qquad \textbf{for } i = \overline{0, N^m-1}              & \textrm{-- цикл по базисам внутри элемента}\\
+\qquad \qquad g = glob(m, i)                                & \textrm{-- глобальный индекс локального базиса}\\
+\qquad \qquad V_{g} \pluseq  V^{m}_i                              & \\
+\qquad \textbf{endfor}                                       & \\
+\textbf{endfor}
+\end{array}
+\end{equation}
+В аналогичном алгоритме для матрицы добавится ещё один цикл:
+\begin{equation}
+\label{eq:fem_matrix_assemble}
+\begin{array}{ll}
+M_{ij} = 0                                                      & \textrm{-- инициализируем глобальную матрицу нулями}\\
+\textbf{for } m = \overline{0, N-1}                          & \textrm{-- цикл по конечным элементам}\\
+\qquad N^m = dof(m)                                                   & \textrm{-- количество степеней свободы у элемента}\\ 
+\qquad \textbf{for } i = \overline{0, N^m-1}              & \textrm{-- цикл по базисам внутри элемента}\\
+\qquad \qquad \textbf{for } j = \overline{0, N^m-1}              & \textrm{-- цикл по базисам внутри элемента}\\
+\qquad \qquad \qquad g = glob(m, i)                                & \textrm{-- глобальный индекс локального базиса}\\
+\qquad \qquad \qquad h = glob(m, j)                               & \\
+\qquad \qquad \qquad M_{gh} \pluseq  M^{m}_{ij}                              & \\
+\qquad \qquad \textbf{endfor}                                       & \\
+\qquad \textbf{endfor}                                       & \\
+\textbf{endfor}
+\end{array}
+\end{equation}
+\subsubsection{Вычисление элементных интегралов в модельном пространстве}
+Будем вычислять элементные интегралы \cref{eq:fem_elem_mass_matrix,eq:fem_elem_stiff_matrix,eq:fem_elem_load_vector}
+в модельном пространстве $\vec \xi$.
+Для этого введём преобразование координат $\vec x \rightarrow \vec \xi$ согласно п.\ref{sec:coo_transform}.
+Интеграл для определения локальной матрицы масс \cref{eq:fem_elem_mass_matrix} 
+в модельных координатах распишется согласно формуле \cref{eq:dxideta_integral}
+\begin{equation}
+\label{eq:fem_mass_matrix_xi}
+M^{(m)}_{ij} = \arint{N^{(m)}_i N^{(m)}_j|J^{(m)}|}{\tilde E_m}{\vec \xi}
+\end{equation}
+Здесь $\tilde E_m$ -- параметрический образ конечного элемента $E^k$,
+$|J^{(m)}(\vec \xi)|$ - Якобиан преобразования для $m$-ого элемента,
+$N^{(m)}_i(\vec \xi)$ -- функция формы, или часть базисной фукнции, заданная в $m$-ом элементе в модельных координатах.
+То есть
+\begin{equation*}
+N_i^{(m)}(\vec \xi) = \phi_{g(i)}^{(m)}(\vec x(\vec \xi)).
+\end{equation*}
+Локальный вектор нагрузок записывается из соотношения \cref{eq:fem_elem_load_vector}:
+\begin{equation}
+\label{eq:fem_load_vector_xi}
+V^{(m)}_{i} = \arint{N^{(m)}_i |J^{(m)}|}{\tilde E_m}{\vec \xi}
+\end{equation}
+Локальная матрица жёсткости из \cref{eq:fem_elem_stiff_matrix}:
+\begin{equation}
+\label{eq:fem_stiff_matrix_xi}
+S^{(m)}_{ij} = \arint{\nabla_{\vec x} N^{(m)}_i \cdot \nabla_{\vec x} N^{(m)}_j |J^{(m)}|}{\tilde E_m}{\vec \xi}
+\end{equation}
+Здесь $\nabla_{\vec x} N^{m}_i$ -- градиент shape-функции (заданного в модельном пространстве) по физическим координатам.
+Для его вычисления следует воспользоваться формулами \cref{eq:vec_grad_dx}
+
+%\subsubsubsection{Треугольный элемент. Линейный двумерный базис}
+%Матрица масс (из \cref{eq:mass_matrix}):
+%\begin{equation}
+%\label{eq:mass_matrix_lintri}
+%M^E_{ij} = \int\limits_0^1 \int\limits_0^{1-\xi} \phi_i(\xi, \eta) \phi_j(\xi, \eta) |J| \, d\eta d\xi =
+%\frac{|J|}{24}\left(
+%\begin{array}{ccc}
+%2 & 1 & 1 \\
+%1 & 2 & 1 \\
+%1 & 1 & 2
+%\end{array}
+%\right)
+%\end{equation}

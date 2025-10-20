@@ -22,6 +22,11 @@ set(SRC
     fvm/fvm_extended_collocations.cpp
     fvm/fvm_gradient.cpp
     fvm/fvm_dfdn.cpp
+    fem/fem_element.cpp
+    fem/fem_assembler.cpp
+    fem/elem1d/segment_linear.cpp
+    fem/elem2d/triangle_linear.cpp
+    fem/elem2d/quadrangle_linear.cpp
 )
 
 set(HEADERS
@@ -44,12 +49,22 @@ set(HEADERS
     grid/grid1d.hpp
     grid/regular_grid2d.hpp
     grid/unstructured_grid2d.hpp
+    numeric_integration/quadrature.hpp
+    numeric_integration/segment_quadrature.hpp
+    numeric_integration/square_quadrature.hpp
+    numeric_integration/triangle_quadrature.hpp
+    numeric_integration/numeric_integration.hpp
     debug/printer.hpp
     debug/saver.hpp
     debug/tictoc.hpp
     fvm/fvm_extended_collocations.hpp
     fvm/fvm_gradient.hpp
     fvm/fvm_dfdn.hpp
+    fem/fem_element.hpp
+    fem/fem_assembler.hpp
+    fem/elem1d/segment_linear.hpp
+    fem/elem2d/triangle_linear.hpp
+    fem/elem2d/quadrangle_linear.hpp
 )
 
 add_library(

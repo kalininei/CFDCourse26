@@ -1,0 +1,94 @@
+\subsection{Программная реализация}
+\label{sec:poisson1d_prog}
+
+\clisting{open}{"test/poisson_fdm_test.cpp"}
+
+Тестовая программа для решения одномерного уравнения Пуассона 
+реализована в файле \ename{poisson_fdm_solve_test.cpp}.
+
+В качестве аналитической тестовой функции  используется
+\begin{equation*}
+    u^e = \sin(10 x^2)
+\end{equation*}
+на отрезке $x\in[0,1]$.
+
+\subsubsection{Функция верхнего уровня}
+объявлена как
+\clisting{line}{", \"[poisson1-fdm]\")"}
+В программе в цикле по набору разбиений \cvar{n_cells}
+\clisting{line}{"for (size_t n_cells"}
+создаётся решатель для тестовой задачи, использующий заданное число ячеек
+\clisting{line}{"worker"}
+вычисляется среднеквадратичная норма отклонения численного решения от точного
+\clisting{line}{"n2"}
+полученное численное решение (вместе с точным) сохраняется в vtk файле\\
+\ename{poisson1_n={10,20,...}.vtk}
+\clisting{line}{"save_vtk"}
+а полученная норма печатается в консоль напротив количества ячеек
+\clisting{line}{"cout"}
+
+В результате работы программы в консоли должна отобразиться таблица вида
+\begin{shelloutput}
+--- [poisson1] ---
+10 0.179124
+20 0.0407822
+50 0.00634718
+100 0.00158055
+200 0.000394747
+500 6.31421e-05
+1000 1.57849e-05
+\end{shelloutput}
+где первый столбец -- это количество ячеек, а второй -- полученная для этого количества ячеек норма.
+Нарисовав график этой таблицы в логарифмических осях подтвердим второй порядок аппроксимации (\figref{fig:poisson_convergence}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth]{poisson1_appr.png}
+\caption{Сходимость с уменьшением разбиения при решении одномерного уравнения Пуассона}
+\label{fig:poisson_convergence}
+\end{figure}
+
+Открыв один из cохранённых в процессе работы файлов vtk \ename{poisson1_ncells=?.vtk} в paraview
+можно посмотреть полученные графики. В файле представлены как точное ``exact'', так и численное решение ``numerical''
+(\figref{fig:poisson_graph}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth]{poisson1_graph.png}
+\caption{Сравнение точного и численного решений уравнения Пуассона}
+\label{fig:poisson_graph}
+\end{figure}
+
+
+\subsubsection{Детали реализации}
+\clisting{open}{"test/poisson_fdm_test.cpp"}
+Основная работа по решению задачи проводится в классе \cvar{TestPoisson1Worker}.
+
+В его конструкторе происходит инициализация сетки (приватного поля класса) на отрезке $[0, 1]$ с заданным разбиением
+\cvar{n_cells}:
+\clisting{line}{"TestPoisson1Worker"}
+
+В методе \cvar{solve()} производится численное решения задачи и вычисления нормы.
+Для этого последовательно
+\begin{enumerate}
+\item Строится матрица левой части и вектор правой части определяющей системы уравнений.
+      Матрицы хранятся в разреженном формате CSR (\secref{sec:csr}), удобном для последовательного чтения.
+\item Вызывается решатель СЛАУ. Решение записывается в приватное поле класса \cvar{u}.
+\item Вызывается функция вычисления нормы.
+\end{enumerate}
+
+\clisting{block}{"double solve()"}
+
+Функции нижнего уровня (используемые в методе \cvar{solve}):
+\begin{itemize}
+\item
+  Сборка левой части СЛАУ. Реализует формулу \eqref{eq:poisson1d_fdm_lhs}.
+  Для заполнения матрицы используется формат \cvar{cfd::LodMatrix} (\secref{sec:lodmat}), удобный для непоследовательной записи, который в конце конвертируется CSR.
+  \clisting{block}{"approximate_lhs("}
+\item
+  Сборка правой части СЛАУ. Реализует формулу \eqref{eq:poisson1d_fdm_rhs}.
+  \clisting{block}{"approximate_rhs("}
+\item
+  Вычисление нормы. Реализует формулу \eqref{eq:poisson1d_fdm_norm}.
+  \clisting{block}{"compute_norm2"}
+\end{itemize}

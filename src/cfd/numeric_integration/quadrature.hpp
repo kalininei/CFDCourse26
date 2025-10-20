@@ -22,6 +22,9 @@ public:
     const std::vector<Point>& points() const;
     const std::vector<double>& weights() const;
 
+    Point point(size_t) const;
+    double weight(size_t) const;
+
 private:
     const std::vector<Point> points_;
     const std::vector<double> weights_;

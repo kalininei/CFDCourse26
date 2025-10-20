@@ -13,6 +13,13 @@ const std::vector<double>& Quadrature::weights() const {
     return weights_;
 }
 
+Point Quadrature::point(size_t i) const {
+    return points_[i];
+}
+double Quadrature::weight(size_t i) const {
+    return weights_[i];
+}
+
 size_t Quadrature::size() const {
     return points_.size();
 }
