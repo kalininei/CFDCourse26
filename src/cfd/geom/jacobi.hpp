@@ -22,6 +22,7 @@ struct JacobiMatrix {
 void fill_jacobi_modj(JacobiMatrix& jac);
 void fill_jacobi_modj_1d(JacobiMatrix& jac);
 void fill_jacobi_modj_2d(JacobiMatrix& jac);
+void fill_jacobi_modj_auto(JacobiMatrix& jac);
 
 Vector gradient_to_parametric(const JacobiMatrix& jac, Vector grad_x);
 Vector gradient_to_parametric_1d(const JacobiMatrix& jac, Vector grad_x);

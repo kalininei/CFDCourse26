@@ -60,6 +60,10 @@ const FemElement& FemAssembler::element(size_t ielem) const {
     return _elements[ielem];
 }
 
+const FemElement& FemAssembler::boundary_element(size_t iface) const {
+    return boundary_elements_.at(iface);
+}
+
 Point FemAssembler::reference_point(size_t ibas) const {
     return _ref_points[ibas];
 }
@@ -146,4 +150,15 @@ void FemAssembler::add_to_global_vector(size_t ielem, const std::vector<double>&
 
 const CsrStencil& FemAssembler::stencil() const {
     return _stencil;
+}
+
+void FemAssembler::boundary_add_to_global_vector(size_t iface, const std::vector<double>& local_vector,
+                                                 std::vector<double>& global_vector) const {
+
+    return add_to_global_vector(tab_face_elem_.at(iface), local_vector, global_vector);
+}
+
+void FemAssembler::add_boundary_element(size_t iface, size_t ielem, const FemElement& elem) {
+    boundary_elements_[iface] = elem;
+    tab_face_elem_[iface] = ielem;
 }

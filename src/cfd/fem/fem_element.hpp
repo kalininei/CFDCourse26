@@ -44,6 +44,9 @@ public:
     }
 };
 
+std::shared_ptr<IElementGeometry> build_geometry_from_basis(std::shared_ptr<IElementBasis> geometry_basis,
+                                                            const std::vector<Point>& x);
+
 ///////////////////////////////////////////////////////////////////////////////
 // FemElement
 ///////////////////////////////////////////////////////////////////////////////

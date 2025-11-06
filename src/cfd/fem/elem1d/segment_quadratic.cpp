@@ -14,15 +14,15 @@ std::vector<Point> SegmentQuadraticBasis::parametric_reference_points() const {
 }
 
 std::vector<double> SegmentQuadraticBasis::value(Point xi) const {
-    double x = xi.x();
+    double x = xi.x;
     return {(x * x - x) / 2, (x * x + x) / 2, 1 - x * x};
 }
 
 std::vector<Vector> SegmentQuadraticBasis::grad(Point xi) const {
-    double x = xi.x();
+    double x = xi.x;
     return {Vector{(2 * x - 1) / 2}, Vector{(2 * x + 1) / 2}, Vector{-(2 * x)}};
 }
 
-std::vector<std::array<double, 6>> SegmentQuadraticBasis::upper_hessian(Point xi) const {
+std::vector<std::array<double, 6>> SegmentQuadraticBasis::upper_hessian(Point) const {
     return {{1, 0, 0, 0, 0, 0}, {1, 0, 0, 0, 0, 0}, {-2, 0, 0, 0, 0, 0}};
 }

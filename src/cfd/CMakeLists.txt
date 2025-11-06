@@ -24,9 +24,16 @@ set(SRC
     fvm/fvm_dfdn.cpp
     fem/fem_element.cpp
     fem/fem_assembler.cpp
+    fem/fem_sorted_cell_info.cpp
     fem/elem1d/segment_linear.cpp
+    fem/elem1d/segment_quadratic.cpp
+    fem/elem1d/segment_cubic.cpp
     fem/elem2d/triangle_linear.cpp
     fem/elem2d/quadrangle_linear.cpp
+    fem/elem2d/triangle_quadratic.cpp
+    fem/elem2d/triangle_cubic.cpp
+    fem/elem2d/quadrangle_quadratic.cpp
+    fem/fem_boundary.cpp
 )
 
 set(HEADERS
@@ -62,9 +69,14 @@ set(HEADERS
     fvm/fvm_dfdn.hpp
     fem/fem_element.hpp
     fem/fem_assembler.hpp
+    fem/fem_boundary.hpp
+    fem/fem_sorted_cell_info.hpp
     fem/elem1d/segment_linear.hpp
     fem/elem2d/triangle_linear.hpp
     fem/elem2d/quadrangle_linear.hpp
+    fem/elem2d/triangle_quadratic.hpp
+    fem/elem2d/triangle_cubic.hpp
+    fem/elem2d/quadrangle_quadratic.hpp
 )
 
 add_library(

@@ -83,3 +83,28 @@ std::shared_ptr<const Quadrature> cfd::quadrature_triangle_gauss6() {
                             0.08285107561837 / 2, 0.08285107561837 / 2, 0.08285107561837 / 2, 0.08285107561837 / 2});
     return quad;
 }
+
+template<int P> std::shared_ptr<const Quadrature> cfd::quadrature_triangle_gauss() {
+    if constexpr (P == 1) {
+        return quadrature_triangle_gauss1();
+    } else if constexpr (P == 2) {
+        return quadrature_triangle_gauss2();
+    } else if constexpr (P == 3) {
+        return quadrature_triangle_gauss3();
+    } else if constexpr (P == 4) {
+        return quadrature_triangle_gauss4();
+    } else if constexpr (P == 5) {
+        return quadrature_triangle_gauss5();
+    } else if constexpr (P == 6) {
+        return quadrature_triangle_gauss6();
+    } else {
+        static_assert(false);
+    }
+}
+
+template std::shared_ptr<const Quadrature> cfd::quadrature_triangle_gauss<1>();
+template std::shared_ptr<const Quadrature> cfd::quadrature_triangle_gauss<2>();
+template std::shared_ptr<const Quadrature> cfd::quadrature_triangle_gauss<3>();
+template std::shared_ptr<const Quadrature> cfd::quadrature_triangle_gauss<4>();
+template std::shared_ptr<const Quadrature> cfd::quadrature_triangle_gauss<5>();
+template std::shared_ptr<const Quadrature> cfd::quadrature_triangle_gauss<6>();

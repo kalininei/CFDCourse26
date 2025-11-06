@@ -9,10 +9,34 @@ void cfd::fill_jacobi_modj(JacobiMatrix& jac) {
 
 void cfd::fill_jacobi_modj_1d(JacobiMatrix& jac) {
     jac.modj = jac.j11;
+    jac.j12 = 0.0;
+    jac.j13 = 0.0;
+    jac.j21 = 0.0;
+    jac.j23 = 0.0;
+    jac.j31 = 0.0;
+    jac.j32 = 0.0;
+    jac.j22 = 1.0;
+    jac.j33 = 1.0;
 }
 
 void cfd::fill_jacobi_modj_2d(JacobiMatrix& jac) {
     jac.modj = jac.j11 * jac.j22 - jac.j12 * jac.j21;
+    jac.j13 = 0.0;
+    jac.j32 = 0.0;
+    jac.j31 = 0.0;
+    jac.j32 = 0.0;
+    jac.j33 = 1.0;
+}
+
+void cfd::fill_jacobi_modj_auto(JacobiMatrix& jac) {
+    constexpr double EPS = 1e-16;
+    if (std::abs(jac.j31) < EPS && std::abs(jac.j32) < EPS && std::abs(jac.j33) < EPS) {
+        if (std::abs(jac.j21) < EPS && std::abs(jac.j22) < EPS) {
+            return fill_jacobi_modj_1d(jac);
+        }
+        return fill_jacobi_modj_2d(jac);
+    }
+    return fill_jacobi_modj(jac);
 }
 
 Vector cfd::gradient_to_parametric(const JacobiMatrix& jac, Vector grad_x) {

@@ -101,3 +101,55 @@ double FemElementValue::divergence(const std::vector<Vector>& f) const {
     }
     return ret;
 }
+
+namespace {
+
+class BasedGeometry : public IElementGeometry {
+public:
+    BasedGeometry(std::shared_ptr<const IElementBasis> basis, const std::vector<Point>& x) : basis_(basis), x_(x) {
+        if (basis_->size() != x_.size()) {
+            throw std::runtime_error("Sizes do not match");
+        }
+    }
+
+    JacobiMatrix jacobi(Point xi) const override {
+        auto grad = basis_->grad(xi);
+
+        Point d_dxi{};
+        Point d_deta{};
+        Point d_dzeta{};
+        for (size_t i = 0; i < x_.size(); ++i) {
+            d_dxi += grad[i].x * x_[i];
+            d_deta += grad[i].y * x_[i];
+            d_dzeta += grad[i].z * x_[i];
+        };
+        JacobiMatrix ret{
+            d_dxi.x, d_deta.x, d_dzeta.x, //
+            d_dxi.y, d_deta.y, d_dzeta.y, //
+            d_dxi.z, d_deta.z, d_dzeta.z, //
+        };
+        fill_jacobi_modj_auto(ret);
+        return ret;
+    };
+
+    Point to_physical(Point xi) const override {
+        Point ret{};
+        std::vector<double> v = basis_->value(xi);
+        for (size_t i = 0; i < x_.size(); ++i) {
+            ret += v[i] * x_[i];
+        }
+
+        return ret;
+    }
+
+private:
+    std::shared_ptr<const IElementBasis> basis_;
+    std::vector<Point> x_;
+};
+} // namespace
+
+std::shared_ptr<IElementGeometry> cfd::build_geometry_from_basis(std::shared_ptr<IElementBasis> geometry_basis,
+                                                                 const std::vector<Point>& x) {
+
+    return std::make_shared<BasedGeometry>(geometry_basis, x);
+}

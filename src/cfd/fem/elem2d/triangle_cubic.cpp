@@ -23,8 +23,8 @@ std::vector<Point> TriangleCubicBasis::parametric_reference_points() const {
 }
 
 std::vector<double> TriangleCubicBasis::value(Point xi) const {
-    double x = xi.x();
-    double y = xi.y();
+    double x = xi.x;
+    double y = xi.y;
     return {
         0.5 * (-9 * y * y * y + (18 - 27 * x) * y * y + (-27 * x * x + 36 * x - 11) * y - 9 * x * x * x + 18 * x * x -
                11 * x + 2),
@@ -41,8 +41,8 @@ std::vector<double> TriangleCubicBasis::value(Point xi) const {
 }
 
 std::vector<Vector> TriangleCubicBasis::grad(Point xi) const {
-    double x = xi.x();
-    double y = xi.y();
+    double x = xi.x;
+    double y = xi.y;
     return {0.5 * Vector{-27 * y * y + (36 - 54 * x) * y - 27 * x * x + 36 * x - 11,
                          -27 * y * y + (36 - 54 * x) * y - 27 * x * x + 36 * x - 11},
             0.5 * Vector{27 * x * x - 18 * x + 2, 0},

@@ -53,3 +53,28 @@ std::shared_ptr<const Quadrature> cfd::quadrature_segment_gauss6() {
                                                          0.4679139345726910, 0.1713244923791704, 0.1713244923791704});
     return quad;
 }
+
+template<int P> std::shared_ptr<const Quadrature> cfd::quadrature_segment_gauss() {
+    if constexpr (P == 1) {
+        return quadrature_segment_gauss1();
+    } else if constexpr (P == 2) {
+        return quadrature_segment_gauss2();
+    } else if constexpr (P == 3) {
+        return quadrature_segment_gauss3();
+    } else if constexpr (P == 4) {
+        return quadrature_segment_gauss4();
+    } else if constexpr (P == 5) {
+        return quadrature_segment_gauss5();
+    } else if constexpr (P == 6) {
+        return quadrature_segment_gauss6();
+    } else {
+        static_assert(false);
+    }
+}
+
+template std::shared_ptr<const Quadrature> cfd::quadrature_segment_gauss<1>();
+template std::shared_ptr<const Quadrature> cfd::quadrature_segment_gauss<2>();
+template std::shared_ptr<const Quadrature> cfd::quadrature_segment_gauss<3>();
+template std::shared_ptr<const Quadrature> cfd::quadrature_segment_gauss<4>();
+template std::shared_ptr<const Quadrature> cfd::quadrature_segment_gauss<5>();
+template std::shared_ptr<const Quadrature> cfd::quadrature_segment_gauss<6>();

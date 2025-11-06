@@ -19,8 +19,8 @@ std::vector<double> QuadrangleQuadraticBasis::value(Point xi) const {
     auto p1 = [](double x) { return (x * x + x) / 2; };
     auto p2 = [](double x) { return (1 - x * x); };
 
-    double x = xi.x();
-    double y = xi.y();
+    double x = xi.x;
+    double y = xi.y;
     return {
         p0(x) * p0(y), p1(x) * p0(y), p1(x) * p1(y), p0(x) * p1(y), p2(x) * p0(y),
         p1(x) * p2(y), p2(x) * p1(y), p0(x) * p2(y), p2(x) * p2(y),
@@ -35,8 +35,8 @@ std::vector<Vector> QuadrangleQuadraticBasis::grad(Point xi) const {
     auto d1 = [](double x) { return (2 * x + 1) / 2; };
     auto d2 = [](double x) { return -2 * x; };
 
-    double x = xi.x();
-    double y = xi.y();
+    double x = xi.x;
+    double y = xi.y;
 
     return {
         {d0(x) * p0(y), p0(x) * d0(y)}, {d1(x) * p0(y), p1(x) * d0(y)}, {d1(x) * p1(y), p1(x) * d1(y)},
@@ -58,8 +58,8 @@ std::vector<Point> QuadrangleQuadratic8Basis::parametric_reference_points() cons
 }
 
 std::vector<double> QuadrangleQuadratic8Basis::value(Point xi) const {
-    double x = xi.x();
-    double y = xi.y();
+    double x = xi.x;
+    double y = xi.y;
     return {
         0.25 * (-1 + x * y + x * x + y * y - x * x * y - x * y * y),
         0.25 * (-1 - x * y + x * x + y * y - x * x * y + x * y * y),
@@ -73,8 +73,8 @@ std::vector<double> QuadrangleQuadratic8Basis::value(Point xi) const {
 }
 
 std::vector<Vector> QuadrangleQuadratic8Basis::grad(Point xi) const {
-    double x = xi.x();
-    double y = xi.y();
+    double x = xi.x;
+    double y = xi.y;
 
     return {
         0.25 * Point{y + 2 * x - 2 * x * y - y * y, x + 2 * y - x * x - 2 * x * y},

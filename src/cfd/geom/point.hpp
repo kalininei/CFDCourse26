@@ -118,5 +118,9 @@ inline double vector_meas(const Vector& v) {
     return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
+inline Vector vector_normalize(const Vector& v) {
+    return v / vector_abs(v);
+}
+
 } // namespace cfd
 #endif

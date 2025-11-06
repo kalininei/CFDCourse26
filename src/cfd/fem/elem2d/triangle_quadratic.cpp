@@ -11,8 +11,8 @@ std::vector<Point> TriangleQuadraticBasis::parametric_reference_points() const {
 }
 
 std::vector<double> TriangleQuadraticBasis::value(Point xi) const {
-    double x = xi.x();
-    double y = xi.y();
+    double x = xi.x;
+    double y = xi.y;
     return {
         1 - 3 * x - 3 * y + 4 * x * y + 2 * x * x + 2 * y * y,
         -x + 2 * x * x,
@@ -24,8 +24,8 @@ std::vector<double> TriangleQuadraticBasis::value(Point xi) const {
 }
 
 std::vector<Vector> TriangleQuadraticBasis::grad(Point xi) const {
-    double x = xi.x();
-    double y = xi.y();
+    double x = xi.x;
+    double y = xi.y;
 
     return {{-3 + 4 * y + 4 * x, -3 + 4 * x + 4 * y},
             {-1 + 4 * x, 0},
