@@ -37,7 +37,7 @@ FvmExtendedCollocations::FvmExtendedCollocations(const IGrid& grid) {
 
     // collocations connectivity
     tab_colloc_colloc_.resize(points.size());
-    for (const std::array<size_t, 2>& fc : tab_face_colloc_) {
+    for (const std::array<size_t, 2>& fc: tab_face_colloc_) {
         tab_colloc_colloc_[fc[1]].push_back(fc[0]);
         tab_colloc_colloc_[fc[0]].push_back(fc[1]);
     }

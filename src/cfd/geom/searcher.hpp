@@ -7,7 +7,8 @@
 
 namespace cfd {
 
-template<size_t Dim = 3> class PointSearcher {
+template<size_t Dim = 3>
+class PointSearcher {
 public:
     PointSearcher();
     PointSearcher(const std::vector<Point>& points);

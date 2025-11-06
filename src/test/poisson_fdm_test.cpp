@@ -122,7 +122,7 @@ TEST_CASE("Poisson 1D solver, Finite Difference Method", "[poisson1-fdm]") {
     };
 
     // loop over n_cells value
-    for (size_t n_cells : {10, 20, 50, 100, 200, 500, 1000}) {
+    for (size_t n_cells: {10, 20, 50, 100, 200, 500, 1000}) {
         // build test solver
         TestPoisson1Worker worker(n_cells);
 

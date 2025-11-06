@@ -40,7 +40,7 @@ void dbg::print(size_t irow, const ISparseMatrix& mat, size_t col0, size_t col1)
 
 void dbg::print(const std::vector<double>& vec) {
     std::cout << "-- SIZE = " << vec.size() << std::endl;
-    for (double v : vec) {
+    for (double v: vec) {
         std::cout << v << std::endl;
     }
 }
@@ -48,7 +48,7 @@ void dbg::print(const std::vector<double>& vec) {
 void dbg::print_feat(const std::vector<double>& vec) {
     double abs_sum = 0;
     double abs_min = std::numeric_limits<double>::max();
-    for (double v : vec) {
+    for (double v: vec) {
         abs_sum += std::abs(v);
         abs_min = std::min(abs_min, std::abs(v));
     }

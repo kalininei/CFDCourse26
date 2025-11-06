@@ -16,7 +16,7 @@ void CsrStencil::set_stencil(const std::vector<std::set<size_t>>& stencil_set) {
     for (size_t irow = 0; irow < stencil_set.size(); ++irow) {
         const std::set<size_t>& cols = stencil_set[irow];
         addr_.push_back(addr_.back() + cols.size());
-        for (size_t col : cols) {
+        for (size_t col: cols) {
             cols_.push_back(col);
         }
     }
@@ -210,7 +210,7 @@ CsrMatrix cfd::assemble_block_matrix(size_t n_block_rows, size_t n_block_cols,
                                      const std::vector<std::vector<const LodMatrix*>>& blocks) {
     std::vector<CsrMatrix> data;
     size_t nblocks = 0;
-    for (const auto& r : blocks) {
+    for (const auto& r: blocks) {
         nblocks += r.size();
     };
     data.reserve(nblocks);

@@ -83,7 +83,7 @@ std::vector<double> FemAssembler::approximate(const IPointFunction& func) const 
 
 std::vector<double> FemAssembler::local_vector(size_t ielem, const std::vector<double>& v) const {
     std::vector<double> ret;
-    for (size_t bas : _tab_elem_basis[ielem]) {
+    for (size_t bas: _tab_elem_basis[ielem]) {
         ret.push_back(v[bas]);
     }
     return ret;
@@ -93,7 +93,7 @@ std::vector<Vector> FemAssembler::local_vector(size_t ielem, const std::vector<d
                                                const std::vector<double>& vy) const {
 
     std::vector<Vector> ret;
-    for (size_t bas : _tab_elem_basis[ielem]) {
+    for (size_t bas: _tab_elem_basis[ielem]) {
         ret.push_back({vx[bas], vy[bas], 0.0});
     }
     return ret;
@@ -103,7 +103,7 @@ std::vector<Vector> FemAssembler::local_vector(size_t ielem, const std::vector<d
                                                const std::vector<double>& vy, const std::vector<double>& vz) const {
 
     std::vector<Vector> ret;
-    for (size_t bas : _tab_elem_basis[ielem]) {
+    for (size_t bas: _tab_elem_basis[ielem]) {
         ret.push_back({vx[bas], vy[bas], vz[bas]});
     }
     return ret;

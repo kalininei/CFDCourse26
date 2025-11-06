@@ -13,7 +13,8 @@ std::shared_ptr<const Quadrature> quadrature_square_gauss4();
 std::shared_ptr<const Quadrature> quadrature_square_gauss5();
 std::shared_ptr<const Quadrature> quadrature_square_gauss6();
 
-template<int P> std::shared_ptr<const Quadrature> quadrature_square_gauss();
+template<int P>
+std::shared_ptr<const Quadrature> quadrature_square_gauss();
 
 } // namespace cfd
 #endif

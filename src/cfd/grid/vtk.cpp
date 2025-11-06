@@ -9,7 +9,8 @@ namespace fs = std::filesystem;
 
 namespace {
 
-template<typename C> void set_ndata(const std::vector<C>& data, size_t& ndata) {
+template<typename C>
+void set_ndata(const std::vector<C>& data, size_t& ndata) {
     if (ndata == 0) {
         ndata = data.size();
     }
@@ -176,7 +177,7 @@ void VtkUtils::append_header(std::string caption, std::ostream& fs) {
 void VtkUtils::append_points(const std::vector<Point>& points, std::ostream& fs) {
     fs << "DATASET UNSTRUCTURED_GRID" << std::endl;
     fs << "POINTS " << points.size() << " double" << std::endl;
-    for (const auto& point : points) {
+    for (const auto& point: points) {
         fs << point.x << " " << point.y << " " << point.z;
         fs << std::endl;
     }

@@ -7,7 +7,8 @@
 using namespace cfd;
 namespace bg = boost::geometry;
 
-template<size_t Dim> struct PointSearcher<Dim>::Impl {
+template<size_t Dim>
+struct PointSearcher<Dim>::Impl {
     using point_t = bg::model::point<double, Dim, bg::cs::cartesian>;
     using value_t = std::pair<point_t, size_t>;
 
@@ -32,7 +33,7 @@ template<size_t Dim> struct PointSearcher<Dim>::Impl {
         point_t point = build_point_t(p);
         _rtree.query(bg::index::nearest(point, n), std::back_inserter(vals));
         std::vector<size_t> ret;
-        for (const auto& v : vals) {
+        for (const auto& v: vals) {
             ret.push_back(v.second);
         }
         return ret;
@@ -42,20 +43,24 @@ private:
     bg::index::rtree<value_t, bg::index::quadratic<16>> _rtree;
 };
 
-template<size_t Dim> PointSearcher<Dim>::PointSearcher() {
+template<size_t Dim>
+PointSearcher<Dim>::PointSearcher() {
     pimpl_ = std::make_shared<Impl>();
 }
 
-template<size_t Dim> PointSearcher<Dim>::PointSearcher(const std::vector<Point>& points) {
+template<size_t Dim>
+PointSearcher<Dim>::PointSearcher(const std::vector<Point>& points) {
     pimpl_ = std::make_shared<Impl>();
     add_points(points);
 }
 
-template<size_t Dim> void PointSearcher<Dim>::add_points(const std::vector<Point>& points) {
+template<size_t Dim>
+void PointSearcher<Dim>::add_points(const std::vector<Point>& points) {
     pimpl_->add(points);
 }
 
-template<size_t Dim> std::vector<size_t> PointSearcher<Dim>::nearest(const Point& p, size_t n) const {
+template<size_t Dim>
+std::vector<size_t> PointSearcher<Dim>::nearest(const Point& p, size_t n) const {
     return pimpl_->nearest(p, n);
 }
 

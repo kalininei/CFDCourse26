@@ -108,7 +108,7 @@ struct Timers {
 
     std::vector<std::string> keys() {
         std::vector<std::string> ret;
-        for (auto& v : data) {
+        for (auto& v: data) {
             ret.push_back(v.first);
         }
         return ret;
@@ -153,7 +153,7 @@ void cfd::dbg::Tic1(std::string s) {
 
 void cfd::dbg::Toc(std::string s) {
     if (s.size() == 0) {
-        for (auto k : alltimers_.keys())
+        for (auto k: alltimers_.keys())
             Toc(k);
     } else {
         if (alltimers_.has(s)) {
@@ -164,7 +164,7 @@ void cfd::dbg::Toc(std::string s) {
 
 void cfd::dbg::Report(std::string s) {
     if (s.size() == 0) {
-        for (auto k : alltimers_.keys())
+        for (auto k: alltimers_.keys())
             Report(k);
     } else {
         if (alltimers_.has(s)) {
@@ -176,7 +176,7 @@ void cfd::dbg::Report(std::string s) {
 void cfd::dbg::FinReport(std::string s) {
     if (s.size() == 0) {
         Toc();
-        for (auto k : alltimers_.keys_sorted_by_elapsed()) {
+        for (auto k: alltimers_.keys_sorted_by_elapsed()) {
             FinReport(k);
         }
     } else {

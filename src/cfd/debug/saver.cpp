@@ -26,7 +26,7 @@ void save_faces(const IGrid& grid) {
     for (size_t i = 0; i < grid.n_faces(); ++i) {
         std::vector<size_t> pp = grid.tab_face_point(i);
         oss << pp.size();
-        for (size_t p : pp) {
+        for (size_t p: pp) {
             oss << " " << p;
         }
         if (pp.size() == 1) {
@@ -64,7 +64,7 @@ size_t save_extended_colloc(const IGrid& grid) {
     for (size_t i = 0; i < grid.n_cells(); ++i) {
         auto v = grid.tab_cell_point(i);
         oss << v.size();
-        for (size_t p : v) {
+        for (size_t p: v) {
             oss << " " << p;
         }
         oss << std::endl;
@@ -79,7 +79,7 @@ size_t save_extended_colloc(const IGrid& grid) {
         }
         std::vector<size_t> pp = grid.tab_face_point(i);
         oss << pp.size();
-        for (size_t p : pp) {
+        for (size_t p: pp) {
             oss << " " << p;
         }
         if (pp.size() == 1) {

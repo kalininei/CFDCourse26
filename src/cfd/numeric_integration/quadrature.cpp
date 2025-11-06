@@ -34,7 +34,7 @@ double Quadrature::integrate(const std::vector<double>& values) const {
 
 double Quadrature::integrate(const std::function<double(Point)>& func) const {
     std::vector<double> values;
-    for (Point p : points_) {
+    for (Point p: points_) {
         values.push_back(func(p));
     }
     return integrate(values);
@@ -53,7 +53,7 @@ std::vector<double> Quadrature::integrate(const std::vector<std::vector<double>>
 
 std::vector<double> Quadrature::integrate(const std::function<std::vector<double>(Point)>& func) const {
     std::vector<std::vector<double>> values;
-    for (Point p : points_) {
+    for (Point p: points_) {
         values.push_back(func(p));
     }
     return integrate(values);

@@ -107,7 +107,7 @@ TEST_CASE("Transport 1D solver, explicit", "[transport1-fdm-explicit]") {
     double h = L / static_cast<double>(n_cells);
     double tau = Cu * h / V;
 
-    for (size_t n_cells2 : std::vector<size_t>{10, 50, 100, 300, 500, 1000, 3000, 5000, 10000, 30000, 50000}) {
+    for (size_t n_cells2: std::vector<size_t>{10, 50, 100, 300, 500, 1000, 3000, 5000, 10000, 30000, 50000}) {
         n_cells = n_cells2;
         tau = 1e-5;
         // solver
@@ -190,7 +190,7 @@ TEST_CASE("Transport 1D solver, implicit", "[transport1-fdm-implicit]") {
     double h = L / static_cast<double>(n_cells);
     double tau = Cu * h / V;
 
-    for (size_t n_cells2 : std::vector<size_t>{10, 50, 100, 300, 500, 1000, 3000, 5000, 10000, 30000, 50000}) {
+    for (size_t n_cells2: std::vector<size_t>{10, 50, 100, 300, 500, 1000, 3000, 5000, 10000, 30000, 50000}) {
         n_cells = n_cells2;
         tau = 1e-5;
         TestTransport1WorkerImplicit worker(n_cells);
@@ -252,7 +252,7 @@ TEST_CASE("Transport 1D solver, Crank-Nicolson", "[transport1-fdm-cn]") {
     double h = L / (double)n_cells;
     double tau = Cu * h / V;
 
-    for (size_t n_cells2 : std::vector<size_t>{10, 50, 100, 300, 500, 1000, 3000, 5000, 10000, 30000, 50000}) {
+    for (size_t n_cells2: std::vector<size_t>{10, 50, 100, 300, 500, 1000, 3000, 5000, 10000, 30000, 50000}) {
         n_cells = n_cells2;
         tau = 1e-5;
         TestTransport1WorkerCN worker(n_cells);
@@ -319,7 +319,7 @@ TEST_CASE("Transport 1D solver, tvd-explicit", "[transport1-fdm-tvd-explicit]") 
     double h = L / static_cast<double>(n_cells);
     double tau = Cu * h / V;
 
-    for (size_t n_cells2 : std::vector<size_t>{10, 50, 100, 300, 500, 1000, 3000, 5000, 10000, 30000, 50000}) {
+    for (size_t n_cells2: std::vector<size_t>{10, 50, 100, 300, 500, 1000, 3000, 5000, 10000, 30000, 50000}) {
         n_cells = n_cells2;
         tau = 1e-5;
         // solver

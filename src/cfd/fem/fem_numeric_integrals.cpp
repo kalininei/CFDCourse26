@@ -7,7 +7,7 @@ namespace {
 std::vector<JacobiMatrix> build_quad_jacobi(const Quadrature& quad, const IElementGeometry& geom) {
     std::vector<JacobiMatrix> ret;
 
-    for (Point xi : quad.points()) {
+    for (Point xi: quad.points()) {
         ret.push_back(geom.jacobi(xi));
     }
 
@@ -81,7 +81,7 @@ std::vector<double> NumericElementIntegrals::stiff_matrix() const {
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
 
@@ -108,7 +108,7 @@ std::vector<double> NumericElementIntegrals::transport_matrix(const std::vector<
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -144,7 +144,7 @@ std::vector<double> NumericElementIntegrals::mass_matrix_stab_supg(const std::ve
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -190,7 +190,7 @@ std::vector<double> NumericElementIntegrals::transport_matrix_stab_supg(const st
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -230,7 +230,7 @@ std::vector<double> NumericElementIntegrals::divergence_vector(const std::vector
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -265,7 +265,7 @@ std::vector<double> NumericElementIntegrals::divergence_vector_byparts(const std
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -298,7 +298,7 @@ std::vector<double> NumericElementIntegrals::dx_matrix() const {
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -323,7 +323,7 @@ std::vector<double> NumericElementIntegrals::dy_matrix() const {
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -348,7 +348,7 @@ std::vector<double> NumericElementIntegrals::dz_matrix() const {
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -376,7 +376,7 @@ std::vector<double> NumericElementIntegrals::dx_matrix_stab_supg2(const std::vec
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -425,7 +425,7 @@ std::vector<double> NumericElementIntegrals::dy_matrix_stab_supg2(const std::vec
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -474,7 +474,7 @@ std::vector<double> NumericElementIntegrals::dz_matrix_stab_supg2(const std::vec
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -523,7 +523,7 @@ std::vector<double> NumericElementIntegrals::dx_matrix_stab_supg(const std::vect
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -563,7 +563,7 @@ std::vector<double> NumericElementIntegrals::dy_matrix_stab_supg(const std::vect
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);
@@ -611,7 +611,7 @@ std::vector<double> NumericElementIntegrals::dz_matrix_stab_supg(const std::vect
     for (size_t iquad = 0; iquad < _quad->size(); ++iquad) {
         Point quad_xi = _quad->points()[iquad];
         std::vector<Vector> phi_grad_x;
-        for (Vector phi_grad_xi : _basis->grad(quad_xi)) {
+        for (Vector phi_grad_xi: _basis->grad(quad_xi)) {
             phi_grad_x.push_back(gradient_to_physical(_quad_jacobi[iquad], phi_grad_xi));
         }
         std::vector<double> phi = _basis->value(quad_xi);

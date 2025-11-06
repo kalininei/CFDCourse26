@@ -5,13 +5,14 @@ using namespace cfd;
 
 PolygonElementInfo::PolygonElementInfo(const IGrid& grid, size_t icell1)
     : icell(icell1), ipoints(grid.tab_cell_point(icell)) {
+
     std::vector<size_t> orig_ifaces = grid.tab_cell_face(icell);
 
     for (size_t ip = 0; ip < ipoints.size(); ++ip) {
         size_t p0 = ipoints[ip];
         size_t p1 = ipoints[(ip + 1) % ipoints.size()];
 
-        for (size_t iface : orig_ifaces) {
+        for (size_t iface: orig_ifaces) {
             std::vector<size_t> face_points = grid.tab_face_point(iface);
             if (face_points.size() != 2) {
                 _THROW_INTERNAL_ERROR_;
@@ -32,7 +33,7 @@ PolygonElementInfo::PolygonElementInfo(const IGrid& grid, size_t icell1)
         _THROW_INTERNAL_ERROR_;
     }
 
-    for (size_t iface : ifaces) {
+    for (size_t iface: ifaces) {
         auto [c1, c2] = grid.tab_face_cell(iface);
         is_boundary_face.push_back(c1 == INVALID_INDEX || c2 == INVALID_INDEX);
     }
@@ -45,6 +46,7 @@ bool PolygonElementInfo::start_from_boundary() {
         size_t mid = fnd - is_boundary_face.begin();
         std::rotate(ipoints.begin(), ipoints.begin() + mid, ipoints.end());
         std::rotate(ifaces.begin(), ifaces.begin() + mid, ifaces.end());
+        std::rotate(is_face_reverted.begin(), is_face_reverted.begin() + mid, is_face_reverted.end());
         std::rotate(is_boundary_face.begin(), is_boundary_face.begin() + mid, is_boundary_face.end());
         return true;
     }

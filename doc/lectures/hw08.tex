@@ -49,10 +49,16 @@ u^{ex} = q  r_0 \ln\left(\frac{r}{r_1}\right).
 \item указать кубический базис \cvar{TriangleCubicBasis} при создании набора шейп-функций \cvar{basis},
 \item при сборке таблицы связности \cvar{tab} добавить ещё одну граневую базисную функцию и одну bubble-функцию для каждого элемента:
 \begin{cppcode}
-std::vector<size_t> tab = info.ipoints;  // узловые
-for (size_t iface: info.ifaces){
-    tab.push_back(2*iface + grid.n_points()); // две граневые
-    tab.push_back(2*iface + 1 + grid.n_points());
+std::vector<size_t> tab = info.ipoints;   // узловые
+for (size_t i=0; i<info.n_points(); ++i){
+    size_t iface = info.ifaces[i];
+    if (!info.is_face_reverted[i]){  // в правом элементе грань "перевёрнута"
+        tab.push_back(grid.n_points() + 2*iface + 0); // две граневые 
+        tab.push_back(grid.n_points() + 2*iface + 1);
+    } else {
+        tab.push_back(grid.n_points() + 2*iface + 1);
+        tab.push_back(grid.n_points() + 2*iface + 0);
+    }
 }
 tab.push_back(grid.n_points() + 2*grid.n_faces + icell); // bubble
 \end{cppcode}

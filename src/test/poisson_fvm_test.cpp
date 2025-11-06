@@ -98,7 +98,7 @@ protected:
         LodMatrix mat(grid_->n_cells());
 
         for (size_t icell = 0; icell < grid_->n_cells(); ++icell) {
-            for (size_t iface : grid_->tab_cell_face(icell)) {
+            for (size_t iface: grid_->tab_cell_face(icell)) {
                 std::array<size_t, 2> ij = grid_->tab_face_cell(iface);
                 size_t jcell = (ij[0] == icell) ? ij[1] : ij[0];
 
@@ -131,7 +131,7 @@ protected:
             rhs[icell] = value * volume;
         }
         // dirichlet faces
-        for (const DirichletFace& dir_face : dirichlet_faces_) {
+        for (const DirichletFace& dir_face: dirichlet_faces_) {
             size_t icell = dir_face.icell;
             size_t iface = dir_face.iface;
             Point gs = grid_->face_center(iface);
@@ -191,7 +191,7 @@ TEST_CASE("Poisson 1D solver, Finite Volume Method", "[poisson1-fvm]") {
     };
 
     // loop over n_cells value
-    for (size_t n_cells : {10, 20, 50, 100, 200, 500, 1000}) {
+    for (size_t n_cells: {10, 20, 50, 100, 200, 500, 1000}) {
         // build test solver
         TestPoissonFvmWorker_1D worker(n_cells);
 
@@ -258,7 +258,7 @@ public:
             mat.add_value(j, i, -coef);
         }
         // dirichlet faces
-        for (auto& dir : dirichlet_faces_) {
+        for (auto& dir: dirichlet_faces_) {
             size_t icolloc = ecol_.boundary_colloc(dir.iface);
             mat.set_unit_row(icolloc);
         }
@@ -289,7 +289,7 @@ public:
             rhs[icell] += value * volume;
         }
         // dirichlet faces
-        for (const DirichletFace& dir : dirichlet_faces_) {
+        for (const DirichletFace& dir: dirichlet_faces_) {
             size_t icolloc = ecol_.boundary_colloc(dir.iface);
             rhs[icolloc] = dir.value;
         }
@@ -387,7 +387,7 @@ public:
             mat.add_value(j, i, -coef);
         }
         // dirichlet faces
-        for (auto& dir : dirichlet_faces_) {
+        for (auto& dir: dirichlet_faces_) {
             size_t icolloc = ecol_.boundary_colloc(dir.iface);
             mat.set_unit_row(icolloc);
         }
@@ -404,7 +404,7 @@ public:
             rhs[icell] += value * volume;
         }
         // dirichlet faces
-        for (const DirichletFace& dir : dirichlet_faces_) {
+        for (const DirichletFace& dir: dirichlet_faces_) {
             size_t icolloc = ecol_.boundary_colloc(dir.iface);
             rhs[icolloc] = dir.value;
         }

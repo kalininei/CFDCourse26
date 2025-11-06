@@ -28,8 +28,8 @@ void IGrid::Cache::need_boundary_points(const IGrid& grid) {
     }
     need_boundary_faces(grid);
     std::set<size_t> points;
-    for (size_t iface : boundary_faces) {
-        for (size_t ipoint : grid.tab_face_point(iface)) {
+    for (size_t iface: boundary_faces) {
+        for (size_t ipoint: grid.tab_face_point(iface)) {
             points.insert(ipoint);
         }
     }

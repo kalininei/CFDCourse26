@@ -17,15 +17,15 @@ LodMatrix assemble_faces_dudn_2d(const IGrid& grid, const FvmExtendedCollocation
 
     std::vector<std::vector<size_t>> tab_point_colloc(grid.n_points());
     {
-        for (size_t icolloc : colloc.cell_collocations) {
+        for (size_t icolloc: colloc.cell_collocations) {
             size_t icell = colloc.cell_index(icolloc);
-            for (size_t ipoint : grid.tab_cell_point(icell)) {
+            for (size_t ipoint: grid.tab_cell_point(icell)) {
                 tab_point_colloc[ipoint].push_back(icolloc);
             }
         }
-        for (size_t icolloc : colloc.face_collocations) {
+        for (size_t icolloc: colloc.face_collocations) {
             size_t iface = colloc.face_index(icolloc);
-            for (size_t ipoint : grid.tab_face_point(iface)) {
+            for (size_t ipoint: grid.tab_face_point(iface)) {
                 tab_point_colloc[ipoint].push_back(icolloc);
             }
         }
@@ -34,7 +34,7 @@ LodMatrix assemble_faces_dudn_2d(const IGrid& grid, const FvmExtendedCollocation
         size_t ret = INVALID_INDEX;
         double min_meas = 1e100;
         Point p0 = grid.point(grid_point);
-        for (size_t icolloc : tab_point_colloc[grid_point]) {
+        for (size_t icolloc: tab_point_colloc[grid_point]) {
             if (icolloc != excl0 && icolloc != excl1) {
                 double meas = vector_meas(p0 - colloc.points[icolloc]);
                 if (meas < min_meas) {

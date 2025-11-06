@@ -244,7 +244,7 @@ void UnstructuredGrid2D::save_vtk(std::string fname) const {
     for (size_t i = 0; i < this->n_cells(); ++i) {
         auto v = this->tab_cell_point(i);
         oss << v.size();
-        for (size_t p : v) {
+        for (size_t p: v) {
             oss << " " << p;
         }
         oss << std::endl;

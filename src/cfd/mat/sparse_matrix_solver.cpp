@@ -48,7 +48,7 @@ private:
 AmgcMatrixSolver::AmgcMatrixSolver(int maxit, double tolerance) : maxit_(maxit), tolerance_(tolerance) {}
 AmgcMatrixSolver::AmgcMatrixSolver(std::initializer_list<std::pair<std::string, std::string>> amgc_params)
     : AmgcMatrixSolver() {
-    for (auto it : amgc_params) {
+    for (auto it: amgc_params) {
         params_[it.first] = it.second;
     }
 }
@@ -76,7 +76,7 @@ void AmgcMatrixSolver::set_matrix(const CsrStencil& stencil, const std::vector<d
     prm.put("precond.relax.type", "spai0");
     // prm.put("precond.relax.type", "gauss_seidel");
 
-    for (auto it : params_) {
+    for (auto it: params_) {
         prm.put(it.first, it.second);
     }
 

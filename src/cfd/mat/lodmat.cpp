@@ -55,7 +55,7 @@ double LodMatrix::value(size_t irow, size_t icol) const {
 
 size_t LodMatrix::n_nonzeros() const {
     size_t ret = 0;
-    for (const auto& it : data_) {
+    for (const auto& it: data_) {
         ret += it.size();
     }
     return ret;
@@ -73,7 +73,7 @@ CsrMatrix LodMatrix::to_csr() const {
     std::vector<double> vals;
     for (size_t irow = 0; irow < n_rows(); ++irow) {
         const std::map<size_t, double>& r = row(irow);
-        for (const auto& it : r) {
+        for (const auto& it: r) {
             cols.push_back(it.first);
             vals.push_back(it.second);
         }
@@ -93,7 +93,7 @@ std::vector<double> LodMatrix::mult_vec_p(const double* u) const {
     std::vector<double> ret(n_rows(), 0);
 
     for (size_t i = 0; i < n_rows(); ++i) {
-        for (const auto& it : data_[i]) {
+        for (const auto& it: data_[i]) {
             size_t j = it.first;
             double aij = it.second;
             ret[i] += aij * u[j];
@@ -105,7 +105,7 @@ std::vector<double> LodMatrix::mult_vec_p(const double* u) const {
 
 double LodMatrix::mult_vec_p(size_t irow, const double* u) const {
     double ret = 0;
-    for (const auto& it : data_[irow]) {
+    for (const auto& it: data_[irow]) {
         size_t j = it.first;
         double aij = it.second;
         ret += aij * u[j];

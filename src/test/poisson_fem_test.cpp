@@ -98,7 +98,7 @@ CsrMatrix ITestPoissonFemWorker::approximate_lhs() const {
         fem_.add_to_global_matrix(ielem, local_stiff, ret.vals());
     }
     // Dirichlet bc
-    for (size_t ibas : dirichlet_bases()) {
+    for (size_t ibas: dirichlet_bases()) {
         ret.set_unit_row(ibas);
     }
     return ret;
@@ -119,12 +119,12 @@ std::vector<double> ITestPoissonFemWorker::approximate_rhs() const {
     }
     std::vector<double> ret = mass.mult_vec(fvec);
     // Neumann bc
-    for (size_t iface : neumann_faces()) {
+    for (size_t iface: neumann_faces()) {
         std::vector<double> local_neu = face_neumann_vector(iface);
         fem_.boundary_add_to_global_vector(iface, local_neu, ret);
     }
     // Dirichlet bc
-    for (size_t ibas : dirichlet_bases()) {
+    for (size_t ibas: dirichlet_bases()) {
         Point p = fem_.reference_point(ibas);
         ret[ibas] = exact_solution(p);
     }
@@ -306,7 +306,7 @@ struct TestPoissonQuadraticTriangleWorker : public ITestPoissonFemWorker {
 
     std::vector<size_t> dirichlet_bases() const override {
         std::vector<size_t> ret = grid_.boundary_points();
-        for (size_t iface : grid_.boundary_faces()) {
+        for (size_t iface: grid_.boundary_faces()) {
             ret.push_back(grid_.n_points() + iface);
         }
         return ret;
@@ -348,13 +348,14 @@ FemAssembler TestPoissonQuadraticTriangleWorker::build_fem(const IGrid& grid) {
 
         auto geom = std::make_shared<TriangleLinearGeometry>(p0, p1, p2);
         auto basis = std::make_shared<TriangleQuadraticBasis>();
-        auto quad = quadrature_triangle_gauss4();
+        auto quad = quadrature_triangle_gauss6();
         FemElement elem{geom, basis, quad};
 
         elements.push_back(elem);
         std::vector<size_t> tab = info.ipoints;
-        for (size_t iface : info.ifaces) {
-            tab.push_back(iface + grid.n_points());
+        for (size_t i=0; i<info.n_points(); ++i){
+            size_t iface = info.ifaces[i];
+            tab.push_back(grid.n_points() + iface);
         }
         tab_elem_basis.push_back(tab);
     }
@@ -575,10 +576,10 @@ struct TestPoissonRadial2Worker : public ITestPoissonFemWorker {
 
     std::vector<size_t> dirichlet_bases() const override {
         std::set<size_t> ret;
-        for (size_t iface : grid_.boundary_faces()) {
+        for (size_t iface: grid_.boundary_faces()) {
             if (vector_abs(grid_.face_center(iface)) > (r0_ + r1_) / 2.0) {
                 // iface is a face from the outer boundary
-                for (size_t ipoint : grid_.tab_face_point(iface)) {
+                for (size_t ipoint: grid_.tab_face_point(iface)) {
                     ret.insert(ipoint);
                 }
             }
@@ -588,7 +589,7 @@ struct TestPoissonRadial2Worker : public ITestPoissonFemWorker {
 
     std::vector<size_t> neumann_faces() const override {
         std::vector<size_t> ret;
-        for (size_t iface : grid_.boundary_faces()) {
+        for (size_t iface: grid_.boundary_faces()) {
             if (vector_abs(grid_.face_center(iface)) <= r0_) {
                 ret.push_back(iface);
             }
@@ -650,7 +651,7 @@ FemAssembler TestPoissonRadial2Worker::build_fem(const IGrid& grid, double r0) {
     FemAssembler ret(n_bases, elements, tab_elem_basis);
 
     // create boundary element on the inner boundary
-    for (auto iface : grid.boundary_faces()) {
+    for (auto iface: grid.boundary_faces()) {
         // if inner
         if (vector_abs(grid.face_center(iface)) < r0 + BND_EPS) {
             // get cell index

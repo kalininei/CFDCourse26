@@ -84,7 +84,8 @@ std::shared_ptr<const Quadrature> cfd::quadrature_triangle_gauss6() {
     return quad;
 }
 
-template<int P> std::shared_ptr<const Quadrature> cfd::quadrature_triangle_gauss() {
+template<int P>
+std::shared_ptr<const Quadrature> cfd::quadrature_triangle_gauss() {
     if constexpr (P == 1) {
         return quadrature_triangle_gauss1();
     } else if constexpr (P == 2) {

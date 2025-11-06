@@ -25,3 +25,5 @@ DerivePointerAlignment: false
 SpacesInLineCommentPrefix:
   Minimum: 1
   Maximum: 1
+AlwaysBreakTemplateDeclarations: Yes
+SpaceBeforeRangeBasedForLoopColon: false
