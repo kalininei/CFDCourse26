@@ -9,7 +9,7 @@ set(SRC
     poisson_fvm_test.cpp
     poisson_fdm_test.cpp
     poisson_fem_test.cpp
-    # transport_fdm_test.cpp
+    transport_fdm_test.cpp
 )
 
 set(HEADERS

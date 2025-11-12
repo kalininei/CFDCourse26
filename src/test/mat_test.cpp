@@ -129,3 +129,70 @@ TEST_CASE("Block matrix", "[block_matrix]") {
         CHECK(r.value(3, 4) == Approx(0));
     }
 }
+
+TEST_CASE("LodMatrix::sum", "[lodmat-sum]") {
+    {
+        // 0 2
+        // 1 2
+        LodMatrix m1(2);
+        m1.set_value(0, 1, 2.0);
+        m1.set_value(1, 0, 1.0);
+        m1.set_value(1, 1, 2.0);
+        // 0 3
+        // 5 0
+        LodMatrix m2(2);
+        m2.set_value(0, 1, 3.0);
+        m2.set_value(1, 0, 5.0);
+
+        LodMatrix m3 = LodMatrix::sum(1, 2, m1, m2);
+
+        CHECK(m3.is_in_stencil(0, 0) == false);
+        CHECK(m3.is_in_stencil(0, 1) == true);
+        CHECK(m3.is_in_stencil(1, 0) == true);
+        CHECK(m3.is_in_stencil(1, 1) == true);
+
+        CHECK(m3.value(0, 1) == Approx(8));
+        CHECK(m3.value(1, 0) == Approx(11));
+        CHECK(m3.value(1, 1) == Approx(2));
+
+        LodMatrix m4 = LodMatrix::sum(2, 1, m2, m1);
+
+        CHECK(m4.is_in_stencil(0, 0) == false);
+        CHECK(m4.is_in_stencil(0, 1) == true);
+        CHECK(m4.is_in_stencil(1, 0) == true);
+        CHECK(m4.is_in_stencil(1, 1) == true);
+
+        CHECK(m4.value(0, 1) == Approx(8));
+        CHECK(m4.value(1, 0) == Approx(11));
+        CHECK(m4.value(1, 1) == Approx(2));
+    }
+    {
+        // 0 0
+        // 0 2
+        LodMatrix m1(2);
+        m1.set_value(1, 1, 2.0);
+        // 1
+        LodMatrix m2(1);
+        m2.set_value(0, 0, 1.0);
+
+        LodMatrix m3 = LodMatrix::sum(1, 2, m1, m2);
+
+        CHECK(m3.is_in_stencil(0, 0) == true);
+        CHECK(m3.is_in_stencil(0, 1) == false);
+        CHECK(m3.is_in_stencil(1, 0) == false);
+        CHECK(m3.is_in_stencil(1, 1) == true);
+
+        CHECK(m3.value(0, 0) == Approx(2));
+        CHECK(m3.value(1, 1) == Approx(2));
+
+        LodMatrix m4 = LodMatrix::sum(2, 1, m2, m1);
+
+        CHECK(m4.is_in_stencil(0, 0) == true);
+        CHECK(m4.is_in_stencil(0, 1) == false);
+        CHECK(m4.is_in_stencil(1, 0) == false);
+        CHECK(m4.is_in_stencil(1, 1) == true);
+
+        CHECK(m4.value(0, 0) == Approx(2));
+        CHECK(m4.value(1, 1) == Approx(2));
+    }
+}

@@ -353,7 +353,7 @@ FemAssembler TestPoissonQuadraticTriangleWorker::build_fem(const IGrid& grid) {
 
         elements.push_back(elem);
         std::vector<size_t> tab = info.ipoints;
-        for (size_t i=0; i<info.n_points(); ++i){
+        for (size_t i = 0; i < info.n_points(); ++i) {
             size_t iface = info.ifaces[i];
             tab.push_back(grid.n_points() + iface);
         }

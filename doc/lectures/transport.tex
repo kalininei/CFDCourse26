@@ -1,0 +1,703 @@
+\section{Нестационарное уравнение переноса}
+
+\subsection{Двухслойные схемы для нестационарных уравнений}
+
+\subsubsection{Определение}
+
+Рассмотрим дифференциальное уравнение вида
+
+\begin{equation}
+    \label{eq:nonstat_common}
+    \dfr{u}{t} = f, \quad f(x, t) = Lu(x, t) + g(x, t)
+\end{equation}
+где $L$ -- произвольный пространственный дифференциальный оператор.
+При использовании двухслойной схемы аппроксимации производная по времени записывается в
+виде конечной разности с шагом $\dt$, которая может приближать производную
+в одном из трёх моментов времени:
+
+\begin{equation}
+    \label{eq:nonstat_dt_appr}
+    \begin{array}{llll}
+        \dfrac{u(t+\dt) - u(t)}{\dt} = 
+            & \quad \left.\ddfr{u}{t}\right|_{t}
+            & + o(\dt)
+            & -\text{ разность вперёд};\\[5pt]
+        \phantom{a}
+            & \quad \left.\ddfr{u}{t}\right|_{t+\dt}
+            & + o(\dt)
+            & -\text{ разность назад};\\[5pt]
+        \phantom{a}
+            & \quad \left.\ddfr{u}{t}\right|_{t+\frac{\dt}{2}}
+            & + o(\dt^2)
+            & -\text{ симметричная разность.}
+    \end{array}
+\end{equation}
+
+Момент времени $t$ будем называть текущим временн\'{ы}м слоем,
+момент $t + \dt$ -- следующим,
+а момент $t+\dt/2$ -- промежуточным.
+Считается, что
+значение функции на текущий момент времени $u(t)$ известно, а
+значение на следующий момент $u(t+\dt)$ подлежит определению.
+
+\subsubsubsection{Явная схема}
+
+При использовании разности назад уравнение \eqref{eq:nonstat_common}
+в полудискретизованном (то есть дискретизованном только по времени, но не по пространству) виде
+запишется как
+\begin{equation*}
+    \frac{u(x, t+\dt) - u(x)}{\dt} - L u(x, t) = g(x, t)
+\end{equation*}
+или, после переноса всех известных слагаемых вправо
+\begin{equation}
+    \label{eq:nonstat_explicit}
+    u(x, t+\dt) = \left(E + \dt L\right) u(x, t) + \dt g(x, t).
+\end{equation}
+Здесь $E$ -- единичный оператор.
+Схема \eqref{eq:nonstat_explicit} называется явной схемой
+и имеет первый порядок точности.
+
+\subsubsubsection{Неявная схема}
+
+Выбрав разность назад из выражения \eqref{eq:nonstat_dt_appr}
+полудискретизованная схема для уравнения \eqref{eq:nonstat_common} примет вид
+\begin{equation*}
+    \frac{u(x, t+\dt) - u(x)}{\dt} - L u(x, t+\dt) = g(x, t+\dt).
+\end{equation*}
+В результате преобразования получим неявную схему первого порядка точности
+\begin{equation}
+    \label{eq:nonstat_implicit}
+    \left(E-\dt L\right) u(x, t+\dt) = u(x, t) + \dt g(x, t + \dt).
+\end{equation}
+
+\subsubsubsection{Схема Кранка--Николсон}
+
+Подставим симметричную разность из \eqref{eq:nonstat_dt_appr}
+в уравнение \eqref{eq:nonstat_common}. Формально получим
+\begin{equation*}
+    \frac{u(x, t+\dt) - u(x)}{\dt} - L u(x, t+\frac{\dt}{2}) = g(x, t+\frac{\dt}{2}).
+\end{equation*}
+
+Для определения выражения функций на промежуточном временном слое
+распишем значение $u$ на текущем и следующем слоях в ряд Тейлора
+относительно значения на момент $t+\dt/2$:
+\begin{align*}
+    u\left(t\right)      &= u\left(t+\frac{\dt}{2}\right) - \left.\frac{\dt}{2}\dfr{u}{t}\right|_{t+\frac{\dt}{2}} + o(\dt^2)\\
+    u\left(t+\dt\right) &= u\left(t+\frac{\dt}{2}\right) + \left.\frac{\dt}{2}\dfr{u}{t}\right|_{t+\frac{\dt}{2}} + o(\dt^2)
+\end{align*}
+Взяв полусумму этих выражений получим аппроксимацию функции на промежуточном слое:
+\begin{equation}
+    \label{eq:nonstat_cn_appr}
+    u\left(x, t + \frac{\dt}{2}\right) = \frac12u\left(x, t\right) + \frac12u\left(x, t+\dt\right) + o(\dt^2)
+\end{equation}
+Аналогичная запись справедлива и для свободного члена $g$.
+Если оператор $L$ -- нестационарный или нелининый, то аппроксимацию \eqref{eq:nonstat_cn_appr}
+следует записывать для всего выражения $Lu$:
+\begin{equation*}
+    \left(Lu\right)_{t+\frac{\dt}{2}} = \frac12\left(Lu\right)_{t} + \frac12\left(Lu\right)_{t+\dt} + o(\dt^2)
+\end{equation*}
+
+
+С учётом \eqref{eq:nonstat_cn_appr} симметричная разностная схема
+запишется как
+\begin{equation*}
+    \frac{u(x, t+\dt) - u(x)}{\dt} - \frac12L u(x, t) - \frac12 L u(x, t + \dt) = \frac12 g(x, t) + \frac12 g(x, t+\dt)
+\end{equation*}
+или
+\begin{equation}
+    \label{eq:nonstat_cn}
+    \left(E-\frac{\dt}{2} L\right) u(x, t+\dt) = \left(E + \frac{\dt}{2} L\right) u(x, t) + \frac{\dt}{2} \left(g(x, t) + g(x, t + \dt)\right).
+\end{equation}
+Такая схема называется схемой Кранка--Николсон и имеет второй порядок аппроксимации по времени.
+
+В случае, если оператор $L$ зависит от времени, то
+в левой части схемы \eqref{eq:nonstat_cn} его нужно
+брать на следующем временном слое, а в правой -- на текущем.
+
+\subsubsubsection{Обобщённая двухслойная схема}
+
+Выражения
+\eqref{eq:nonstat_explicit},
+\eqref{eq:nonstat_implicit},
+\eqref{eq:nonstat_cn}
+можно записать в обобщённой форме
+\begin{equation}
+    \label{eq:nonstat_theta}
+    \left(E-\theta\dt L\right) u(x, t+\dt) = \left(E + \left(1 - \theta\right)\dt L\right) u(x, t) + \left(1 - \theta\right) g(x, t) + \theta g(x, t + \dt).
+\end{equation}
+Коэффициент $\theta$ -- степень неявности схемы:
+\begin{itemize}
+\item $\theta = 0$ -- явная схема \eqref{eq:nonstat_explicit},
+\item $\theta = 1$ -- полностью неявная схема \eqref{eq:nonstat_implicit},
+\item $\theta = 1/2$ -- схема Кранка--Николсон \eqref{eq:nonstat_cn}.
+\end{itemize}
+
+Отметим, что только при $\theta = 1/2$ схема \eqref{eq:nonstat_theta} имеет второй порядок точности по времени.
+Для других значений (в том числе промежуточных) схема будет иметь ошибку первого порядка $o(\dt)$.
+
+\subsection{Схемы высокого порядка точности}
+Существуют два подхода к построению схем дискретизации по времени произвольного высокого порядка:
+первый из них предполагает использование нескольких временных слоев: $t+\dt, t, t-\dt, t-2\dt, ...$, второй -- использование
+большого количества промежуточных точек на единственном временном отрезке: $t+c_i\dt, c_i\in[0, 1]$.
+Первый подход используется для построения схем Адамса, второй -- схем Рунге--Кутта.
+
+\subsubsection{Многослойные схемы. Схемы Адамса}
+В общем виде многослойную расчётную схему можно записать в виде
+\begin{equation}
+\label{eq:nonstat_multilayer}
+\sum\limits_{i=1}^{s} a_i u_i = \dt \sum\limits_{i=1}^{s} b_i f_i.
+\end{equation}
+Здесь нижние индексы функций использованы для указания временного слоя:
+\begin{equation*}
+\begin{aligned}
+&u_i = u(x, t + (i+1-s)\dt),\\
+&f_i = g(x, t + (i+1-s)\dt) - Lu_i,
+\end{aligned}
+\end{equation*}
+а $s$ -- это общее количество используемых временных слоёв.
+Значение всех функций на слоях $i<s$ считаются известными, а значение $u_s$ на последнем (текущем) слое подлежит определению.
+Коэффициенты $a_i$. $b_i$ определяют конкретную схему.
+Для однозначности принято задавать коэфиициет перед значением $u$ на текущем слое равным единице: $a_s = 1$.
+Так, для двухслойной ($s=2$) схемы Кранка--Николсон \cref{eq:nonstat_cn} эти коэффициенты примут вид:
+\begin{align*}
+&a_1 = -1, \quad a_2 = 1,\\
+&b_1 = 1/2, \quad b_2 = 1/2.
+\end{align*}
+Для того чтобы схема, записанная в общем виде \cref{eq:nonstat_multilayer}, была явной,
+необходимо, чтобы выполнялось условие $b_s = 0$.
+
+\subsubsubsection{Явные схемы Адамса--Башфорта}
+Запишем интерполяционный полином для правой части уравнения \cref{eq:nonstat_common}
+по значениям на предыдущих временных слоях $f_i, i<s$:
+\begin{equation*}
+p(t) = \sum\limits_{i=1}^{s-1}\left(f_i \prod\limits_{\substack{m=1\\m \neq i}}^{s-1} \frac{t - t_i}{t_m - t_i} \right).
+\end{equation*}
+Порядок аппроксимации этого полинома на единицу больше его степени. С учётом 
+$t_{i+1} - t_{i} = \dt$ можно записать
+\begin{equation*}
+f(t) = p(t) + o(\dt^{s-1}).
+\end{equation*}
+
+Далее проинтегрируем уравнение по текущему временному отрезку: $[t_{s-1}, t_{s}]$:
+\begin{equation*}
+u_s - u_{s-1} = \sum_{i=1}^{s-1}\left( f_i \int\limits_{t_{s-1}}^{t_s} \prod \limits_{\substack{m=0\\m\neq i}}^{s-1} \frac{t - t_i}{t_m - t_i}\, dt \right).
+\end{equation*}
+
+Отсюда коэффициенты в общей форме \cref{eq:nonstat_multilayer} примут вид
+\begin{equation*}
+a_i = 
+\begin{cases}
+1,  &\quad i = s\\
+-1, &\quad i = s-1\\
+0,  &\quad i < s-1
+\end{cases}
+\qquad
+b_i =
+\begin{cases}
+0, &\quad i = s\\[10pt]
+\displaystyle\frac{1}{\dt}\int\limits_{t_{s-1}}^{t_s} \prod \limits_{\substack{m=0\\m\neq i}}^{s-1} \frac{t - t_i}{t_m - t_i}\, dt, &\quad i < s.
+\end{cases}
+\end{equation*}
+
+Примеры трёх-, четырех- и пятислойной явных схем приведены ниже:
+\begin{align*}
+&\frac{u_3 - u_2}{\dt} = \frac{3f_2 - f_1}{2} + o(\dt^2),\\
+&\frac{u_4 - u_3}{\dt} = \frac{23 f_3 - 16 f_2 + 5 f_1}{12} + o(\dt^3),\\
+&\frac{u_5 - u_4}{\dt} = \frac{55 f_4 - 59 f_3 + 37 f_2 - 9 f_1}{24} + o(\dt^4).
+\end{align*}
+
+\subsubsubsection{Неявные схемы Адамса--Мультона}
+Теперь снимем требование явности и запишем интерполяционный полином для правой части исходного уравнения \cref{eq:nonstat_common} с использованием $s$ точек:
+\begin{equation*}
+p(t) = \sum\limits_{i=1}^{s}\left(f_i \prod\limits_{\substack{m=1\\m \neq i}}^{s} \frac{t - t_i}{t_m - t_i} \right).
+\end{equation*}
+Тогда порядок аппроксимации этого полинома будем на единицу больше, чем для полинома явного метода.
+Далее, проинтегрируем исходное уравенение по отрезку $t_{s-1}, t_s$ и получим коэффициенты общей формы \cref{eq:nonstat_multilayer}:
+\begin{equation*}
+a_i = 
+\begin{cases}
+1,  &\quad i = s\\
+-1, &\quad i = s-1\\
+0,  &\quad i < s-1
+\end{cases}
+\qquad
+b_i =
+\displaystyle\frac{1}{\dt}\int\limits_{t_{s-1}}^{t_s} \prod \limits_{\substack{m=0\\m\neq i}}^{s} \frac{t - t_i}{t_m - t_i}\, dt.
+\end{equation*}
+
+Двуслойная схема Адама--Мультона будет аналогична неявной двухслойной схеме \cref{eq:nonstat_implicit},
+трёхслойная -- схеме Кранка--Николсон \cref{eq:nonstat_cn}. Примеры схемы высоких порядков представлены ниже:
+\begin{align*}
+&\frac{u_3 - u_2}{\dt} = \frac{5f_3 +  8 f_2 - f_1}{12} + o(\dt^3),\\
+&\frac{u_4 - u_3}{\dt} = \frac{9 f_4 + 19 f_3 - 5 f_2 + f_1}{24} + o(\dt^4),\\
+&\frac{u_5 - u_4}{\dt} = \frac{251 f_5 + 646 f_4 - 264 f_3 + 106 f_2 - 19 f_1}{720} + o(\dt^5).
+\end{align*}
+
+\subsubsection{Схемы Рунге-Кутта}
+TODO
+
+\subsection{Устойчивость расчётных схем}
+\label{sec:stability_analysis}
+
+\subsubsection{Дискретизация по времени как итерационный процесс}
+
+\subsubsubsection{Двухслойный итерационный процесс}
+
+Простой двухслойный итерационный процесс определяется как
+\begin{equation}
+    \label{eq:nonstat_common_iter}
+    u^{n+1} = A u^{n} + b,
+\end{equation}
+где $n$ -- индекс итерационного слоя,
+$A$ -- оператор преобразования,
+$b$ -- свободный член.
+
+Определение значения функции на следующий момент времени $u(t+\dt)$ 
+по двухслойной схеме \eqref{eq:nonstat_theta} можно представить как простой итерационный процесс \eqref{eq:nonstat_common_iter}, где
+\begin{align*}
+    A &= \left(E - \theta \dt L \right)^{-1} \left(E + (1 - \theta) \dt L \right), \\\\
+    b &= \left(E - \theta \dt L \right)^{-1} \left( \theta g\left(x, t + \dt\right) + \left(1 - \theta\right) g\left(x, t\right) \right).
+\end{align*}
+
+Итерационный процесс называется сходящимся, если
+\begin{equation*}
+    \lim_{n=\infty} \left\lVert u^{n+1} - u^{n} \right\rVert = 0.
+\end{equation*}
+
+\subsubsubsection{Устойчивость итерационного процесса}
+\label{sec:ScalarIter}
+
+Рассмотрим два простых итерационных процесса,
+имеющих на нулевом слое значение $u^0 = 1$:
+\begin{align*}
+    {\rm (I)}:\quad  &u^{n+1} = 2 u^{n} - 1, \\
+    {\rm (II)} :\quad  &u^{n+1} = 0.5 u^{n} + 0.5.
+\end{align*}
+Оба этих процесса при выбранном начальном приближении, очевидно, сходятся.
+На каждой итерации справделиво $u^n = 1$.
+Возмутим начальное условие: пусть
+\begin{equation*}
+    u^0 = 1 + \eps,
+\end{equation*}
+и проведём итерации.
+\begin{equation*}
+    \def\arraystretch{1.7}
+    \begin{array}{c|c|c}
+        & {\rm (I)}  &  {\rm (II)} \\
+        \hline
+        u^1 & 1 + 2\eps & 1 + \dfrac{\eps}{2} \\
+        \hline
+        u^2 & 1 + 4\eps & 1 + \dfrac{\eps}{4} \\
+        \hline
+        u^3 & 1 + 8\eps & 1 + \dfrac{\eps}{8} \\
+        \hline
+        ... & & \\
+        \hline
+        u^\infty & \infty & 1 \\
+    \end{array}
+\end{equation*}
+
+Видно, что процесс $\rm (I)$ теряет сходимость и стремится к бесконечности,
+в то время, как процесс $\rm (II)$ сохраняет свои свойства.
+
+Свойство итерационных процессов уменьшать малые возмущения называется устойчивостью.
+В примере выше процесс $\rm (I)$ является неустойчивым, а процесс $\rm (II)$ -- устойчивым.
+
+Нетрудно видеть, что для рассматриваемого скалярного итерационного процесса,
+условие устойчивости запишется в виде $|A| \leq 1$.
+
+\subsubsubsection{Источники возмущений}
+
+На практике возникновение возмущений в решениях неизбежно:
+они могут быть следствием ошибок дискретизации функций и операторов,
+погрешностей решения СЛАУ, ошибок при проведении арифметических
+операций на числах с плавающей точкой и т.д.
+Поэтому любой итерационный процесс, используемый для решений
+математических задач, должен быть устойчив.
+
+Возникновение непреднамеренных ошибок вследствии компьютерного округления можно проиллюстрировать на примере
+программы, в которой рассматривается сходящийся для любого начального условия, но неустойчивый итерационный процесс
+\begin{equation*}
+    u^{n+1} = 10 u^{n} - 9 u^{0}.
+\end{equation*}
+
+\begin{minted}[linenos=false]{c++}
+double u0 = 0.625;
+double u = u0;
+for (int i=0; i<1000; ++i){
+    u = 10*u - 9*u0;
+}
+std::cout << u << std::endl;
+\end{minted}
+
+Если начальное значение может быть точно представлено в
+числах с плавающей точкой (путём конечной суммы степеней двойки),
+то арифметическая ошибка не возникает.
+Так, представленный выше код на выходе печатает ожидаемое $u=0.625$.
+Потому что начальное приближение может быть разложено как $u^0 = 2^{-1} + 2^{-3}$.
+
+Однако, если заменить начальное приближение на любое число,
+которое не может быть записано точно во floating-point формате,
+то процесс быстро уходит в бесконечность.
+Например, для $u^0 = 0.626$ бесконечные (непредставимые в машинном формате) значения
+появляются на 324-ой итерации,
+а при переключении на работу в числах одинарной точности `float` -- уже на 46-ой.
+
+\subsection{Свойства двухслойной расчётной схемы}
+TODO
+
+\subsection{Аппроксимация уравнения переноса с ограничением потока}
+
+\subsubsection{Схемы первого и второго порядка точности}
+Рассмотрим уравнение переноса в одномерной постановке
+
+\begin{equation*}
+\label{eq:tvd_transport}
+\dfr{u}{t} + U\dfr{u}{x} = 0
+\end{equation*}
+Все дальнейшие выкладки будем приводить исходя из условия положительности скорости переноса $U > 0$.
+
+Рассмотрим два вида пространственной аппроксимации конвективного слагаемого на равномерной сетке: схемой против потока и симметричной схемой
+\begin{align}
+& \dfr{u_i}{t} + U \frac{u_i - u_{i-1}}{h} = 0, \label{eq:tvd_upwind}\\
+& \dfr{u_i}{t} + U \frac{u_{i+1} - u_{i-1}}{2h} = 0. \label{eq:tvd_sym}
+\end{align}
+Первая схема является (условно) устойчивой но при этом обладает первым
+порядком аппроксимации. Вторая неустойчива, но имеет порядок $o(h^2)$.
+Идея методов аппроксимации с ограничением потока состоит в том,
+чтобы на основе комбинации первой и второй схем
+построить устойчивое решение, имеющее ``почти везде'' второй порядок аппроксимации.
+
+Запишем эти аппроксимации в общем виде:
+\begin{equation}
+\label{eq:tvd_appr_with_f}
+\dfr{u_i}{t} = \frac{f_{i-\sfrac12} - f_{i+\sfrac12}}{h}.
+\end{equation}
+Здесь $f_{i+\sfrac12}$ -- численный поток, который в зависимости от выбранной схемы будет равен
+\begin{equation}
+\label{eq:tvd_fhl}
+\begin{aligned}
+&f^L_{i+\sfrac12} = U u_i                            &\text{-- схема против потока}\\
+&f^H_{i+\sfrac12} = U \frac{u_i + u_{i+1}}{2}        &\text{-- симметричная схема}.
+\end{aligned}
+\end{equation}
+Здесь $f^L$, $f^H$ означают потоки низкого (Low) и высокого (High) порядка аппроксимации.
+
+Аппроксимацию с ограничением потока запишем в виде
+\begin{equation}
+\label{eq:tvd_f}
+f_{i+\sfrac12} = f^L_{i+\sfrac12} + \Phi_{i+\sfrac12} \left( f^H_{i+\sfrac12} - f^L_{i+\sfrac12} \right).
+\end{equation}
+$\Phi$ в этой записи называется ограничителем, который служит
+переключателем: при $\Phi = 0$ мы получаем схему первого порядка, при $\Phi=1$ -- схему второго порядка.
+
+Далее будем выбирать $\Phi$ таким образом, чтобы не допустить возникновения осцилляций в численном решении.
+
+\subsubsection{Условие TVD}
+В качестве критерия, характеризующего возникновение и развитие осцилляций, выберем полную вариацию:
+\begin{equation}
+\label{eq:tvd_tv}
+\begin{WithArrows}
+TV(u) =& \displaystyle\int\left| \nabla u \right|\,dx =           \Arrow{в одномерном случае}\\[10pt]
+      =& \displaystyle\int\left| \dfr{u}{x} \right| \, dx =       \Arrow{для сеточной функции}\\[10pt]
+      =& \displaystyle\sum_{i}\left| u_i - u_{i-1}\right|.
+\end{WithArrows}
+\end{equation}
+Условие уменьшения осцилляций в решении на следующем временном слое примет вид
+\begin{equation*}
+TV(\hat u) \leq TV(u).
+\end{equation*}
+Численные схемы, удовлетворяющие этому условию, называются TVD (Total variation diminishing) схемами.
+
+Запишем численную схему в общем виде
+\begin{equation}
+\label{eq:tvd_harten}
+\dfr{u_i}{t} = c_{i-\sfrac12} (u_{i-1} - u_{i}) + c_{i+\sfrac12} (u_{i+1} - u_{i}).
+\end{equation}
+Согласно теореме Хартена такая схема удовлетворяет свойству TVD, если $c_{i\pm\sfrac12} \geq 0$.
+Схема против потока \cref{eq:tvd_upwind} является TVD-схемой:
+$$c_{i-\sfrac12} = \frac{U}{h}, \quad c_{i+\sfrac12} = 0,$$
+а симметричная схема \cref{eq:tvd_sym} -- нет:
+$$c_{i-\sfrac12} = \frac{U}{2h}, \quad c_{i+\sfrac12} = -\frac{U}{2h}.$$
+
+Подставляя уравнение \cref{eq:tvd_f} в \cref{eq:tvd_appr_with_f} 
+и приводя к форме \cref{eq:tvd_harten} получим
+\begin{equation}
+\label{eq:tvd_phi_condition1}
+\dfr{u_i}{t} = \frac{U}{2h}\left( 2 - \Phi_{i-\sfrac12} \right) \left( u_{i-1} - u_{i} \right)
+               +\frac{U}{2h}\left(-\Phi_{i+\sfrac12} \right) \left( u_{i+1} - u_i\right)
+\end{equation}
+То есть для удовлетворения свойства TVD необходимо, чтобы $\Phi \leq 0$.
+Для второго порядка точности требуется $\Phi = 1$. То есть линейные схемы TVD не могут иметь высокий порядок точности.
+
+\subsubsection{Нелинейные TVD схемы}
+Для того, чтобы преодолеть это ограничение, будем строить нелинейные схемы.
+Общая идея построения таких схем состоит в том, чтобы выбрать такую $\Phi$,
+при которой второе слагаемое равенства \cref{eq:tvd_phi_condition1} можно
+было отнести к первому. То есть можно бы было записать
+\begin{equation}
+\label{eq:tvd_phi_condition2}
+\Phi_{i+\sfrac12}(u_{i+1} - u_{i}) = -\Phi'_{i+\sfrac12} (u_{i-1} - u_{i}).
+\end{equation}
+Тогда условием TVD станет выражение
+\begin{equation}
+\label{eq:tvd_phi_condition3}
+2 - \Phi_{i-\sfrac12} + \Phi'_{i+\sfrac12} \geq 0.
+\end{equation}
+
+Для характеристики поведения функции выберем соотношение наклонов (slope ratio),
+который в одномерном виде запишется в виде:
+\begin{equation}
+\label{eq:tvd_ri}
+r_i = \frac{u_i - u_{i-1}}{u_{i+1} - u_{i}}
+\end{equation}
+Нелинейность схемы будет выражаться в зависимости
+\begin{equation*}
+\Phi_{i+\sfrac12} = \Phi(r_i).
+\end{equation*}
+
+Из \cref{eq:tvd_phi_condition2} следует
+\begin{equation*}
+\Phi'_{i+\sfrac12} = \frac{\Phi(r_i)}{r_i}
+\end{equation*}
+а неравенство $\label{eq:tvd_phi_condition4}$
+перепишется в виде
+\begin{equation*}
+\label{eq:tvd_phi_condition5}
+2 - \Phi(r_i) + \frac{\Phi(r_i)}{r_i} \geq 0.
+\end{equation*}
+Чтобы из этого условия получить ограничение для $\Phi$, явно не зависящее от $r_i$, потребуем
+\begin{equation}
+\label{eq:tvd_phi_condition4}
+\Phi\left(\frac{1}{r_i}\right) = \frac{\Phi(r_i)}{r_i}.
+\end{equation}
+Тогда неравентсво \cref{eq:tvd_phi_condition3} примет вид
+\begin{equation*}
+\label{eq:tvd_phi_condition6}
+2 - \Phi(r_i) + \Phi\left(\frac{1}{r_i}\right) \geq 0.
+\end{equation*}
+Отсюда получим условие для $\Phi$:
+\begin{equation}
+\label{eq:tvd_phi_condition7}
+0 \leq \Phi(r_i) \leq 2.
+\end{equation}
+
+Дополнительно потребуем, чтобы в точках с гладким поведением функции использовать схему второго порядка точности:
+\begin{equation}
+\label{eq:tvd_phi_condition8}
+\Phi(1) = 1
+\end{equation}
+а в точках локального экстремума (которые особенно подвержены появлению осцилляций) гарантировать переключение на схему первого порядка:
+\begin{equation}
+\label{eq:tvd_phi_condition9}
+\Phi(r\leq0) = 0.
+\end{equation}
+
+Таким образом, для построения TVD схемы, функция ограничитель должна удовлетворять условиям
+\cref{eq:tvd_phi_condition4,eq:tvd_phi_condition7,eq:tvd_phi_condition8,eq:tvd_phi_condition9}.
+Ниже представлены некоторые часто используемые ограничители, удовлетворяющие этим свойствам:
+\begin{equation}
+\label{eq:tvd_limiter}
+\Phi(r) = \left\{
+\begin{array}{ll}
+\max(0, \min(r, 1))                   & \text{-- minmod};\\[10pt]
+\dfrac{r + |r|}{1+|r|}                & \text{-- Van Leer}; \\[10pt]
+\max(0, \min(2r, \dfrac{1+r}{2}, 2)   & \text{-- monotonized central (MC)}; \\[10pt]
+\max(0, \min(2, r), \min(1, 2 r))     & \text{-- superbee}.
+\end{array}
+\right.
+\end{equation}
+
+\subsection{TVD-схемы для неструктурированных конечнообъёмных сеток}
+\label{sec:tvd_fvm}
+Рассмотрим многомерное уравнение переноса
+\begin{equation}
+\nonumber
+\dfr{u}{t} + \vec U \cdot \nabla u = 0.
+\end{equation}
+
+Применим конечнообъёмную процедуру
+для получения слабой интегральной постановки задачи.
+Для этого проинтегрируем это уравнение
+по конечному объёму $E_i$ 
+и применим формулу интегрирования по частям.
+Получим
+\begin{equation}
+\label{eq:tvd_fvm_transport}
+\left| V_i \right|
+\dfr{u}{t}
++ \sum_{j\in {\rm nei}(i)} {f_{ij} \left|\gamma_{ij}\right|}
+= 0, \quad f_{ij} = u_{ij} U_{ij}.
+\end{equation}
+Здесь $|V_i|$ -- объём конечного элемента,
+${\rm nei}(i)$ -- совокупность
+всех точек коллокации, инцидентных ячейке $i$
+(центров соседних ячеек и соседних граничных граней),
+$f_{ij}$ -- поток из точки коллокации $i$ в точку коллокации $j$,
+$|\gamma_{ij}|$ --
+площадь грани
+конечного объёма $i$, через
+которую этот объём соединяется с точкой коллокации $j$,
+$u_{ij}$ -- значение функции $u$, отнесённое к этой грани,
+$U_{ij}$ -- скорость потока в направлении внешней по отношению
+к ячейке $i$ нормали.
+
+Для потока справедливо
+\begin{equation}
+\label{eq:tvd_fij_fji}
+f_{ij} = -f_{ji}.
+\end{equation}
+То есть для вычисления потока на грани достаточно найти значение для одного направления.
+Выберем это направление $\overrightarrow{ij}$ таким образом, чтобы $U_{ij} > 0$ (рис.~\ref{fig:fvm_tvd}).
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.4\linewidth]{fvm_tvd.pdf}
+\caption{Вспомогательный узел $\vec c^p_{ij}$ на конечнообъёмной сетке}
+\label{fig:fvm_tvd}
+\end{figure}
+
+Будем считать, что скорость переноса $U$ -- известная функция.
+Тогда запишем значения потоков высокого и низкого порядка согласно \cref{eq:tvd_fhl}:
+\begin{equation}
+\label{eq:tvd_fhl_fvm}
+\begin{aligned}
+&f^L_{ij} = U_{ij} u_i                 &\text{-- схема против потока}\\
+&f^H_{ij} = U_{ij} \frac{u_i + u_j}{2} &\text{-- симметричная схема}.
+\end{aligned}
+\end{equation}
+
+Поток при этом запишется по аналогии с \cref{eq:tvd_f}:
+\begin{equation}
+\label{eq:tvd_f_fvm}
+f_{ij} = f^L_{ij} + \Phi(r_{ij}) \left( f^H_{ij} - f^L_{ij} \right).
+\end{equation}
+
+В одномерном случае для записи соотношения наклонов $r_i$ \cref{eq:tvd_ri} использовались
+три точки: текущий узел $i$, узел против потока $i-1$, и узел по потоку $i+1$.
+Для случае неструктурированной сетки лишь две из этих трёх точек являются
+узлами коллокации: текущий узел $i$ и узел по потоку $j$. Определим точку
+против потока симметричным отражением: $\vec{c}^p_{ij} = 2\vec c_i - \vec c_j$ (см. рис.~\ref{fig:fvm_tvd}).
+Значение функции в этой точке обозначим как $u^p_{ij}$.
+Тогда соотношение наклонов запишется в виде
+
+\begin{equation}
+\label{eq:tvd_ri_fvm}
+r_i = \frac{u_i - u_{ij}^p}{u_j - u_i}
+\end{equation}
+
+Точка $\vec c^p$ (в отличии от $x_{i-1}$ из одномерного случая)
+не является точкой коллокации. То есть
+значение $u^p$ нельзя достать из вектора столбца сеточной функции $u$.
+Однако, это значение можно интерполировать
+по значениям в ближайших точках коллокации.
+
+\subsubsection{Прямая интерполяция противопоточного значения}
+\label{sec:direct_interpolate_up}
+Так, в двумерном случае для определения $u^p_{ij}$
+необходимо найти три точки коллокации,
+ближайшие к точке $\vec c^p_{ij}$ и не лежащие на одной прямой (или две точки коллокации, помимо $c_i$). На рис.~\ref{fig:fvm_tvd}
+они помечены индексами $\vec c_m$, $\vec c_n$).
+И далее в треуольнике, образованном этими тремя
+точками ($\triangle_{imn}$) провести
+интерполяцию
+по формуле \cref{eq:simplex_interp_2d}.
+Специально отметим, что точка $\vec c^p_{ij}$
+не обязана содержаться внутри 
+треугольника $\triangle_{imn}$.
+
+\subsubsection{Интерполяция противопоточного значения через значение градиентов}
+\label{sec:grad_inteprolate_up}.
+Другой подход к определению $u^p_{ij}$ основан на записи симметричной конечной разности
+по направлению $\vec c_{ij}$:
+\begin{equation*}
+\left.\dfr{u}{c_{ij}}\right|_i = \frac{u_j - u^p_{ij}}{2|\vec c_{ij}|} \qquad \hence
+u_{ij}^p = u_j - 2 |\vec c_{ij}| \left. \dfr{u}{c_{ij}}\right|_i.
+\end{equation*}
+Производная по направлению $c_{ij}$ находится как проекция градиента:
+\begin{equation*}
+|\vec c_{ij}| \left.\dfr{u}{c_{ij}}\right|_i = \vec c_{ij} \cdot (\nabla u)_i.
+\end{equation*}
+Таким образом, задача интерполяции сводится к задаче определения градиента функции
+$u$ в узлах коллокации. Эта задача была рассмотрена ранее в \secref{sec:gradu_in_cells}.
+
+\subsubsection{Реализация для явной схемы}
+Для примера рассмотрим написание TVD-схемы
+рассмотрим чисто явную схему для полудискретизованного уравнения \cref{eq:tvd_fvm_transport}:
+\begin{equation}
+\label{eq:tvd_fvm_explicit_transport}
+\left| V_i \right|
+\frac{\hat u - u}{\dt}
++ \sum_{j\in {\rm nei}(i)} {f_{ij} \left|\gamma_{ij}\right|}
+= 0.
+\end{equation}
+Для того, чтобы избежать повторного вычисления потоков $f_{ij}$ и $f_{ji}$,
+будем собирать эту схему в цикле по граням. Пусть через границу притока нет (то есть для граничные граней $f_{ij} = 0$.
+Тогда останется только цикл по внутренним граням:
+\begin{equation}
+\label{eq:tvd_fvm_assem}
+\begin{array}{ll}
+\hat u = u                                               & \textrm{-- инициализируем следующий шаг}\\
+\textbf{for } s \in\textrm{internal}                     & \textrm{-- цикл по внутренним граням}\\ 
+\qquad i,j = \textrm{nei\_cells(s)}                      & \textrm{-- две ячейки, соседние с текущей гранью}\\
+\qquad \vec U_{ij}                                       & \textrm{-- вектор скорости в центре грани}\\
+\qquad \vec n_{ij}                                       & \textrm{-- вектор нормали к грани от ячейки i к j}\\
+\qquad U_{ij} = \vec U_{ij} \cdot \vec n_{ij}            & \textrm{-- проекция скорости на нормаль}\\
+\qquad \textbf{if } U_{ij} \leq 0                        & \textrm{-- схема против потока}\\
+\qquad \qquad \textrm{swap}(i, j); U_{ij} = -U_{ij}      & \textrm{-- гарантируем, что жидкость течет от $i$ к $j$}\\
+\qquad \textbf{endif}                                    & \textrm{}\\
+\qquad f^L_{ij} = U_{ij} u_i                             & \textrm{-- поток 1-го порядка \cref{eq:tvd_fhl_fvm}}\\
+\qquad f^H_{ij} = U_{ij} (u_i + u_j) / 2                 & \textrm{-- поток 2-го порядка \cref{eq:tvd_fhl_fvm}}\\
+\qquad \vec c_i, \vec c_j                                & \textrm{-- центры ячеек}\\
+\qquad \vec c^p = 2 \vec c_i - \vec c_j                  & \textrm{-- вспомогательная точка}\\
+\qquad u^p = \textrm{interpolate}(i, j, u, \vec c^p)     & \textrm{-- интерполируем $u$ в точке $\vec c^p$}\\
+\qquad r = \sfrac{(u_i - u^p)}{(u_j - u_i)}              & \textrm{-- отношение наклонов \cref{eq:tvd_ri_fvm}}\\
+\qquad F = \textrm{limiter}(r)                           & \textrm{-- ограничитель \cref{eq:tvd_limiter}}\\
+\qquad f_{ij} = f^L_{ij} + F (f^H_{ij} - f^L_{ij})       & \textrm{-- вычисление потока \cref{eq:tvd_f_fvm}}\\
+\qquad \hat u_i\minuseq\dt/|V_i|\,f_{ij}\,|\gamma_{ij}| & \textrm{-- добавление в противопотоковую ячейку}\\
+\qquad \hat u_j\pluseq \dt/|V_j|\,f_{ij}\,|\gamma_{ij}| & \textrm{-- добавление в попотоковую ячейку}\\
+\textbf{endfor}                                          & \\
+\end{array}
+\end{equation}
+Отметим, что использование
+противоположенного знака при добавлении в правую
+от грани ячейку $j$ связано с тожедством \cref{eq:tvd_fij_fji}.
+То есть на самом деле в ячейку $j$
+должен бы добавляться поток $f_{ji}$,
+но поскольку отдельной обработки этого направления не предусмотрено,
+мы добавляем $f_{ij}$ с обратным знаком.
+При реализации функции $\textrm{interpolate}$ должен использоваться один из методов, изложенных
+в пп.~\ref{sec:direct_interpolate_up}, \ref{sec:grad_inteprolate_up}.
+
+\subsection{Неявные нелинейные TVD-схемы}
+Запишем полудискретизованное выражение \cref{eq:tvd_fvm_transport}
+в матричном виде
+\begin{equation*}
+\mat E \dfr{u}{t} = \mat K u,
+\end{equation*}
+где $\mat E$ -- диагональная матрица, а $\mat K$ -- оператор переноса.
+Разделим последний на линейную ($\mat L$, противопотоковую) и нелинейную ($\mat F^a$, антидиффузную) части :
+\begin{equation*}
+\mat K = \mat L + \mat F^a(u).
+\end{equation*}
+Согласно представленной в \secref{sec:tvd_fvm} схеме ненулевые элементы этих матриц вычислятся 
+для каждой направленной инцидентной пары $\overrightarrow{ij}$ (при $U_{ij} \geq  0$) следующим образом
+\begin{align*}
+&l_{ij} = 0, \quad l_{ji} = U_{ij} |\gamma_{ij}|, \quad l_{ii} = -\sum_{j\neq i} l_{ij}\\
+&f^a_{ij} = f^a_{ji} = -\tfrac12 U_{ij} \Phi_{ij} |\gamma_{ij}|, \quad f^a_{ii} = -\sum_{j\neq i} f^a_{ij}.
+\end{align*}
+
+Используя обобщённую схему \cref{eq:nonstat_theta}
+нелинейная система уравнений запишется в виде
+\begin{equation}
+\label{eq:tvd_theta_sle}
+\left(\mat E - \theta \dt L - \theta \dt F^a(\hat u)\right) \hat u = \left(\mat E + \dt (1 - \theta) L + \dt (1 - \theta) F^a(u)\right) u.
+\end{equation}
+На каждом временном слое такая нелинейная система может быть решена методом коррекции поправки \secref{sec:it_def_corr},
+в котором в качестве предобуславливателя $\mat B$ следует взять линейную часть оператора переноса:
+\begin{align*}
+&\mat B = \mat E - \theta \dt L \\
+&\mat A(\hat u) = \mat B - \theta \dt F^a(\hat u), \\
+&f = \left(\mat E + \dt (1 - \theta) L + \dt (1 - \theta) F^a(u)\right)
+\end{align*}

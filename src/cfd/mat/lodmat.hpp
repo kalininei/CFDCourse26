@@ -79,6 +79,15 @@ public:
      */
     CsrMatrix to_csr() const;
 
+    /**
+     * @brief sums two matrices with different stencils
+     *
+    // @return k1*A + k2*B
+    //
+    // Stencil from the resulting matrix will contain stencils from both A and B even with zero values.
+     */
+    static LodMatrix sum(double k1, double k2, const LodMatrix& A, const LodMatrix& B);
+
     // overrides
     size_t n_rows() const override;
     double value(size_t irow, size_t icol) const override;
