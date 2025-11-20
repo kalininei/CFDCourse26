@@ -115,3 +115,18 @@ TEST_CASE("Load grid from windows build", "[unstructured2-win]") {
     auto grid = UnstructuredGrid2D::vtk_read(test_directory_file("pebigrid_from_win.vtk"));
     CHECK(grid.n_cells() == 1022);
 }
+
+TEST_CASE("boundary entities", "[boundary-entities]") {
+    auto grid = UnstructuredGrid2D::vtk_read(test_directory_file("hexagrid_50.vtk"));
+    auto b_points = grid.boundary_points();
+    auto b_faces = grid.boundary_faces();
+    auto b_cells = grid.boundary_cells();
+    CHECK(b_faces.size() == 29);
+    CHECK(b_points.size() == 29);
+    CHECK(b_cells.size() == 25);
+    CHECK(b_points[0] == 0);
+    CHECK(b_points[17] == 17);
+    CHECK(b_points[18] == 21);
+    CHECK(b_cells[0] == 0);
+    CHECK(b_cells[24] == 51);
+}

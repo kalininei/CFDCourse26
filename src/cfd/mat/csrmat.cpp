@@ -22,6 +22,12 @@ void CsrStencil::set_stencil(const std::vector<std::set<size_t>>& stencil_set) {
     }
 }
 
+void CsrStencil::set_stencil(const CsrStencil& stencil) {
+    std::vector<size_t> addr = stencil.addr();
+    std::vector<size_t> cols = stencil.cols();
+    set_stencil(std::move(addr), std::move(cols));
+}
+
 size_t CsrStencil::n_nonzeros() const {
     return cols_.size();
 }
@@ -153,10 +159,25 @@ void CsrMatrix::set_unit_row(size_t irow) {
     const std::vector<size_t>& a = addr();
     const std::vector<size_t>& c = cols();
 
-    size_t start = a.at(irow);
-    size_t end = a.at(irow + 1);
+    const size_t start = a.at(irow);
+    const size_t end = a.at(irow + 1);
     for (size_t i = start; i < end; ++i) {
         vals_[i] = (c[i] == irow) ? 1.0 : 0.0;
+    }
+}
+
+void CsrMatrix::set_diagonal(const std::vector<double>& diag_vals) {
+    const std::vector<size_t>& a = addr();
+    const std::vector<size_t>& c = cols();
+
+    for (size_t irow = 0; irow < n_rows(); ++irow) {
+        const size_t start = a.at(irow);
+        const size_t end = a.at(irow + 1);
+        for (size_t i = start; i < end; ++i) {
+            if (c[i] == irow) {
+                vals_[i] = diag_vals[irow];
+            }
+        }
     }
 }
 
@@ -231,4 +252,32 @@ CsrMatrix cfd::assemble_block_matrix(size_t n_block_rows, size_t n_block_cols,
     }
 
     return assemble_block_matrix(n_block_rows, n_block_cols, ret);
+}
+
+void CsrMatrix::set_stencil(std::vector<size_t>&& addr, std::vector<size_t>&& cols) {
+    CsrStencil::set_stencil(std::move(addr), std::move(cols));
+    vals_ = std::vector<double>(CsrStencil::cols().size(), 0.0);
+}
+
+void CsrMatrix::set_stencil(const std::vector<std::set<size_t>>& stencil_set) {
+    CsrStencil::set_stencil(stencil_set);
+    vals_ = std::vector<double>(CsrStencil::cols().size(), 0.0);
+}
+
+void CsrMatrix::set_stencil(const CsrStencil& stencil) {
+    CsrStencil::set_stencil(stencil);
+    vals_ = std::vector<double>(CsrStencil::cols().size(), 0.0);
+}
+
+double CsrMatrix::row_sum(size_t irow) const {
+    double ret = 0;
+    const std::vector<size_t>& a = addr();
+
+    const size_t start = a.at(irow);
+    const size_t end = a.at(irow + 1);
+    for (size_t i = start; i < end; ++i) {
+        ret += vals_[i];
+    }
+
+    return ret;
 }

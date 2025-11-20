@@ -20,8 +20,9 @@ public:
      * @param addr  address vector
      * @param cols  column vector
      */
-    void set_stencil(std::vector<size_t>&& addr, std::vector<size_t>&& cols);
-    void set_stencil(const std::vector<std::set<size_t>>& stencil_set);
+    virtual void set_stencil(std::vector<size_t>&& addr, std::vector<size_t>&& cols);
+    virtual void set_stencil(const std::vector<std::set<size_t>>& stencil_set);
+    virtual void set_stencil(const CsrStencil& stencil);
 
     /**
      * @brief Address array getter
@@ -65,6 +66,10 @@ public:
 
     void set_data(std::vector<size_t>&& addr, std::vector<size_t>&& cols, std::vector<double>&& vals);
 
+    void set_stencil(std::vector<size_t>&& addr, std::vector<size_t>&& cols) override;
+    void set_stencil(const std::vector<std::set<size_t>>& stencil_set) override;
+    void set_stencil(const CsrStencil& stencil) override;
+
     /**
      * @brief Set matrix values
      *
@@ -79,6 +84,8 @@ public:
     std::vector<double>& vals();
 
     void set_unit_row(size_t irow);
+    void set_diagonal(const std::vector<double>& diag_vals);
+    double row_sum(size_t irow) const;
 
     // overrides
     void validate() const override;

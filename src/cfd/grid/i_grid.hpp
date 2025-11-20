@@ -80,6 +80,7 @@ public:
 
     virtual std::vector<size_t> boundary_faces() const;
     virtual std::vector<size_t> boundary_points() const;
+    virtual std::vector<size_t> boundary_cells() const;
 
     /**
      * @brief Saves grid to vtk format
@@ -92,10 +93,12 @@ private:
     struct Cache {
         std::vector<size_t> boundary_faces;
         std::vector<size_t> boundary_points;
+        std::vector<size_t> boundary_cells;
 
         void clear();
         void need_boundary_faces(const IGrid& grid);
         void need_boundary_points(const IGrid& grid);
+        void need_boundary_cells(const IGrid& grid);
     };
     mutable Cache _cache;
 };

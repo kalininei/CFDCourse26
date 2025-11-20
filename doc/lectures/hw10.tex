@@ -1,0 +1,83 @@
+\subsection{Лекция 10 (15.11.25) МКЭ решение уравнения переноса. Метод ограничения потока FCT }
+\label{sec:fct_fem}
+В тестах \cvar{[transport_fem]} \cvar{[transport1_fem_fct]} из файла \ename{transport_fem_test.cpp}
+реализовано решение одномерного уравнения переноса с помощью двухслойных схем.
+В первом тесте реализованы линейный схемы против потока и Кранка-Николсон.
+Во втором -- метод FCT.
+
+По итогу работы каждый тест пишет нестационарное решение в файл
+\ename{transport_fem.vtk.series} который можно открыть в Paraview
+по аналогии с \secref{sec:tvd_fdm}.
+
+\begin{enumerate}
+\item
+Нарисовать базовые варианты, а также провести исследование сеточной сходимости реализованных схем 
+Explicit/Upwind,
+Crank-Nicolson/Upwind,
+Crank-Nicolson/Central,
+Crank-Nicolson/FCT.
+Для анализа сходимости зафиксировать $\dt=10^{-4}$ и изменять количество ячеек в сетке от $10$ до $10^4$.
+\item
+Реализовать схему Crank-Nicolson/Central с использованием сосредоточенной матрицы масс.
+Добавить этот график на общий график сеточной сходимости.
+\item
+Реализовать схему Crank-Nicolson/LinearizedFCT с использованием линеаризованной схемы FCT \cref{eq:fem_fct_dudt_linearized}.
+Добавить на график сходимости.
+\item
+Решить ту же задачу в двумерной области используя треугольную МКЭ-сетку.
+Для схем Explicit/Upwind, Crank-Nicolson/LinearizedFct провести анализ сеточной сходимости.
+\end{enumerate}
+
+\paragraph{Рекомендации к программированию}
+\begin{itemize}
+\item
+Все CSR-матрицы в конечноэлементных решателях имеют один и тот же
+шаблон. В случае если для конкретной матрицы на месте записанного в этот шаблон элемента стоит ноль, вектор значений этой матрицы дополняется нулём.
+Поэтому, например, процедура сложения матриц эквивалентна
+сложению \cvar{vals}-векторов.
+\item
+Все параметрические расчёты проводить в Release сборке
+\item
+Для п.2 
+необходимо при инициализации левой части в конструкторе класса \cvar{CrankNicolsonCentral}
+сначала приравниять диагональ через вектор сосредоточенной матрицы масс, а потом добавлять
+недиагональные элементы из матрицы переноса
+\begin{cppcode}
+// LHS = MASS - 0.5 * tau * K
+CsrMatrix lhs(fem_.stencil());
+lhs.set_diagonal(lumped_mass_);  // diagonal
+for (size_t i=0; i<lhs.n_nonzeros(); ++i){
+    lhs.vals()[i] -= - 0.5 * tau_ * high_order_transport_.vals()[i];
+}
+\end{cppcode}
+\item
+п.3 необходимо делать на основе
+решателя \cvar{CrankNicolsonFct}.
+В методе \cvar{impl_build} следует убрать итерационный процесс (то есть оставить одну итерацию),
+а также проследить, чтобы 
+производная \cvar{dudt} в методе 
+\cvar{compute_antidiffusion}
+вычислялать с использованием \cvar{tau/2} вместо \cvar{tau}.
+\item
+Для п.4 инициализация билдера и решения примет вид.
+\begin{cppcode}
+    Solution1D solution;
+    const std::string gridfn = test_directory_file("trigrid_500.vtk");
+    auto grid = std::make_shared<UnstructuredGrid2D>(UnstructuredGrid2D::vtk_read(gridfn, true));
+    FemLinearTriangle builder(grid);
+\end{cppcode}
+При этом класс \cvar{FemLinearTriangle} нужно реализовать по аналогии с классом
+\cvar{FemLinearSegment}. При этом считывать три точки вместо двух
+и использовать следующую настройку элементов.
+\begin{cppcode}
+auto geom = std::make_shared<TriangleLinearGeometry>(p0, p1, p2);
+auto basis = std::make_shared<TriangleLinearBasis>();
+auto quad = quadrature_triangle_gauss3();
+\end{cppcode}
+Методе \cvar{boundary_bases()} возвращает индексы базисов (в линейном случае равны индексам точек),
+в которых используются условия первого рода.
+Согласно текущей реализации такие условия стоят на всех границах.
+После того, как схема заработает, следует переписать этот метод
+оставив условия первого рода только на правой и левой границе.
+Для этого следует использовать метод получения координаты точки \cvar{grid_->point(i)}.
+\end{itemize}

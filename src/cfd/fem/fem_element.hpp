@@ -73,6 +73,7 @@ public:
     double laplace(size_t i) const;  // div(grad(phi_i)) at xi
     double modj() const;
     const JacobiMatrix* jacobi() const;
+    // f -- local element vector: f.size() == basis->size()
     double interpolate(const std::vector<double>& f) const;
     Vector interpolate(const std::vector<Vector>& f) const;
     double divergence(const std::vector<Vector>& f) const;

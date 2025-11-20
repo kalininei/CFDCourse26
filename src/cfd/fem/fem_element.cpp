@@ -81,12 +81,16 @@ double FemElementValue::modj() const {
     return jacobi()->modj;
 }
 
-double FemElementValue::interpolate(const std::vector<double>&) const {
-    _THROW_NOT_IMP_;
+double FemElementValue::interpolate(const std::vector<double>& f) const {
+    double ret = 0;
+    for (size_t i = 0; i < basis->size(); ++i) {
+        ret += phi(i) * f[i];
+    }
+    return ret;
 }
 
 Vector FemElementValue::interpolate(const std::vector<Vector>& f) const {
-    Vector ret;
+    Vector ret{0, 0, 0};
     for (size_t i = 0; i < basis->size(); ++i) {
         ret += phi(i) * f[i];
     }

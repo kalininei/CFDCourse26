@@ -8,6 +8,7 @@ using namespace cfd;
 void IGrid::Cache::clear() {
     boundary_faces.clear();
     boundary_points.clear();
+    boundary_cells.clear();
 }
 
 void IGrid::Cache::need_boundary_faces(const IGrid& grid) {
@@ -36,6 +37,22 @@ void IGrid::Cache::need_boundary_points(const IGrid& grid) {
     boundary_points = std::vector<size_t>(points.begin(), points.end());
 }
 
+void IGrid::Cache::need_boundary_cells(const IGrid& grid) {
+    if (boundary_cells.size() > 0) {
+        return;
+    }
+    need_boundary_faces(grid);
+    std::set<size_t> cells;
+    for (size_t iface: boundary_faces) {
+        auto [c1, c2] = grid.tab_face_cell(iface);
+        if (c1 == INVALID_INDEX) {
+            c1 = c2;
+        }
+        cells.insert(c1);
+    }
+    boundary_cells = std::vector<size_t>(cells.begin(), cells.end());
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // IGrid
 ///////////////////////////////////////////////////////////////////////////////
@@ -47,4 +64,9 @@ std::vector<size_t> IGrid::boundary_faces() const {
 std::vector<size_t> IGrid::boundary_points() const {
     _cache.need_boundary_points(*this);
     return _cache.boundary_points;
+}
+
+std::vector<size_t> IGrid::boundary_cells() const {
+    _cache.need_boundary_cells(*this);
+    return _cache.boundary_cells;
 }

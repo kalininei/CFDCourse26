@@ -41,7 +41,7 @@ public:
         grid_->save_vtk(filename);
 
         // save numerical solution
-        VtkUtils::add_cell_data(u_, "numerical", filename);
+        VtkUtils::add_cell_data(u_, "numerical", filename, grid_->n_cells());
 
         // save exact solution
         std::vector<double> exact(grid_->n_cells());

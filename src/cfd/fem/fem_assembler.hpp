@@ -30,6 +30,7 @@ struct FemAssembler {
     std::vector<Vector> local_vector(size_t ielem, const std::vector<double>& vx, const std::vector<double>& vy) const;
     std::vector<Vector> local_vector(size_t ielem, const std::vector<double>& vx, const std::vector<double>& vy,
                                      const std::vector<double>& vz) const;
+    std::vector<Vector> local_vector(size_t ielem, const std::vector<Vector>& v) const;
 
     void add_to_global_vector(size_t ielem, const std::vector<double>& local_vector,
                               std::vector<double>& global_vector) const;

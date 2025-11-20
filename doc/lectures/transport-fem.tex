@@ -1,0 +1,76 @@
+\subsection{МКЭ}
+\subsubsection{Линейные схемы}
+Полудискретизованная схема для уравнения переноса имеет вид
+\begin{equation}
+\label{eq:fem_transport_semidis}
+\mat M \dfr{u}{t} = \mat K u
+\end{equation}
+\subsubsection{Метод коррекции потока FCT}
+Перепишем уравнение
+\cref{eq:fem_transport_semidis}
+и использованием операторов низкого порядка
+\begin{equation}
+\label{eq:fem_fct_low}
+\mat M_L \dfr{u}{t} = \mat L^\theta u + f
+\end{equation}
+Здесь антидиффузное слагаемое $f$ компенсирует все погрешности, которые вносят операторы низкого порядка.
+Оператор переноса в двухслойной схеме примет вид
+\begin{equation*}
+L^\theta u = \theta L \hat u + (1 - \theta) L u.
+\end{equation*}
+
+Вычтем \cref{eq:fem_transport_semidis} из 
+\label{eq:fem_fct_low}
+и выразим эту анидифузию. Получим
+\begin{equation}
+\label{eq:fem_fct_fij}
+f_{ij} = m_{ij}\left(\left(\dfr{u}{t}\right)_j   - \left(\dfr{u}{t}\right)_i \right) - d^\theta_{ij} (u_j - u_i).
+\end{equation}
+В двухлойных схемах производные аппроксимируются в виде
+\begin{equation*}
+\dfr{u}{t} \approx \frac{\hat u - u}{\dt}
+\end{equation*}
+а оператор диффузии как
+\begin{equation*}
+d_{ij}^\theta u_i = \theta d_{ij}\hat u_i + (1 - \theta) d_{ij} u_i
+\end{equation*}
+
+Добавление полной антидиффузии провоцирует осцилляции в чиленном решении.
+Чтобы их срезать, антидиффузию ограничивают:
+\begin{equation}
+f^*_{ij} = \alpha_{ij} f_{ij}
+\end{equation}
+Параметр $\alpha_ij$ подбирают таким образом, что добавка на спровоцировала
+локальный экстремум. Для постановки ограничений используют
+промежуточное монотонное решение 
+\begin{equation}
+\label{eq:fem_fct_utilde}
+\mat M_L \frac{\tilde u - u}{\dt} = (1 - \theta) \mat L u
+\end{equation}
+которое относится к моменту времени $t_0 + \theta \dt$.
+
+Итерационный процесс на временном слое:
+\begin{enumerate}
+\item
+Из уравнения \cref{eq:fem_fct_utilde} найти промежуточное решение
+\item
+Задать начальное приближение решения на слое. Например $\hat u = \tilde u$.
+\item
+Из уравнений \cref{eq:fem_fct_fij} вычислить полную антидиффузию
+\item Используя найденную антидиффузию и решение $\tilde u$ вычислить ограничения $\alpha_{ij}$ и ограниченные поток $f^*$
+\item Подсчитать невязку с найденной новой антидиффузиуй. Выйти, если она достаточно мала
+\item Решить систему \cref{eq:fem_fct_low} используя найденный поток $f^*$.
+\item Перейти на п.3
+\end{enumerate}
+
+Это итерационный процесс можно реализовать в терминах коррекции поправки
+с предобуславливателем $\mat M_L - \theta \dt/2 L$.
+
+\subsubsubsection{Линеаризованный FCT}
+Можно избавится от итерационного процесса, если 
+аппроксимировать производные через найденное значение функции на
+промежуточном слое $\tilde u$:
+\begin{equation}
+\label{eq:fem_fct_dudt_linearized}
+\dfr{u}{t} \approx \frac{\tilde u - u}{(1 - \theta)\dt}
+\end{equation}
