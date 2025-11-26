@@ -1,6 +1,7 @@
 #include "cfd/debug/printer.hpp"
 #include "cfd/mat/csrmat.hpp"
 #include "cfd/mat/lodmat.hpp"
+#include "cfd/mat/matrix_iter.hpp"
 #include "cfd/mat/sparse_matrix_solver.hpp"
 #include "cfd26_test.hpp"
 
@@ -195,4 +196,22 @@ TEST_CASE("LodMatrix::sum", "[lodmat-sum]") {
         CHECK(m4.value(0, 0) == Approx(2));
         CHECK(m4.value(1, 1) == Approx(2));
     }
+}
+
+TEST_CASE("Matrix iterators", "[matrix-iter]") {
+    LodMatrix lod(5);
+    lod.set_value(0, 1, 1);
+    lod.set_value(1, 0, 2);
+    lod.set_value(1, 1, 3);
+    lod.set_value(2, 1, 4);
+    lod.set_value(2, 2, 5);
+    lod.set_value(4, 1, 6);
+    CsrMatrix csr = lod.to_csr();
+
+    for (auto&& [i, j, v]: matrix_iter::ijv(csr)) {
+        v += 1;
+        j += 1;
+        CHECK(csr.value(i, j - 1) == Approx(v));
+    }
+    CHECK(csr.value(0, 1) == Approx(2));
 }

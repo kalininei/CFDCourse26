@@ -1,0 +1,219 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{float}%"Плавающие" картинки
+\usepackage{wrapfig}%Обтекание фигур (таблиц, картинок и прочего)
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage[T1, T2A]{fontenc}
+\usepackage[english, russian]{babel}
+\usepackage[left=1cm,right=1cm, top=1cm, bottom=2cm]{geometry}
+% Межстрочный интервал = 1.5pt
+\usepackage{setspace}
+\onehalfspacing
+% % Абзацный отступ = 1.25см
+%\usepackage{indentfirst}
+%\setlength\parindent{0mm}
+% Путь до папки с изображениями
+\graphicspath{ {../img/} }
+% listings
+\usepackage{minted}
+% Активные ссылки на формулы и лит-ру
+\usepackage[
+  colorlinks=true,
+  citecolor=blue,
+  linkcolor=blue,
+  linktoc=page,
+]{hyperref}
+\usepackage[all]{hypcap}
+\usepackage{makecell}
+
+% cleverref
+\usepackage{cleveref}
+\newcommand{\crefrangeconjunction}{~--~}
+\newcommand{\crefpairconjunction}{, }
+\newcommand{\creflastconjunction}{, }
+\crefname{equation}{}{}
+
+% enumeration
+\numberwithin{equation}{section}
+
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{cancel}
+\usepackage{tcolorbox}
+\include{latex_defs}
+\include{clisting}
+\include{sub3}
+
+\usepackage{tikz}
+\usetikzlibrary{calc, arrows.meta, bending, decorations.pathreplacing}
+\usepackage{witharrows}
+
+\begin{document}
+
+\newpage
+\tableofcontents
+\newpage
+
+\begin{align}
+&\dfr{u_i}{t} + U\frac{u_{i+1} - u_{i-1}}{2h} = 0,  \\
+&\dfr{u_i}{t} + U\frac{u_{i} - u_{i-1}}{h} = 0
+\end{align}
+Тогда
+\begin{align}
+&\dfr{u_i}{t} = \frac{U}{2h}(u_{i-1} - u_i) - \frac{U}{2h}(u_{i+1} - u_i), \\
+&\dfr{u_i}{t} = \frac{U}{h}(u_{i-1} - u_i)
+\end{align}
+Элементы матриц $\mat K$, $\mat L$, $\mat D$:
+\begin{equation}
+\begin{array}{rcccl}
+& i-1 & i & i+1 & \\
+\hline
+(\mat K)_i = [ & \frac{U}{2h}  & 0 & -\frac{U}{2h} & ] \\
+(\mat L)_i = [ & \frac{U}{h}  & -\frac{U}{h} & 0 & ] \\
+(\mat D)_i = [ & \frac{U}{2h}  & -\frac{U}{h} & \frac{1}{2h} & ] \\
+\end{array}
+\end{equation}
+Идея ограничения потока:
+\begin{equation}
+\mat M_L\dfr{u}{t} = \left(\mat K + \mat D - \mat F(u)\right)u
+\end{equation}
+В случае условия несжимаемости для скорости переноса можно записать
+\begin{equation}
+\label{eq:fem_tvd_init}
+m_i\dfr{u_i}{t} = \sum_{j\neq i} \left(k_{ij} + d_{ij} - f_{ij}\right) (u_j - u_i) =
+\sum_{j\neq i} \sigma_{ij} (u_j - u_i).
+\end{equation}
+Идея TVD-схем -- введём критерий экстремума $r_{ij}$ такой что
+\begin{equation}
+f_{ij} = \Phi(r_{ij}) d_{ij} > 0.
+\end{equation}
+
+$F(u)$ -- симметричный оператор $\hence f_{ij} = f_{ji}$.
+Рассмотрим направленную связь $\overrightarrow{ij}$, такую что $k_{ij} < 0$.
+Тогда:
+\begin{align}
+k_{ij} < 0, \\
+k_{ji} > 0, \\
+l_{ij} = 0, \\
+l_{ji} > 0.
+\end{align}
+Для выполнения критерия Хартена уравнения
+\cref{eq:fem_tvd_init}
+в $j$-ой строке достаточно положить
+\begin{equation}
+f_{ij} < k_{ji} + d_{ji} = l_{ji}.
+\end{equation}
+Теперь рассмотрим строку $i$.
+Очевидно, что формальный критерий Хартена $\sigma_{ij} \geq 0$ не выполняется:
+\begin{equation}
+\sigma_{ij} = -f_{ij} = -\Phi(r_{ij}) d_{ij} < 0
+\end{equation}
+Выберем $\Phi(r_{ij})$ таким образом, чтобы антидиффузный поток из узла $j$ в узел $i$
+можно было разложить в сумму диффузных:
+\begin{equation}
+\sigma_{ij} (u_j - u_i) = -f_{ij} (u_j - u_i) = \sum_{k\neq i} f^*_{ik}(u_k - u_i)
+\end{equation}
+
+Во первых зададим симметричность функции ограничителя:
+\begin{equation}
+\Phi(r) = r \Phi(1/r)
+\end{equation}
+Тогда
+\begin{equation}
+-f_{ij}(u_j - u_i) = -\Phi(r_{ij}) (u_j - u_i) = -\Phi(1/r_{ij}) r_{ij} d_{ij} (u_j - u_i)
+\end{equation}
+Задача выразить $r_{ij}$ через $r^*_{ik} \geq 0$
+\begin{equation}
+\Delta u_{ij} = -r_{ij}(u_j - u_i) = \sum_k r^*_{ijk}(u_k - u_i)
+\end{equation}
+
+\subsection{Интерполяционные методы}
+
+Из свойств ограничителя $r_{ij} \geq 0$.
+В одномерном случае $j=i+1$ -- узел по потоку. 
+\begin{equation}
+r_{ij} = r_{i,i+1} = \frac{u_i - u_{i-1}}{u_{i+1} - u_{i}}
+\hence
+\Delta u_{i,i+1} = u_{i-1} - u_{i}.
+\end{equation}
+В многомерном случае
+\begin{equation}
+r_{ij} = \frac{u_i - u^*}{u_j - u_{i}}
+\end{equation}
+
+TODO
+
+\subsection{Алгебраический метод}
+Обобщим одномерный критерий TVD:
+\begin{equation}
+r_{i,i+1} = \frac{k_{i,i-1} (u_{i-1} - u_{i})}{k_{i,i+1} (u_{i+1} - u_{i})}
+\end{equation}
+
+Наивное многомерное обобщение могло бы выглядеть так
+\begin{equation}
+r_{ij} = \frac
+{\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})}
+{\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})}
+\end{equation}
+
+Тогда запишем разность
+\begin{equation}
+\Delta u_{ij} = -r_{ij}(u_j - u_i) = \sum_k r^*_{ijk}(u_k - u_i),
+\end{equation}
+где
+\begin{equation}
+r^*_{ijk} = \frac{-k_{ik}^+ (u_j - u_i)} {\displaystyle\sum_k k_{ik}^- (u_k - u_i)}
+\end{equation}
+
+Такое определение не гарантирует положительность $r_{ijk}$.
+Необходимо, чтобы знаки $(u_j - u_i)$ и $(u_k - u_i)$ совпадали.
+Заметим ещё одно свойство одномерной схемы:
+в случае монотонного поведения $u_i$, знаки разностей $(u_{i+1} - u_i)$, $(u_{i-1} - u_i)$ в числителе и знаменателе различаются.
+Причём знак в знаменателе совпадает со знаком текущего узла по потоку $j$ (который в одномерном случае равен $i+1$).
+Тогда
+\begin{equation}
+r_{ij} = \begin{cases}
+\frac {\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})^-} {\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})^-}, &\quad u_i \geq u_j, \\[30pt]
+\frac {\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})^+} {\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})^+}, &\quad u_i < u_j.
+\end{cases}
+\end{equation}
+
+Окончательно запишем
+\begin{equation}
+r_{ij} = \begin{cases}
+Q_i^+ / P_i^+, &\quad u_i \geq u_j,\\
+Q_i^- / P_i^-, &\quad u_i \geq u_i,\\
+\end{cases}
+\end{equation}
+
+\begin{align}
+&Q_i^{\pm} = \sum_k k_{ik}^+(u_k - u_i)^{\pm}, \\
+&P_i^{\pm} = \sum_k k_{ik}^-(u_k - u_i)^{\mp}.
+\end{align}
+
+Вспомитная строку $j$ окончательно запишем антидиффузию:
+\begin{equation}
+f_{ij} = f_{ji} = \min(\Phi(r_{ij}) d_{ij}, l_{ji})
+\end{equation}
+
+
+Алгоритм будет иметь такой вид
+\begin{enumerate}
+\item
+Вычислить $k_{ij}$ -- сеточную матрицу переноса второго порядка,
+\item
+Вычислить линейную диффузию $d_{ij} = \max(0, -k_{ij}, -k_{ji})$.
+\item
+Вычислить $l_{ij} = k_{ij} + d_{ij}$
+\item
+Для каждого узла $i$ определить $Q^{\pm}_i$, $P^{\mp}_i$
+\item
+В цикле для напраленных граней $\overrightarrow{ij}$ определить $f_{ij}$
+\item
+окончательно собрать матрицу переноса с ограничением
+$\sigma_{ij} = k_{ij} + d_{ij} - f_{ij}$.
+
+\end{enumerate}
+
+\end{document}

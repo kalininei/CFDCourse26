@@ -5,6 +5,19 @@
 \label{eq:fem_transport_semidis}
 \mat M \dfr{u}{t} = \mat K u
 \end{equation}
+
+\subsubsubsection{Противопотоковый оператор переноса}
+\begin{equation*}
+\mat L = \mat K + \mat D
+\end{equation*}
+\begin{equation}
+\label{eq:fem_transport_dij}
+d_{ij} = \begin{cases}
+\max(0, -k_{ij}, -k_{ji}),  &\quad i\neq j \\
+-\sum_{k \neq i} d_{ik},    &\quad i = j
+\end{cases}
+\end{equation}
+
 \subsubsection{Метод коррекции потока FCT}
 Перепишем уравнение
 \cref{eq:fem_transport_semidis}
@@ -74,3 +87,292 @@ f^*_{ij} = \alpha_{ij} f_{ij}
 \label{eq:fem_fct_dudt_linearized}
 \dfr{u}{t} \approx \frac{\tilde u - u}{(1 - \theta)\dt}
 \end{equation}
+
+\subsubsection{FEM-TVD}
+\paragraph{Идея ограничения потока:} добавить к оператору переноса первого порядка $\mat L = \mat K + \mat D$
+антидиффузию,  при этом не спровоцировов появление осцилляций в решении:
+\begin{equation}
+\mat M_L\dfr{u}{t} = \mat K^*[u] u, \quad  \mat K^*[u] = \mat K + \mat D - \mat F[u]
+\end{equation}
+В случае условия несжимаемости для скорости переноса можно записать
+\begin{equation}
+\label{eq:fem_tvd_init}
+m_i\dfr{u_i}{t} = \sum_{j\neq i} \left(k_{ij} + d_{ij} - f_{ij}\right) (u_j - u_i) =
+\sum_{j\neq i} k^*_{ij} (u_j - u_i).
+\end{equation}
+
+\paragraph{Одномерный случай}
+\begin{align*}
+&\dfr{u_i}{t} + U\frac{u_{i+1} - u_{i-1}}{2h} = 0, \quad \text{схема второго порядка} \\
+&\dfr{u_i}{t} + U\frac{u_{i} - u_{i-1}}{h} = 0      \quad \text{схема первого порядка}
+\end{align*}
+Тогда
+\begin{align*}
+&\dfr{u_i}{t} = \frac{U}{2h}(u_{i-1} - u_i) - \frac{U}{2h}(u_{i+1} - u_i), \\
+&\dfr{u_i}{t} = \frac{U}{h}(u_{i-1} - u_i)
+\end{align*}
+Элементы матриц $\mat K$, $\mat L$, $\mat D$:
+\begin{equation}
+\label{eq:fem_tvd_matrices_1d}
+\begin{array}{rcccl}
+& i-1 & i & i+1 & \\
+\hline
+(\mat K)_i = [ & \frac{U}{2h}  & 0 & -\frac{U}{2h} & ] \\
+(\mat L)_i = [ & \frac{U}{h}  & -\frac{U}{h} & 0 & ] \\
+(\mat D)_i = [ & \frac{U}{2h}  & -\frac{U}{h} & \frac{1}{2h} & ] \\
+\end{array}
+\end{equation}
+
+\paragraph{Дискретизация и устойчивость}
+\begin{equation}
+\label{eq:fem_tvd_tau_condition}
+\dt \leq -\frac{m_i}{(1-\theta)k^*_{ii}}, \quad k^*_{ii} = l_{ii} - f_{ii}.
+\end{equation}
+
+\paragraph{Идея TVD-схем} -- введём критерий экстремума $r_{ij}$ такой что
+\begin{equation}
+f_{ij} = \Phi(r_{ij}) d_{ij} > 0.
+\end{equation}
+
+$F[u]$ -- симметричный оператор $\hence f_{ij} = f_{ji}$.
+Рассмотрим направленную связь $\overrightarrow{ij}$, такую что $k_{ij} < 0$.
+Тогда:
+\begin{align*}
+k_{ij} < 0, \\
+k_{ji} > 0, \\
+l_{ij} = 0, \\
+l_{ji} > 0.
+\end{align*}
+Для выполнения критерия Хартена уравнения
+\cref{eq:fem_tvd_init}
+в $j$-ой строке достаточно положить
+\begin{equation}
+f_{ij} < k_{ji} + d_{ji} = l_{ji}.
+\end{equation}
+Теперь рассмотрим строку $i$.
+Очевидно, что формальный критерий Хартена $k^*_{ij} \geq 0$ не выполняется:
+\begin{equation}
+k^*_{ij} = -f_{ij} = -\Phi(r_{ij}) d_{ij} < 0
+\end{equation}
+Выберем $\Phi(r_{ij})$ таким образом, чтобы антидиффузный поток из узла $j$ в узел $i$
+можно было разложить в сумму диффузных:
+\begin{equation}
+k^*_{ij} (u_j - u_i) = -f_{ij} (u_j - u_i) = \sum_{k\neq i} f^*_{ik}(u_k - u_i)
+\end{equation}
+
+Во первых зададим симметричность функции ограничителя:
+\begin{equation}
+\Phi(r) = r \Phi(1/r)
+\end{equation}
+Тогда
+\begin{equation}
+-f_{ij}(u_j - u_i) = -\Phi(r_{ij}) (u_j - u_i) = -\Phi(1/r_{ij}) r_{ij} d_{ij} (u_j - u_i)
+\end{equation}
+Задача выразить $r_{ij}$ через $r^*_{ijk} \geq 0$
+\begin{equation}
+\label{eq:fem_tvd_rijk}
+\Delta u_{ij} = -r_{ij}(u_j - u_i) = \sum_k r^*_{ijk}(u_k - u_i)
+\end{equation}
+
+\subsubsubsection{Интерполяционные методы}
+
+Из свойств ограничителя $r_{ij} \geq 0$.
+В одномерном случае $j=i+1$ -- узел по потоку. 
+\begin{equation}
+r_{ij} = r_{i,i+1} = \frac{u_i - u_{i-1}}{u_{i+1} - u_{i}}
+\hence
+\Delta u_{i,i+1} = u_{i-1} - u_{i}.
+\end{equation}
+В многомерном случае
+\begin{equation}
+\label{eq:fem_tvd_rij_nd}
+r_{ij} = \frac{u_i - u^*}{u_j - u_{i}}
+\end{equation}
+
+Где  $u^*$ -- значение в противопотоковом узле $\vec x^*$ (см. \figref{fig:fem_tvd_interpolation}) неизвестно
+и подлежит определению.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.7\linewidth]{fem_tvd_interpolation.pdf}
+\caption{Вспомогательный узел $\vec x^*$ на конечноэлементной сетке}
+\label{fig:fem_tvd_interpolation}
+\end{figure}
+
+\paragraph{Интерполяция/Экстраполяция в инцидентном элементе $E_a$}
+Найдём элемент $E_a$, ближайший к фиктивной точке $\vec x^*$.
+Он может как содержать в себе эту фиктивную точку, так и не содержать (на \figref{fig:fem_tvd_interpolation} представлен второй случай).
+Тогда можно записать
+\begin{equation}
+\label{eq:fem_tvd_interpolation_ea}
+u_i - u(\vec x^*) = \sum_{k\in E_a} \phi^{(a)}_k(\vec x^*) (u_i - u_k).
+\end{equation}
+Подставляя это выражение в \cref{eq:fem_tvd_rij_nd} и далее в \cref{eq:fem_tvd_rijk} получим
+\begin{equation*}
+r^*_{ijk} = \phi_k^{(a)}(\vec x^*).
+\end{equation*}
+Для линейных конечных элементов значения элементных базисных функций справделиво:
+\begin{equation*}
+\phi^{(a)}(\vec x) = \begin{cases}
+\in [0, 1],  &\quad \vec x \in E_a, \\
+\notin [0, 1],  &\quad \vec x \notin E_a.
+\end{cases}
+\end{equation*}
+Поэтому в случае экстраполяции возможно $r^*_{ijk} < 0$, поэтому такая схема не является монотонной по критерию Хартена.
+
+\paragraph{Интерполяция в содержащем элементе $E_b$}
+Теперь для интерполяции используем элемент, точно содержащий $\vec x^*$
+независимо от того, содержит он узел $i$ или нет. Тогда аналогично
+\begin{equation}
+\label{eq:fem_tvd_interpolation_eb}
+u_i - u(\vec x^*) = \sum_{k\in E_b} \phi^{(a)}_k(\vec x^*) (u_i - u_k).
+\end{equation}
+В этом случае в линейных элементов критерий Хартена удовлетворяется. Но терятся локальность схемы.
+
+\paragraph{Использование градиента в узле $u_i$}
+Воспользуемся методикой восстановления фиктивного значения $u^*$
+из градиента, ранее рассмотренного для метода конечных объёмов \secref{sec:grad_inteprolate_up}.
+Выделим ось $\tau$, последовательно содержащую узлы $\vec x^*$, $\vec x_i$, $\vec x_j$ на равном удалении.
+Рассмотрим производную по этой оси в центральном узле $i$.
+С одной стороны из односторонней разности
+\begin{equation*}
+\left.\dfr{u}{\tau}\right|_i = \frac{u_i - u^*}{|\vec x_i - \vec x^*|}.
+\end{equation*}
+С другой стороны согласно проекии общего вектора градиента
+\begin{equation*}
+\left.\dfr{u}{\tau}\right|_i = \left( \nabla u \right)_i \cdot \frac{\vec x_j - \vec x_i} {|\vec x_j - \vec x_i| }.
+\end{equation*}
+Пользуясь равноудалённостью узлов запишем искомую величину как
+\begin{equation*}
+u_i - u^* = \left( \nabla u \right)_i \cdot (\vec x_j - \vec x_i).
+\end{equation*}
+Далее определим градиент в узле с использованием МКЭ подхода.
+Запишем уравнение.
+\begin{equation*}
+\vec g = \nabla u
+\end{equation*}
+Далее домножим на пробную функцию и разложим сеточные функции по базису. Тогда, с использованием
+сосредоточенной матрицы масс получим
+\begin{equation*}
+\vec g_i = \frac{1}{m_i}\sum_k \vec c_{ik} u_k,
+\end{equation*}
+где градиентная матрица вычисляется по формуле
+\begin{equation*}
+\vec c_{ik} = \arint{\nabla \phi_k \, \phi_i}{\Omega}{\vec x}
+\end{equation*}
+Используя свойство согласованности базисных функций $\sum_j \phi_j = 1$
+и формулу интегрирования по частям
+\cref{eq:partint}
+несложно получить два свойства
+этой матрицы:
+\begin{align}
+& \sum_k \vec c_{ik} = 0,                                                  \label{eq:fem_tvd_cij_prop1}\\
+& \vec c_{ik} = -\vec c_{ki}, \quad \text{для внутренних узлов $i$, $k$}. \label{eq:fem_tvd_cij_prop2}
+\end{align}
+С помощью первого из этих свойств \cref{eq:fem_tvd_cij_prop1}
+можно записать искомое выражение
+\begin{equation}
+\label{eq:fem_tvd_interpolation_gradient}
+u_i - u^* = \frac{1}{m_i}\sum_{k\neq i} \vec c_{ik} \cdot (\vec x_j - \vec x_i) (u_k - u_i).
+\end{equation}
+Откуда 
+\begin{equation}
+\label{eq:fem_tvd_gradient_rijk}
+r^*_{ijk} = \frac{1}{m_i}\vec c_{ik} \cdot (\vec x_j - \vec x_i).
+\end{equation}
+Из свойства антисимметричности матрицы \cref{eq:fem_tvd_cij_prop2}
+следует, что $\vec c_{ik}$ могут быть отрицательными.
+Так же отрицательными могут быть компоненты вектора разности $\vec x_j - \vec x_i$.
+Поэтому схема \cref{eq:fem_tvd_interpolation_gradient}
+не удовлетворяет критерию монотонности.
+
+\paragraph{Использование противопоточного градиента в узле $u_i$}
+Для того, чтобы вписаться в требование монотоноости модифицируем
+выражение \cref{eq:fem_tvd_interpolation_gradient},
+оставив в нём только положительные коэффициенты.
+Чтобы компенсировать отброшенные слагаемые умножим
+полученное выражение на два:
+\begin{equation}
+\label{eq:fem_tvd_interpolation_upwind_gradient}
+u_i - u^* = \frac{2}{m_i}\sum_{k\neq i} \max(0, \vec c_{ik} \cdot (\vec x_j - \vec x_i)) (u_k - u_i).
+\end{equation}
+\begin{equation}
+Тогда
+\label{eq:fem_tvd_upwind_gradient_rijk}
+r^*_{ijk} = \frac{2}{m_i}\max(0, \vec c_{ik} \cdot (\vec x_j - \vec x_i)).
+\end{equation}
+Этот подход к построению противопотокового градиента
+похож на построение оператора переноса
+первого порядка точности с помощью алгебраической методики \cref{eq:fem_transport_dij} (см. схему 
+\cref{eq:fem_tvd_matrices_1d} для одномерной аналогии).
+
+\subsubsubsection{Алгебраический метод}
+Обобщим одномерный критерий TVD:
+\begin{equation}
+r_{i,i+1} = \frac{k_{i,i-1} (u_{i-1} - u_{i})}{k_{i,i+1} (u_{i+1} - u_{i})}
+\end{equation}
+
+Наивное многомерное обобщение могло бы выглядеть так
+\begin{equation}
+r_{ij} = \frac
+{\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})}
+{\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})}
+\end{equation}
+
+Тогда запишем разность
+\begin{equation}
+\Delta u_{ij} = -r_{ij}(u_j - u_i) = \sum_k r^*_{ijk}(u_k - u_i),
+\end{equation}
+где
+\begin{equation}
+r^*_{ijk} = \frac{-k_{ik}^+ (u_j - u_i)} {\displaystyle\sum_k k_{ik}^- (u_k - u_i)}
+\end{equation}
+
+Такое определение не гарантирует положительность $r_{ijk}$.
+Необходимо, чтобы знаки $(u_j - u_i)$ и $(u_k - u_i)$ совпадали.
+Заметим ещё одно свойство одномерной схемы:
+в случае монотонного поведения $u_i$, знаки разностей $(u_{i+1} - u_i)$, $(u_{i-1} - u_i)$ в числителе и знаменателе различаются.
+Причём знак в знаменателе совпадает со знаком текущего узла по потоку $j$ (который в одномерном случае равен $i+1$).
+Тогда
+\begin{equation}
+r_{ij} = \begin{cases}
+\frac {\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})^-} {\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})^-}, &\quad u_i \geq u_j, \\[30pt]
+\frac {\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})^+} {\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})^+}, &\quad u_i < u_j.
+\end{cases}
+\end{equation}
+
+Окончательно запишем
+\begin{equation}
+\label{eq:fem_tvd_algebraic_rij}
+r_{ij} = \begin{cases}
+Q_i^+ / P_i^+, &\quad u_i \geq u_j,\\
+Q_i^- / P_i^-, &\quad u_i \geq u_i,\\
+\end{cases}
+\end{equation}
+
+\begin{align}
+&Q_i^{\pm} = \sum_k k_{ik}^+(u_k - u_i)^{\pm}, \\
+&P_i^{\pm} = \sum_k k_{ik}^-(u_k - u_i)^{\mp}.
+\end{align}
+
+Вспомитная строку $j$ окончательно запишем антидиффузию:
+\begin{equation}
+f_{ij} = f_{ji} = \min(\Phi(r_{ij}) d_{ij}, l_{ji})
+\end{equation}
+
+Алгоритм будет иметь такой вид
+\begin{enumerate}
+\item
+Вычислить $k_{ij}$ -- сеточную матрицу переноса второго порядка,
+\item
+Вычислить линейную диффузию $d_{ij} = \max(0, -k_{ij}, -k_{ji})$.
+\item
+Вычислить $l_{ij} = k_{ij} + d_{ij}$
+\item
+Для каждого узла $i$ определить $Q^{\pm}_i$, $P^{\mp}_i$
+\item
+В цикле для напраленных граней $\overrightarrow{ij}$ определить $f_{ij}$
+\item
+окончательно собрать матрицу переноса с ограничением
+$k^*_{ij} = k_{ij} + d_{ij} - f_{ij}$.
+\end{enumerate}

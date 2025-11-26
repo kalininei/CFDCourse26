@@ -78,6 +78,11 @@ public:
     virtual std::vector<size_t> tab_face_point(size_t iface) const = 0;
     virtual std::vector<size_t> tab_cell_face(size_t icell) const = 0;
 
+    // @brief point->cell connectivity table
+    //
+    // resuling cell indices are sorted
+    virtual std::vector<size_t> tab_point_cell(size_t) const;
+
     virtual std::vector<size_t> boundary_faces() const;
     virtual std::vector<size_t> boundary_points() const;
     virtual std::vector<size_t> boundary_cells() const;
@@ -94,11 +99,13 @@ private:
         std::vector<size_t> boundary_faces;
         std::vector<size_t> boundary_points;
         std::vector<size_t> boundary_cells;
+        std::vector<std::vector<size_t>> point_cell;
 
         void clear();
         void need_boundary_faces(const IGrid& grid);
         void need_boundary_points(const IGrid& grid);
         void need_boundary_cells(const IGrid& grid);
+        void need_point_cell(const IGrid& grid);
     };
     mutable Cache _cache;
 };

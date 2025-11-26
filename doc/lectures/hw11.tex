@@ -1,0 +1,96 @@
+\subsection{Лекция 11 (22.11.25) МКЭ решение уравнения переноса. Метод ограничения потока FEM-TVD }
+\label{sec:fem_tvd}
+В тестах \cvar{[transport_fem]} \cvar{[transport1_fem_tvd]} из файла \ename{transport_fem_test.cpp}
+реализовано решение одномерного уравнения переноса
+c использованием явных FEM-TVD схем: алгебраическая схема \cref{eq:fem_tvd_algebraic_rij},
+схема с интерполяцией в содержащем элементе \cref{eq:fem_tvd_rij_nd,eq:fem_tvd_interpolation_eb},
+схема с восстановлением фиктивного значения из градиента
+\cref{eq:fem_tvd_rij_nd,eq:fem_tvd_interpolation_gradient}.
+
+По итогу работы каждый тест пишет нестационарное решение в файл
+\ename{transport_fem.vtk.series} который можно открыть в Paraview
+по аналогии с \secref{sec:tvd_fdm}.
+
+\begin{enumerate}
+\item
+Реализовать
+схему с интерполяцией в инцидентном элементе \cref{eq:fem_tvd_interpolation_ea}
+и
+схему с использованием противопоточного градиента
+\cref{eq:fem_tvd_interpolation_upwind_gradient}.
+
+\item
+Отрисовать нестационарные одномерные решения для всех реализованных схем.
+Провести анализ сеточной сходимости, зафиксировав шаг по времени $\dt = 10^{-4}$.
+
+\item
+Сделать рефакторинг кода, добавив общий абстрактный родительский класс для пар родственных методов 
+\cref{eq:fem_tvd_interpolation_ea,eq:fem_tvd_interpolation_ea}
+и
+\cref{eq:fem_tvd_interpolation_gradient,eq:fem_tvd_interpolation_upwind_gradient}.
+
+\item
+Решить двумерную задачу в единичном квадрате $\vec x \in [0, 1]\times[0, 1]$ на треугольной сетке.
+В качестве поля скорости использовать $\vec U = (-\pi (y - 0.5), \pi (x - 0.5))$,
+Решение в начальный момент времени содержит конус и цилиндр с вырезом (\figref{fig:fem_tvd_test}):
+\begin{align*}
+\text{Конус:}   & \quad \vec x_0 = (0.5, 0.25), \quad u(r < 1) = 1 - r, \\
+\text{Цилиндр:} & \quad \vec x_0 = (0.5, 0.75), \quad u(r < 1) = \begin{cases}
+1, \quad & |x - x_0| \geq 0.025 \quad \text{или} \quad y \geq 0.85,\\
+0, \quad & \text{иначе}.
+\end{cases}
+\end{align*}
+где для каждой фигуры нормированное расстояние вычисляется как
+\begin{equation*}
+r = \frac{1}{r_0}\sqrt{(x-x_0)^2 + (y-y_0)^2}, \qquad r_0 = 0.15.
+\end{equation*}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.4\linewidth]{fem_tvd_test.png}
+\caption{Начальное решение u(x, y, 0) на конечноэлементной сетке}
+\label{fig:fem_tvd_test}
+\end{figure}
+
+Проиллюстрировать решение для всех запрограммированных схем.
+\end{enumerate}
+
+\paragraph{Рекомендации к программированию}
+\begin{itemize}
+\item
+Реализацию схемы \cref{eq:fem_tvd_interpolation_ea} 
+для п.1 следует осуществлять на основе класса \cvar{ElementBTvd},
+в котором нужно реализовать другую схему определения 
+интерполяционного элемента \cvar{icell}:
+вместо использования геомерического поисковика $CellFinder$
+нужно перебрать все элементы, инцидентные узлу $i$:
+\begin{cppcode}
+worker.grid().tab_point_cell(edge.i)
+\end{cppcode}
+и выбрать тот, чей центр (\cvar{grid.cell_center()}) ближе к фиктивной точке \cvar{p_upwind}.
+
+\item
+Реализацию схемы \cref{eq:fem_tvd_interpolation_upwind_gradient} 
+для п.1 следует осуществлять на основе класса \cvar{GradientTvd},
+в котором нужно модифицировать 
+вес $r^*_{ijk}$, вычисленный по формуле \cref{eq:fem_tvd_gradient_rijk} (\cvar{w} в коде),
+согласно формуле \cref{eq:fem_tvd_upwind_gradient_rijk}.
+
+\item
+Для программироования двумерного теста из п.4 нужно использовать класс-построитель треугольных конечных элементов
+\cvar{FemLinearTriangle} из предыдущего домашнего задания \secref{sec:fct_fem},
+модифицировав список базисов, для которых ставятся граничные условия первого рода: теперь в этом 
+список нужно положить все граничные узлы.
+Для формулирования двумерного решения 
+нужно создать свой класс \cvar{Solution2D} реализующий интерфейс \cvar{ISolution}.
+Точное решение этой задачи есть начальное решение, совершающее один оборот против часовой стрелки вокруг центра области за время 2.
+
+\item
+Для выбора шага по времени для иллюстроации решения двумерной задачи из п.4 следует
+иметь ввиду условие устойчивости
+\cref{eq:fem_tvd_tau_condition} для явной схемы ($\theta = 0$).
+Нужно выбрать такой $\dt$, который бы гарантировал устойчивость всех расчётных схем.
+
+
+
+\end{itemize}

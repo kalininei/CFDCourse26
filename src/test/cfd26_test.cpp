@@ -3,6 +3,8 @@
 #include "cfd/debug/printer.hpp"
 #include "cfd/debug/saver.hpp"
 
+#include <ranges>
+
 TEST_CASE("Ping", "[ping]") {
     cfd::dbg::ping_saver_cpp();
     cfd::dbg::ping_printer_cpp();

@@ -25,8 +25,24 @@ Point TriangleLinearGeometry::to_physical(Point xi_) const {
     return (1 - xi - eta) * _p0 + xi * _p1 + eta * _p2;
 }
 
-Point TriangleLinearGeometry::to_parametric(Point) const {
-    _THROW_NOT_IMP_;
+Point TriangleLinearGeometry::to_parametric(Point p) const {
+    double A = _p1.x - _p0.x;
+    double B = _p2.x - _p0.x;
+    double C = _p1.y - _p0.y;
+    double D = _p2.y - _p0.y;
+    double P = p.x - _p0.x;
+    double Q = p.y - _p0.y;
+
+    double det = A * D - B * C;
+
+    if (std::abs(det) < 1e-12) {
+        throw std::runtime_error("Degenerate triangle");
+    }
+
+    double xi = (P * D - B * Q) / det;
+    double eta = (A * Q - P * C) / det;
+
+    return {xi, eta};
 }
 
 Point TriangleLinearGeometry::parametric_center() const {

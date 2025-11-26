@@ -58,3 +58,22 @@ std::vector<double> Quadrature::integrate(const std::function<std::vector<double
     }
     return integrate(values);
 }
+
+std::vector<Vector> Quadrature::integrate(const std::vector<std::vector<Vector>>& values) const {
+    const size_t n_out = values[0].size();
+    std::vector<Vector> ret(n_out, 0);
+    for (size_t i = 0; i < weights_.size(); ++i) {
+        for (size_t j = 0; j < n_out; ++j) {
+            ret[j] += weights_[i] * values[i][j];
+        }
+    }
+    return ret;
+}
+
+std::vector<Vector> Quadrature::integrate(const std::function<std::vector<Vector>(Point)>& func) const {
+    std::vector<std::vector<Point>> values;
+    for (Point p: points_) {
+        values.push_back(func(p));
+    }
+    return integrate(values);
+}

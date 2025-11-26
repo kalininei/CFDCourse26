@@ -9,6 +9,7 @@ void IGrid::Cache::clear() {
     boundary_faces.clear();
     boundary_points.clear();
     boundary_cells.clear();
+    point_cell.clear();
 }
 
 void IGrid::Cache::need_boundary_faces(const IGrid& grid) {
@@ -53,6 +54,21 @@ void IGrid::Cache::need_boundary_cells(const IGrid& grid) {
     boundary_cells = std::vector<size_t>(cells.begin(), cells.end());
 }
 
+void IGrid::Cache::need_point_cell(const IGrid& grid) {
+    if (point_cell.size() > 0) {
+        return;
+    }
+    point_cell.resize(grid.n_points());
+    for (size_t icell = 0; icell < grid.n_cells(); ++icell) {
+        for (size_t ipoint: grid.tab_cell_point(icell)) {
+            point_cell[ipoint].push_back(icell);
+        }
+    }
+    for (auto& pc: point_cell) {
+        std::sort(pc.begin(), pc.end());
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // IGrid
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,4 +85,9 @@ std::vector<size_t> IGrid::boundary_points() const {
 std::vector<size_t> IGrid::boundary_cells() const {
     _cache.need_boundary_cells(*this);
     return _cache.boundary_cells;
+}
+
+std::vector<size_t> IGrid::tab_point_cell(size_t ipoint) const {
+    _cache.need_point_cell(*this);
+    return _cache.point_cell[ipoint];
 }

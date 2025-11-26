@@ -62,6 +62,12 @@ public:
         return p;
     }
 
+    friend Point operator*(const Point& p1, double a) {
+        Point p(p1);
+        p *= a;
+        return p;
+    }
+
     Point& operator/=(double a) {
         x /= a;
         y /= a;

@@ -1,3 +1,4 @@
+#include "cfd/grid/cell_finder.hpp"
 #include "cfd/grid/grid1d.hpp"
 #include "cfd/grid/regular_grid2d.hpp"
 #include "cfd/grid/unstructured_grid2d.hpp"
@@ -129,4 +130,34 @@ TEST_CASE("boundary entities", "[boundary-entities]") {
     CHECK(b_points[18] == 21);
     CHECK(b_cells[0] == 0);
     CHECK(b_cells[24] == 51);
+}
+
+TEST_CASE("point->cell", "[tab-point-cell]") {
+    auto grid = UnstructuredGrid2D::vtk_read(test_directory_file("tetragrid_500.vtk"));
+    CHECK(grid.tab_point_cell(398) == std::vector<size_t>{32, 144, 310, 395, 467});
+    CHECK(grid.tab_point_cell(0) == std::vector<size_t>{493});
+    CHECK(grid.tab_point_cell(38) == std::vector<size_t>{55, 340});
+}
+
+TEST_CASE("CellFinder, 1D", "[cell-finder1]") {
+    Grid1D grid(0, 1, 20);
+    CellFinder finder(grid);
+
+    CHECK(finder(Point{0}) == 0);
+    CHECK(finder(Point{-1e-6}) == INVALID_INDEX);
+    CHECK(finder(Point{1e-6}) == 0);
+    CHECK(finder(Point{0.05 * (3.5)}) == 3);
+    CHECK(finder(Point{0.05 * (3.0)}) == 3);
+    CHECK(finder(Point{0.05 * (11.0)}) == 11);
+    CHECK(finder(Point{1.0}) == 19);
+    CHECK(finder(Point{1.0 + 1e-6}) == INVALID_INDEX);
+}
+
+TEST_CASE("CellFinder, 2D", "[cell-finder2]") {
+    auto grid = UnstructuredGrid2D::vtk_read(test_directory_file("tetragrid_500.vtk"));
+    CellFinder finder(grid);
+    CHECK(finder(Point{0.015, 0.016}) == 493);
+    CHECK(finder(Point{0.61, 0.61}) == 124);
+    CHECK(finder(Point{1.0 + 2e-13, 0.7}) == 427);
+    CHECK(finder(Point{1.0 + 2e-12, 0.7}) == INVALID_INDEX);
 }

@@ -1,17 +1,17 @@
 #include "cfd/fem/elem1d/segment_linear.hpp"
 #include "cfd/fem/elem2d/triangle_linear.hpp"
 #include "cfd/fem/fem_assembler.hpp"
+#include "cfd/grid/cell_finder.hpp"
 #include "cfd/grid/grid1d.hpp"
 #include "cfd/grid/unstructured_grid2d.hpp"
 #include "cfd/grid/vtk.hpp"
 #include "cfd/mat/csrmat.hpp"
 #include "cfd/mat/lodmat.hpp"
+#include "cfd/mat/matrix_iter.hpp"
 #include "cfd/mat/sparse_matrix_solver.hpp"
 #include "cfd/numeric_integration/numeric_integration.hpp"
 #include "cfd26_test.hpp"
 #include "test/utils/filesystem.hpp"
-
-#include <ranges>
 
 using namespace cfd;
 
@@ -96,7 +96,6 @@ public:
 private:
     std::shared_ptr<Grid1D> grid_;
 };
-
 ////////////////////////////////////////////////////////////
 // Basic Worker
 ////////////////////////////////////////////////////////////
@@ -164,7 +163,7 @@ public:
             transport_diffusion_.vals()[a_diag] = diag;
         }
 
-        // low order transport: L = K + D
+        // _low order transport: L = K + D
         low_order_transport_.set_stencil(fem_.stencil());
         for (size_t i = 0; i < fem_.stencil().n_nonzeros(); ++i) {
             low_order_transport_.vals()[i] = high_order_transport_.vals()[i] + transport_diffusion_.vals()[i];
@@ -173,7 +172,7 @@ public:
         // initial solution
         for (size_t ibas = 0; ibas < u_.size(); ++ibas) {
             Point p = fem_.reference_point(ibas);
-            u_[ibas] = init_solution(p.x);
+            u_[ibas] = init_solution(p);
         }
     }
 
@@ -192,7 +191,7 @@ public:
         // save exact solution
         std::vector<double> exact(grid_->n_points());
         for (size_t i = 0; i < grid_->n_points(); ++i) {
-            exact[i] = exact_solution(grid_->point(i).x);
+            exact[i] = exact_solution(grid_->point(i));
         }
         VtkUtils::add_point_data(exact, "exact", filename);
     }
@@ -214,7 +213,7 @@ public:
         std::vector<double> diff(u_.size());
         for (size_t ibas = 0; ibas < fem_.n_bases(); ++ibas) {
             Point p = fem_.reference_point(ibas);
-            diff[ibas] = u_[ibas] - exact_solution(p.x);
+            diff[ibas] = u_[ibas] - exact_solution(p);
         }
         return compute_norm2(diff);
     }
@@ -227,6 +226,25 @@ public:
             full_area += load_vector_[ibas];
         }
         return std::sqrt(integral / full_area);
+    }
+
+    const CsrMatrix& high_order_transport() const {
+        return high_order_transport_;
+    }
+    const CsrMatrix& low_order_transport() const {
+        return low_order_transport_;
+    }
+    const CsrMatrix& transport_diffusion() const {
+        return transport_diffusion_;
+    }
+    const std::vector<double>& load_vector() const {
+        return load_vector_;
+    }
+    const FemAssembler& fem() const {
+        return fem_;
+    }
+    const IGrid& grid() const {
+        return *grid_;
     }
 
 protected:
@@ -338,7 +356,7 @@ private:
 } // namespace
 
 ///////////////////////////////////////////////////////////////////////////////
-// Explicit transport 1D solver
+// Linear transport
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace {
@@ -756,5 +774,360 @@ TEST_CASE("Transport 1D solver, fct fem scheme", "[transport1-fem-fct]") {
         double norm = worker.compute_norm2();
         std::cout << n_cells << " " << norm << std::endl;
         CHECK(norm == Approx(0.087307026).margin(1e-5));
+    }
+}
+
+namespace {
+
+////////////////////////////////////////////////
+// FEM-TVD limiter
+////////////////////////////////////////////////
+enum class Limiter {
+    UPWIND,
+    CENTRAL,
+    MINMOD,
+};
+
+template<Limiter L>
+double limiter([[maybe_unused]] double r) {
+    if constexpr (L == Limiter::UPWIND) {
+        return 0.0;
+    } else if constexpr (L == Limiter::CENTRAL) {
+        return 1.0;
+    } else if constexpr (L == Limiter::MINMOD) {
+        return std::max(0.0, std::min(1.0, r));
+    } else {
+        static_assert(false);
+    }
+}
+
+class TvdAntidiffusion {
+public:
+    virtual ~TvdAntidiffusion() = default;
+
+    CsrMatrix build_antidiffusion(const std::vector<double>& u) const {
+        CsrMatrix F(worker_.fem().stencil());
+        const CsrMatrix& L = worker_.low_order_transport();
+        const CsrMatrix& D = worker_.transport_diffusion();
+        std::vector<double> edges_rij = build_slope_ratio(u);
+        for (size_t iedge = 0; iedge < edges_.size(); ++iedge) {
+            const DirectedEdge& edge = edges_[iedge];
+
+            double dij = D.vals()[edge.ij_addr];
+            double lji = L.vals()[edge.ji_addr];
+            double rij = edges_rij[iedge];
+            // std::cout << edge.i << ": " << rij << std::endl;
+
+            double fij = std::min(limiter_(rij) * dij, lji);
+
+            F.vals()[edge.ij_addr] += fij;
+            F.vals()[edge.ji_addr] += fij;
+            F.vals()[edge.ii_addr] -= fij;
+            F.vals()[edge.jj_addr] -= fij;
+        }
+        return F;
+    }
+
+protected:
+    TvdAntidiffusion(const ATestTransportWorker& worker, std::function<double(double)> limiter)
+        : worker_(worker), limiter_(limiter) {
+        const CsrMatrix& K = worker_.high_order_transport();
+        edges_.clear();
+        // build directed edges i->j
+        for (auto [i, j, kij]: matrix_iter::ijv(K)) {
+            if (i <= j) {
+                continue;
+            }
+            if (kij > 0) {
+                std::swap(i, j);
+            }
+            DirectedEdge edge;
+            edge.i = i;
+            edge.j = j;
+            edge.ij_addr = K.get_address(i, j);
+            edge.ji_addr = K.get_address(j, i);
+            edge.ii_addr = K.get_address(i, i);
+            edge.jj_addr = K.get_address(j, j);
+            edges_.push_back(edge);
+        }
+    }
+
+    const ATestTransportWorker& worker_;
+    std::function<double(double)> limiter_;
+    struct DirectedEdge {
+        size_t i;
+        size_t j;
+        size_t ij_addr;
+        size_t ji_addr;
+        size_t ii_addr;
+        size_t jj_addr;
+    };
+    std::vector<DirectedEdge> edges_;
+
+    virtual std::vector<double> build_slope_ratio(const std::vector<double>& u) const = 0;
+};
+
+class AlgebraicTvd : public TvdAntidiffusion {
+public:
+    AlgebraicTvd(const ATestTransportWorker& worker, std::function<double(double)> limiter)
+        : TvdAntidiffusion(worker, limiter) {}
+
+    std::vector<double> build_slope_ratio(const std::vector<double>& u) const override {
+        const size_t n = u.size();
+        const CsrMatrix& K = this->worker_.high_order_transport();
+        // Q, P
+        std::vector<double> q_plus(n, 0);
+        std::vector<double> q_minus(n, 0);
+        std::vector<double> p_plus(n, 0);
+        std::vector<double> p_minus(n, 0);
+        for (auto [i, j, kij]: matrix_iter::ijv(K)) {
+            if (i == j) {
+                continue;
+            }
+            double du = u[j] - u[i];
+            if (kij > 0) {
+                if (du > 0) {
+                    q_plus[i] += kij * du;
+                } else {
+                    q_minus[i] += kij * du;
+                }
+            } else {
+                if (du > 0) {
+                    p_minus[i] += kij * du;
+                } else {
+                    p_plus[i] += kij * du;
+                }
+            }
+        }
+        for (size_t i = 0; i < n; ++i) {
+            if (std::abs(p_plus[i]) < 1e-12) {
+                p_plus[i] = 1e-12;
+            }
+            if (std::abs(p_minus[i]) < 1e-12) {
+                p_minus[i] = 1e-12;
+            }
+        }
+        // Rij
+        std::vector<double> ret;
+        for (const auto& edge: this->edges_) {
+            if (u[edge.i] >= u[edge.j]) {
+                ret.push_back(q_plus[edge.i] / p_plus[edge.i]);
+            } else {
+                ret.push_back(q_minus[edge.i] / p_minus[edge.i]);
+            }
+        }
+        return ret;
+    }
+};
+
+class InterpolationTvd : public TvdAntidiffusion {
+public:
+    std::vector<double> build_slope_ratio(const std::vector<double>& u) const override {
+        std::vector<double> ret;
+        for (size_t iedge = 0; iedge < this->edges_.size(); ++iedge) {
+            const auto& edge = this->edges_[iedge];
+            double u_ref = u[edge.i];
+            double numer = interp_[iedge].apply(u_ref, u);
+            double denom = u[edge.j] - u[edge.i];
+            if (std::abs(denom) < 1e-12) {
+                denom = 1e-12;
+            }
+            ret.push_back(numer / denom);
+        }
+        return ret;
+    }
+
+protected:
+    struct InterpolationData {
+        std::vector<std::pair<size_t, double>> weights;
+        double apply(double u_ref, const std::vector<double>& u) const {
+            double ret = 0;
+            for (auto [i, w]: weights) {
+                ret += w * (u_ref - u[i]);
+            }
+            return ret;
+        }
+    };
+
+    InterpolationTvd(const ATestTransportWorker& worker, std::function<double(double)> limiter)
+        : TvdAntidiffusion(worker, limiter) {}
+
+    void set_interpolation_data(std::vector<InterpolationData>&& interp) {
+        interp_ = std::move(interp);
+    }
+
+private:
+    std::vector<InterpolationData> interp_;
+};
+
+class ElementBTvd : public InterpolationTvd {
+public:
+    ElementBTvd(const ATestTransportWorker& worker, std::function<double(double)> limiter)
+        : InterpolationTvd(worker, limiter) {
+        std::vector<InterpolationData> interp;
+        CellFinder cell_finder(worker.grid());
+        for (const auto& edge: this->edges_) {
+            InterpolationData idata;
+            Point pi = worker.grid().point(edge.i);
+            Point pj = worker.grid().point(edge.j);
+            Point p_upwind = 2 * pi - pj;
+            size_t icell = cell_finder(p_upwind);
+            if (icell != INVALID_INDEX) {
+                Point xi = worker.fem().element(icell).geometry->to_parametric(p_upwind);
+                std::vector<size_t> indices = worker.fem().tab_elem_basis(icell);
+                std::vector<double> weights = worker.fem().element(icell).basis->value(xi);
+                for (size_t i = 0; i < indices.size(); ++i) {
+                    idata.weights.push_back(std::make_pair(indices[i], weights[i]));
+                }
+            }
+            interp.push_back(std::move(idata));
+        }
+        set_interpolation_data(std::move(interp));
+    };
+};
+
+class GradientTvd : public InterpolationTvd {
+public:
+    GradientTvd(const ATestTransportWorker& worker, std::function<double(double)> limiter)
+        : InterpolationTvd(worker, limiter) {
+        const FemAssembler& fem = worker.fem();
+        // Compute C matrices
+        CsrMatrix cx(fem.stencil());
+        CsrMatrix cy(fem.stencil());
+        for (size_t ielem = 0; ielem < fem.n_elements(); ++ielem) {
+            const FemElement& el = fem.element(ielem);
+            std::vector<Vector> c_matrix = element_c_matrix(el);
+            auto local_cx = c_matrix | std::views::transform([](Vector v) { return v.x; });
+            auto local_cy = c_matrix | std::views::transform([](Vector v) { return v.y; });
+            fem.add_to_global_matrix(ielem, std::vector(local_cx.begin(), local_cx.end()), cx.vals());
+            fem.add_to_global_matrix(ielem, std::vector(local_cy.begin(), local_cy.end()), cy.vals());
+        }
+
+        // build interp
+        std::vector<InterpolationData> interp;
+        for (const auto& edge: this->edges_) {
+            InterpolationData idata;
+            Point pi_pj = worker.grid().point(edge.i) - worker.grid().point(edge.j);
+            for (auto [k, cx_ik, cy_ik]: matrix_iter::jvv(edge.i, cx, cy)) {
+                double w = (pi_pj.x * cx_ik + pi_pj.y * cy_ik) / worker.load_vector()[edge.i];
+                idata.weights.push_back(std::make_pair(k, w));
+            }
+            interp.push_back(std::move(idata));
+        }
+        set_interpolation_data(std::move(interp));
+    }
+
+    std::vector<Vector> element_c_matrix(const FemElement& el) const {
+        auto fun = [&el](Point p) -> std::vector<Vector> {
+            const size_t n = el.basis->size();
+            std::vector<Vector> ret(n * n, Vector{});
+            auto val = FemElementValue(&el, p);
+
+            for (size_t ibas = 0; ibas < n; ++ibas) {
+                for (size_t jbas = 0; jbas < n; ++jbas) {
+                    const size_t k = ibas * n + jbas;
+                    ret[k] = val.grad_phi(jbas) * val.phi(ibas) * val.modj();
+                }
+            }
+
+            return ret;
+        };
+
+        return el.quadrature->integrate(fun);
+    }
+};
+
+template<typename Antidiffusion, Limiter Lim>
+class ExplicitTvd : public ATestTransportWorker {
+public:
+    ExplicitTvd(std::shared_ptr<IGrid> grid, double tau, const IFemBuilder& builder, const ISolution& solution)
+        : ATestTransportWorker(grid, tau, builder, solution), antidiffusion_(*this, limiter<Lim>) {}
+
+private:
+    Antidiffusion antidiffusion_;
+
+    void impl_step() override {
+        CsrMatrix F = antidiffusion_.build_antidiffusion(u_);
+        const CsrMatrix& L = low_order_transport();
+
+        std::vector<double> u_new(u_.size(), 0);
+        for (size_t i = 0; i < fem_.n_bases(); ++i) {
+            double h = load_vector_[i];
+            double ku = L.mult_vec(i, u_) - F.mult_vec(i, u_);
+            u_new[i] = u_[i] + tau_ / h * ku;
+        }
+        apply_dirichlet_bc(u_new);
+        std::swap(u_, u_new);
+    }
+};
+
+} // namespace
+
+TEST_CASE("Transport 1D solver, fem-tvd scheme", "[transport1-fem-tvd]") {
+    std::cout << std::endl << "--- cfd_test [transport1-fem-tvd] --- " << std::endl;
+    // parameters
+    const double tend = 0.5;
+    const double save_tau = 0.05;
+    const double tau = 1e-2;
+    const size_t n_cells = 20;
+
+    auto compute = [&](ATestTransportWorker& worker, std::string out_file) {
+        // non-stationary saver
+        std::unique_ptr<VtkUtils::TimeSeriesWriter> writer;
+        if (!out_file.empty()) {
+            writer = std::make_unique<VtkUtils::TimeSeriesWriter>(out_file);
+            writer->set_time_step(save_tau);
+            std::string out_filename = writer->add(0);
+            worker.save_vtk(out_filename);
+        }
+
+        while (worker.current_time() < tend - 1e-6) {
+            // solve problem
+            worker.step();
+
+            // export solution to vtk
+            if (writer) {
+                if (auto fn = writer->add(worker.current_time()); !fn.empty()) {
+                    worker.save_vtk(fn);
+                }
+            }
+        };
+    };
+
+    Solution1D solution;
+    auto grid = std::make_shared<Grid1D>(0, 1, n_cells);
+    FemLinearSegment builder(grid);
+
+    {
+        // UPWIND
+        ExplicitTvd<AlgebraicTvd, Limiter::UPWIND> worker(grid, tau, builder, solution);
+        compute(worker, "transport_fem");
+        double norm = worker.compute_norm2();
+        std::cout << n_cells << " " << norm << std::endl;
+        CHECK(norm == Approx(0.193719381).margin(1e-5));
+    }
+    {
+        // ALGEBRAIC
+        ExplicitTvd<AlgebraicTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+        compute(worker, "transport_fem");
+        double norm = worker.compute_norm2();
+        std::cout << n_cells << " " << norm << std::endl;
+        CHECK(norm == Approx(0.1172775615).margin(1e-5));
+    }
+    {
+        // ElementB
+        ExplicitTvd<ElementBTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+        compute(worker, "transport_fem");
+        double norm = worker.compute_norm2();
+        std::cout << n_cells << " " << norm << std::endl;
+        CHECK(norm == Approx(0.1172775615).margin(1e-5));
+    }
+    {
+        // Gradient
+        ExplicitTvd<GradientTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+        compute(worker, "transport_fem");
+        double norm = worker.compute_norm2();
+        std::cout << n_cells << " " << norm << std::endl;
+        CHECK(norm == Approx(0.0857348728).margin(1e-5));
     }
 }

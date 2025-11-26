@@ -19,6 +19,9 @@ public:
     std::vector<double> integrate(const std::function<std::vector<double>(Point)>& func) const;
     std::vector<double> integrate(const std::vector<std::vector<double>>& values) const;
 
+    std::vector<Vector> integrate(const std::function<std::vector<Vector>(Point)>& func) const;
+    std::vector<Vector> integrate(const std::vector<std::vector<Vector>>& values) const;
+
     const std::vector<Point>& points() const;
     const std::vector<double>& weights() const;
 
