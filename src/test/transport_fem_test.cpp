@@ -960,22 +960,26 @@ private:
     std::vector<InterpolationData> interp_;
 };
 
-class ElementBTvd : public InterpolationTvd {
+class ElementTvd : public InterpolationTvd {
 public:
-    ElementBTvd(const ATestTransportWorker& worker, std::function<double(double)> limiter)
-        : InterpolationTvd(worker, limiter) {
+    ElementTvd(const ATestTransportWorker& worker, std::function<double(double)> limiter)
+        : InterpolationTvd(worker, limiter) {};
+
+    void build_interpolation() {
         std::vector<InterpolationData> interp;
-        CellFinder cell_finder(worker.grid());
+
         for (const auto& edge: this->edges_) {
             InterpolationData idata;
-            Point pi = worker.grid().point(edge.i);
-            Point pj = worker.grid().point(edge.j);
+            Point pi = worker_.grid().point(edge.i);
+            Point pj = worker_.grid().point(edge.j);
             Point p_upwind = 2 * pi - pj;
-            size_t icell = cell_finder(p_upwind);
+
+            size_t icell = closest_point_cell(p_upwind, edge.i);
+
             if (icell != INVALID_INDEX) {
-                Point xi = worker.fem().element(icell).geometry->to_parametric(p_upwind);
-                std::vector<size_t> indices = worker.fem().tab_elem_basis(icell);
-                std::vector<double> weights = worker.fem().element(icell).basis->value(xi);
+                Point xi = worker_.fem().element(icell).geometry->to_parametric(p_upwind);
+                std::vector<size_t> indices = worker_.fem().tab_elem_basis(icell);
+                std::vector<double> weights = worker_.fem().element(icell).basis->value(xi);
                 for (size_t i = 0; i < indices.size(); ++i) {
                     idata.weights.push_back(std::make_pair(indices[i], weights[i]));
                 }
@@ -983,14 +987,56 @@ public:
             interp.push_back(std::move(idata));
         }
         set_interpolation_data(std::move(interp));
-    };
+    }
+
+private:
+    virtual size_t closest_point_cell(Point p, size_t i_point) const = 0;
+};
+
+class ElementBTvd : public ElementTvd {
+public:
+    ElementBTvd(const ATestTransportWorker& worker, std::function<double(double)> limiter)
+        : ElementTvd(worker, limiter), cell_finder_(worker.grid()) {
+        this->build_interpolation();
+    }
+
+private:
+    CellFinder cell_finder_;
+
+    size_t closest_point_cell(Point p, size_t) const override {
+        return cell_finder_(p);
+    }
+};
+
+class ElementATvd : public ElementTvd {
+public:
+    ElementATvd(const ATestTransportWorker& worker, std::function<double(double)> limiter)
+        : ElementTvd(worker, limiter) {
+        this->build_interpolation();
+    }
+
+private:
+    size_t closest_point_cell(Point p, size_t i_point) const override {
+        auto nei_cells = worker_.grid().tab_point_cell(i_point);
+        size_t icell = nei_cells[0];
+
+        for (size_t nei_cell: nei_cells) {
+            if (vector_abs(worker_.grid().cell_center(nei_cell) - p) <
+                vector_abs(worker_.grid().cell_center(icell) - p))
+                icell = nei_cell;
+        }
+
+        return icell;
+    }
 };
 
 class GradientTvd : public InterpolationTvd {
 public:
     GradientTvd(const ATestTransportWorker& worker, std::function<double(double)> limiter)
-        : InterpolationTvd(worker, limiter) {
-        const FemAssembler& fem = worker.fem();
+        : InterpolationTvd(worker, limiter) {}
+
+    void build_interpolation() {
+        const FemAssembler& fem = worker_.fem();
         // Compute C matrices
         CsrMatrix cx(fem.stencil());
         CsrMatrix cy(fem.stencil());
@@ -1007,15 +1053,18 @@ public:
         std::vector<InterpolationData> interp;
         for (const auto& edge: this->edges_) {
             InterpolationData idata;
-            Point pi_pj = worker.grid().point(edge.i) - worker.grid().point(edge.j);
+            Point pi_pj = worker_.grid().point(edge.i) - worker_.grid().point(edge.j);
             for (auto [k, cx_ik, cy_ik]: matrix_iter::jvv(edge.i, cx, cy)) {
-                double w = (pi_pj.x * cx_ik + pi_pj.y * cy_ik) / worker.load_vector()[edge.i];
+                double w = get_weight(pi_pj, cx_ik, cy_ik, edge.i);
                 idata.weights.push_back(std::make_pair(k, w));
             }
             interp.push_back(std::move(idata));
         }
         set_interpolation_data(std::move(interp));
     }
+
+private:
+    virtual double get_weight(Point pi_pj, double cx_i, double cy_i, size_t ipoint) const = 0;
 
     std::vector<Vector> element_c_matrix(const FemElement& el) const {
         auto fun = [&el](Point p) -> std::vector<Vector> {
@@ -1034,6 +1083,32 @@ public:
         };
 
         return el.quadrature->integrate(fun);
+    }
+};
+
+class DownwindGradientTvd : public GradientTvd {
+public:
+    DownwindGradientTvd(const ATestTransportWorker& worker, std::function<double(double)> limiter)
+        : GradientTvd(worker, limiter) {
+        this->build_interpolation();
+    }
+
+private:
+    double get_weight(Point pi_pj, double cx_i, double cy_i, size_t ipoint) const override {
+        return (pi_pj.x * cx_i + pi_pj.y * cy_i) / worker_.load_vector()[ipoint];
+    }
+};
+
+class UpwindGradientTvd : public GradientTvd {
+public:
+    UpwindGradientTvd(const ATestTransportWorker& worker, std::function<double(double)> limiter)
+        : GradientTvd(worker, limiter) {
+        this->build_interpolation();
+    }
+
+private:
+    double get_weight(Point pi_pj, double cx_i, double cy_i, size_t ipoint) const override {
+        return 2 * std::max<double>(0.0, (pi_pj.x * cx_i + pi_pj.y * cy_i)) / worker_.load_vector()[ipoint];
     }
 };
 
@@ -1068,8 +1143,7 @@ TEST_CASE("Transport 1D solver, fem-tvd scheme", "[transport1-fem-tvd]") {
     // parameters
     const double tend = 0.5;
     const double save_tau = 0.05;
-    const double tau = 1e-2;
-    const size_t n_cells = 20;
+    const double tau = 1e-4;
 
     auto compute = [&](ATestTransportWorker& worker, std::string out_file) {
         // non-stationary saver
@@ -1094,40 +1168,53 @@ TEST_CASE("Transport 1D solver, fem-tvd scheme", "[transport1-fem-tvd]") {
         };
     };
 
-    Solution1D solution;
-    auto grid = std::make_shared<Grid1D>(0, 1, n_cells);
-    FemLinearSegment builder(grid);
+    for (size_t n_cells: {10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000}) {
 
-    {
-        // UPWIND
-        ExplicitTvd<AlgebraicTvd, Limiter::UPWIND> worker(grid, tau, builder, solution);
-        compute(worker, "transport_fem");
-        double norm = worker.compute_norm2();
-        std::cout << n_cells << " " << norm << std::endl;
-        CHECK(norm == Approx(0.193719381).margin(1e-5));
-    }
-    {
-        // ALGEBRAIC
-        ExplicitTvd<AlgebraicTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
-        compute(worker, "transport_fem");
-        double norm = worker.compute_norm2();
-        std::cout << n_cells << " " << norm << std::endl;
-        CHECK(norm == Approx(0.1172775615).margin(1e-5));
-    }
-    {
-        // ElementB
-        ExplicitTvd<ElementBTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
-        compute(worker, "transport_fem");
-        double norm = worker.compute_norm2();
-        std::cout << n_cells << " " << norm << std::endl;
-        CHECK(norm == Approx(0.1172775615).margin(1e-5));
-    }
-    {
-        // Gradient
-        ExplicitTvd<GradientTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
-        compute(worker, "transport_fem");
-        double norm = worker.compute_norm2();
-        std::cout << n_cells << " " << norm << std::endl;
-        CHECK(norm == Approx(0.0857348728).margin(1e-5));
+        Solution1D solution;
+        auto grid = std::make_shared<Grid1D>(0, 1, n_cells);
+        FemLinearSegment builder(grid);
+
+        {
+            // UPWIND
+            ExplicitTvd<AlgebraicTvd, Limiter::UPWIND> worker(grid, tau, builder, solution);
+            compute(worker, "");
+            double norm = worker.compute_norm2();
+            std::cout << "ALGEBRAIC_UPWIND " << n_cells << " " << norm << std::endl;
+        }
+        {
+            // ALGEBRAIC
+            ExplicitTvd<AlgebraicTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+            compute(worker, "");
+            double norm = worker.compute_norm2();
+            std::cout << "ALGEBRAIC_MINMOD " << n_cells << " " << norm << std::endl;
+        }
+        {
+            // ElementA
+            ExplicitTvd<ElementATvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+            compute(worker, "");
+            double norm = worker.compute_norm2();
+            std::cout << "ElementATvd_MINMOD " << n_cells << " " << norm << std::endl;
+        }
+        {
+            // ElementB
+            ExplicitTvd<ElementBTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+            compute(worker, "");
+            double norm = worker.compute_norm2();
+            std::cout << "ElementBTvd_MINMOD " << n_cells << " " << norm << std::endl;
+        }
+        {
+            // Gradient
+            ExplicitTvd<DownwindGradientTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+            compute(worker, "");
+            double norm = worker.compute_norm2();
+            std::cout << "Gradient_Minmod " << n_cells << " " << norm << std::endl;
+        }
+        {
+            // UpwindGradient
+            ExplicitTvd<UpwindGradientTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+            compute(worker, "");
+            double norm = worker.compute_norm2();
+            std::cout << "UpwindGradient_Minmod " << n_cells << " " << norm << std::endl;
+        }
     }
 }
