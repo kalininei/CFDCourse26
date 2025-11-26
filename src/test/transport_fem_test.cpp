@@ -43,6 +43,43 @@ public:
     }
 };
 
+class Solution2D : public ISolution {
+public:
+    Vector velocity(Point p) const override {
+        return Vector{-M_PI * (p.y - 0.5), M_PI * (p.x - 0.5)};
+    }
+
+    double init_solution(Point p) const override {
+        Point cone_center = Point(0.5, 0.25);
+        Point cylinder_center = Point(0.5, 0.75);
+
+        constexpr double r_0 = 0.15;
+
+        // cone
+        auto r_cone = vector_abs((cone_center - p) / r_0);
+        if (r_cone < 1) {
+            return 1 - r_cone;
+        }
+
+        // cylinder
+        auto r_cylinder = vector_abs((cylinder_center - p) / r_0);
+        if (r_cylinder < 1) {
+            if ((std::abs(p.x - cylinder_center.x) >= 0.025) || (p.y >= 0.85))
+                return 1;
+
+            return 0;
+        }
+
+        return 0;
+    }
+    double exact_solution(Point p, double t) const override {
+        auto x = (p.x - 0.5) * cos(M_PI * t) + (p.y - 0.5) * sin(M_PI * t) + 0.5;
+        auto y = (p.y - 0.5) * cos(M_PI * t) - (p.x - 0.5) * sin(M_PI * t) + 0.5;
+
+        return init_solution(Point(x, y));
+    }
+};
+
 //////////////////////////////////////
 // IFemBuilder
 //////////////////////////////////////
@@ -96,6 +133,52 @@ public:
 private:
     std::shared_ptr<Grid1D> grid_;
 };
+
+//////////////////////////////////////
+// FemLinearTriangle
+//////////////////////////////////////
+class FemLinearTriangle : public IFemBuilder {
+public:
+    FemLinearTriangle(std::shared_ptr<UnstructuredGrid2D> grid) : grid_(grid) {}
+
+    FemAssembler build() const override {
+        size_t n_bases = grid_->n_points();
+        std::vector<FemElement> elements;
+        std::vector<std::vector<size_t>> tab_elem_basis;
+
+        // elements
+        for (size_t icell = 0; icell < grid_->n_cells(); ++icell) {
+            auto ipoints = grid_->tab_cell_point(icell);
+
+            if (grid_->tab_cell_point(icell).size() != 3) {
+                // only triangle grid is allowed
+                _THROW_NOT_IMP_;
+            }
+            Point p0 = grid_->point(ipoints[0]);
+            Point p1 = grid_->point(ipoints[1]);
+            Point p2 = grid_->point(ipoints[2]);
+
+            auto geom = std::make_shared<TriangleLinearGeometry>(p0, p1, p2);
+            auto basis = std::make_shared<TriangleLinearBasis>();
+            auto quad = quadrature_triangle_gauss3();
+            FemElement elem{geom, basis, quad};
+
+            elements.push_back(elem);
+            std::vector<size_t> tab = ipoints;
+            tab_elem_basis.push_back(tab);
+        }
+
+        return FemAssembler(n_bases, elements, tab_elem_basis);
+    }
+
+    std::vector<size_t> boundary_bases() const override {
+        return grid_->boundary_points();
+    }
+
+private:
+    std::shared_ptr<UnstructuredGrid2D> grid_;
+};
+
 ////////////////////////////////////////////////////////////
 // Basic Worker
 ////////////////////////////////////////////////////////////
@@ -1216,5 +1299,89 @@ TEST_CASE("Transport 1D solver, fem-tvd scheme", "[transport1-fem-tvd]") {
             double norm = worker.compute_norm2();
             std::cout << "UpwindGradient_Minmod " << n_cells << " " << norm << std::endl;
         }
+    }
+}
+
+TEST_CASE("Transport 2D solver, fem-tvd scheme", "[transport2-fem-tvd]") {
+    std::cout << std::endl << "--- cfd_test [transport2-fem-tvd] --- " << std::endl;
+    // parameters
+    const double tend = 0.5;
+    const double save_tau = 0.05;
+    const double tau = 1e-4;
+
+    auto compute = [&](ATestTransportWorker& worker, std::string out_file) {
+        // non-stationary saver
+        std::unique_ptr<VtkUtils::TimeSeriesWriter> writer;
+        if (!out_file.empty()) {
+            writer = std::make_unique<VtkUtils::TimeSeriesWriter>(out_file);
+            writer->set_time_step(save_tau);
+            std::string out_filename = writer->add(0);
+            worker.save_vtk(out_filename);
+        }
+
+        while (worker.current_time() < tend - 1e-6) {
+            // solve problem
+            worker.step();
+
+            // export solution to vtk
+            if (writer) {
+                if (auto fn = writer->add(worker.current_time()); !fn.empty()) {
+                    worker.save_vtk(fn);
+                }
+            }
+        };
+    };
+
+    Solution2D solution;
+    const std::string gridfn = test_directory_file("trigrid_2000.vtk");
+    auto grid = std::make_shared<UnstructuredGrid2D>(UnstructuredGrid2D::vtk_read(gridfn, true));
+    FemLinearTriangle builder(grid);
+
+    if (false) {
+        // UPWIND
+        ExplicitTvd<AlgebraicTvd, Limiter::UPWIND> worker(grid, tau, builder, solution);
+        compute(worker, "ALGEBRAIC_UPWIND");
+        double norm = worker.compute_norm2();
+        std::cout << "ALGEBRAIC_UPWIND " << worker.grid().n_cells() << " " << norm << std::endl;
+    }
+
+    if (true) {
+        // ALGEBRAIC
+        ExplicitTvd<AlgebraicTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+        compute(worker, "ALGEBRAIC_MINMOD");
+        double norm = worker.compute_norm2();
+        std::cout << "ALGEBRAIC_MINMOD " << worker.grid().n_cells() << " " << norm << std::endl;
+    }
+
+    if (false) {
+        // ElementA
+        ExplicitTvd<ElementATvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+        compute(worker, "ElementATvd_MINMOD");
+        double norm = worker.compute_norm2();
+        std::cout << "ElementATvd_MINMOD " << worker.grid().n_cells() << " " << norm << std::endl;
+    }
+
+    if (false) {
+        // ElementB
+        ExplicitTvd<ElementBTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+        compute(worker, "ElementBTvd_MINMOD");
+        double norm = worker.compute_norm2();
+        std::cout << "ElementBTvd_MINMOD " << worker.grid().n_cells() << " " << norm << std::endl;
+    }
+
+    if (false) {
+        // DownwindGradient
+        ExplicitTvd<DownwindGradientTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+        compute(worker, "DownwindGradient_MINMOD");
+        double norm = worker.compute_norm2();
+        std::cout << "Gradient_Minmod " << worker.grid().n_cells() << " " << norm << std::endl;
+    }
+
+    if (false) {
+        // UpwindGradient
+        ExplicitTvd<UpwindGradientTvd, Limiter::MINMOD> worker(grid, tau, builder, solution);
+        compute(worker, "UpwindGradient_MINMOD");
+        double norm = worker.compute_norm2();
+        std::cout << "UpwindGradient_Minmod " << worker.grid().n_cells() << " " << norm << std::endl;
     }
 }
