@@ -5,6 +5,8 @@
 
 namespace cfd {
 
+class DenseMatrix;
+
 /**
  * @brief 'Compressed sparsed row' stencil
  */
@@ -92,6 +94,8 @@ public:
     double value(size_t irow, size_t icol) const override;
     std::vector<double> mult_vec_p(const double* u) const override;
     double mult_vec_p(size_t irow, const double* u) const override;
+
+    DenseMatrix to_dense() const;
 
 private:
     std::vector<double> vals_;

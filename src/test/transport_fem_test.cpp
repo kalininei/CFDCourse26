@@ -118,6 +118,13 @@ public:
         : grid_(grid), fem_(builder.build()), tau_(tau), u_(fem_.n_bases(), 0.0), solution_(solution),
           boundary_bases_(builder.boundary_bases()) {
 
+        // velocity
+        velocity_.resize(fem_.n_bases());
+        for (size_t ibas = 0; ibas < fem_.n_bases(); ++ibas) {
+            Point p = fem_.reference_point(ibas);
+            velocity_[ibas] = solution_.velocity(p);
+        }
+
         // mass matrix
         mass_.set_stencil(fem_.stencil());
         for (size_t ielem = 0; ielem < fem_.n_elements(); ++ielem) {
@@ -200,13 +207,8 @@ public:
         return time_;
     }
 
-    std::vector<Vector> velocity() const {
-        std::vector<Vector> ret;
-        for (size_t ibas = 0; ibas < fem_.n_bases(); ++ibas) {
-            Point p = fem_.reference_point(ibas);
-            ret.push_back(solution_.velocity(p));
-        }
-        return ret;
+    const std::vector<Vector>& velocity() const {
+        return velocity_;
     }
 
     double compute_norm2() {
@@ -261,6 +263,8 @@ protected:
     double time_ = 0;
     const ISolution& solution_;
     std::vector<size_t> boundary_bases_;
+
+    mutable std::vector<Vector> velocity_;
 
     const std::vector<size_t>& boundary_bases() const {
         return boundary_bases_;
@@ -816,7 +820,6 @@ public:
             double dij = D.vals()[edge.ij_addr];
             double lji = L.vals()[edge.ji_addr];
             double rij = edges_rij[iedge];
-            // std::cout << edge.i << ": " << rij << std::endl;
 
             double fij = std::min(limiter_(rij) * dij, lji);
 
@@ -835,19 +838,19 @@ protected:
         edges_.clear();
         // build directed edges i->j
         for (auto [i, j, kij]: matrix_iter::ijv(K)) {
-            if (i <= j) {
+            if (j <= i) {
                 continue;
-            }
-            if (kij > 0) {
-                std::swap(i, j);
             }
             DirectedEdge edge;
             edge.i = i;
             edge.j = j;
-            edge.ij_addr = K.get_address(i, j);
-            edge.ji_addr = K.get_address(j, i);
-            edge.ii_addr = K.get_address(i, i);
-            edge.jj_addr = K.get_address(j, j);
+            if (kij > 0) {
+                std::swap(edge.i, edge.j);
+            }
+            edge.ij_addr = K.get_address(edge.i, edge.j);
+            edge.ji_addr = K.get_address(edge.j, edge.i);
+            edge.ii_addr = K.get_address(edge.i, edge.i);
+            edge.jj_addr = K.get_address(edge.j, edge.j);
             edges_.push_back(edge);
         }
     }
@@ -1008,7 +1011,7 @@ public:
         for (const auto& edge: this->edges_) {
             InterpolationData idata;
             Point pi_pj = worker.grid().point(edge.i) - worker.grid().point(edge.j);
-            for (auto [k, cx_ik, cy_ik]: matrix_iter::jvv(edge.i, cx, cy)) {
+            for (auto [k, cx_ik, cy_ik]: matrix_iter::jv(edge.i, cx, cy)) {
                 double w = (pi_pj.x * cx_ik + pi_pj.y * cy_ik) / worker.load_vector()[edge.i];
                 idata.weights.push_back(std::make_pair(k, w));
             }

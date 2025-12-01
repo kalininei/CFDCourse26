@@ -1,6 +1,7 @@
 #ifndef CFD_PRINTER_HPP
 #define CFD_PRINTER_HPP
 
+#include "cfd/geom/point.hpp"
 #include "cfd/mat/i_sparse_mat.hpp"
 
 namespace cfd {
@@ -47,6 +48,8 @@ void print(size_t irow, const ISparseMatrix& mat, size_t col0, size_t col1);
  * @param vec  vector to print
  */
 void print(const std::vector<double>& vec);
+
+void print(const std::vector<Vector>& vec);
 
 /**
  * @brief prints vector data features

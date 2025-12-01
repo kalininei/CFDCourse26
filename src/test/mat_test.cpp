@@ -1,5 +1,7 @@
 #include "cfd/debug/printer.hpp"
+#include "cfd/mat/algebraic_bc.hpp"
 #include "cfd/mat/csrmat.hpp"
+#include "cfd/mat/densemat.hpp"
 #include "cfd/mat/lodmat.hpp"
 #include "cfd/mat/matrix_iter.hpp"
 #include "cfd/mat/sparse_matrix_solver.hpp"
@@ -208,10 +210,64 @@ TEST_CASE("Matrix iterators", "[matrix-iter]") {
     lod.set_value(4, 1, 6);
     CsrMatrix csr = lod.to_csr();
 
-    for (auto&& [i, j, v]: matrix_iter::ijv(csr)) {
-        v += 1;
-        j += 1;
-        CHECK(csr.value(i, j - 1) == Approx(v));
+    // ijv
+    {
+        std::vector<size_t> vi, vj;
+        std::vector<double> vv;
+        for (auto [i, j, v]: matrix_iter::ijv(csr)) {
+            vi.push_back(i);
+            vj.push_back(j);
+            vv.push_back(v);
+        }
+        CHECK(vi == std::vector<size_t>{0, 1, 1, 2, 2, 4});
+        CHECK(vj == std::vector<size_t>{1, 0, 1, 1, 2, 1});
+        CHECK(vv == std::vector<double>{1, 2, 3, 4, 5, 6});
     }
-    CHECK(csr.value(0, 1) == Approx(2));
+    {
+        std::vector<size_t> vi, vj;
+        std::vector<double> vv;
+        for (auto [i, j, v]: matrix_iter::ijv(csr)) {
+            v += 1;
+        }
+        for (auto [i, j, v]: matrix_iter::ijv(csr)) {
+            vv.push_back(v);
+        }
+        CHECK(vv == std::vector<double>{2, 3, 4, 5, 6, 7});
+    }
+}
+
+TEST_CASE("Matrix bc", "[matrix-bc]") {
+    DenseMatrix dense(4, 4,
+                      std::vector<double>{
+                          //
+                          1, 0, 2, 0, //
+                          0, 1, 0, 7, //
+                          1, 0, 5, 0, //
+                          0, 1, 2, 3, //
+                      });
+    CsrMatrix csr = dense.to_csr();
+
+    std::vector<double> rhs = {1, 2, 3, 4};
+
+    SECTION("Dirichlet") {
+        std::map<size_t, double> cond{{0, 0.5}};
+        algebraic_bc_dirichlet(cond, csr);
+        algebraic_bc_dirichlet(cond, rhs);
+        auto vals = csr.to_dense().vals();
+        CHECK(vals == std::vector<double>{1, 0, 0, 0, 0, 1, 0, 7, 1, 0, 5, 0, 0, 1, 2, 3});
+        CHECK(rhs == std::vector<double>{0.5, 2, 3, 4});
+    }
+
+    SECTION("Periodic") {
+        std::map<size_t, size_t> cond{{0, 3}, {2, 1}};
+        algebraic_bc_periodic(cond, csr);
+        algebraic_bc_periodic(cond, rhs);
+        auto vals = csr.to_dense().vals();
+        CHECK(csr.value(1, 1) == Approx(1.0));
+        CHECK(csr.value(1, 2) == Approx(-1.0));
+        CHECK(csr.value(3, 0) == Approx(-1.0));
+        CHECK(csr.value(3, 3) == Approx(1.0));
+        CHECK(vals == std::vector<double>{4, 1, 4, 0, 0, 1, -1, 0, 1, 0, 6, 7, -1, 0, 0, 1});
+        CHECK(rhs == std::vector<double>{5, 0, 5, 0});
+    }
 }

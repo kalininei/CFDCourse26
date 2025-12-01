@@ -11,6 +11,7 @@ set(SRC
     poisson_fem_test.cpp
     transport_fdm_test.cpp
     transport_fem_test.cpp
+    transport_supg_test.cpp
 )
 
 set(HEADERS

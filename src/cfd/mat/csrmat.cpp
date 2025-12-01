@@ -1,4 +1,6 @@
 #include "csrmat.hpp"
+#include "cfd/mat/densemat.hpp"
+#include "cfd/mat/matrix_iter.hpp"
 #include "lodmat.hpp"
 #include <numeric>
 
@@ -280,4 +282,13 @@ double CsrMatrix::row_sum(size_t irow) const {
     }
 
     return ret;
+}
+
+DenseMatrix CsrMatrix::to_dense() const {
+    const size_t n = n_rows();
+    std::vector<double> ret(n * n, 0.0);
+    for (auto [i, j, v]: matrix_iter::ijv(*this)) {
+        ret[j + i * n] = v;
+    }
+    return DenseMatrix(n, n, ret);
 }

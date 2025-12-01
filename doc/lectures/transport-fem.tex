@@ -147,7 +147,8 @@ l_{ji} > 0.
 \cref{eq:fem_tvd_init}
 в $j$-ой строке достаточно положить
 \begin{equation}
-f_{ij} < k_{ji} + d_{ji} = l_{ji}.
+\label{eq:fem_tvd_fji}
+f_{ji} = f_{ij} < k_{ji} + d_{ji} = l_{ji}.
 \end{equation}
 Теперь рассмотрим строку $i$.
 Очевидно, что формальный критерий Хартена $k^*_{ij} \geq 0$ не выполняется:
@@ -157,7 +158,7 @@ k^*_{ij} = -f_{ij} = -\Phi(r_{ij}) d_{ij} < 0
 Выберем $\Phi(r_{ij})$ таким образом, чтобы антидиффузный поток из узла $j$ в узел $i$
 можно было разложить в сумму диффузных:
 \begin{equation}
-k^*_{ij} (u_j - u_i) = -f_{ij} (u_j - u_i) = \sum_{k\neq i} f^*_{ik}(u_k - u_i)
+k^*_{ij} (u_j - u_i) = -f_{ij} (u_j - u_i) = \sum_{k\neq i} f^*_{ijk}(u_k - u_i)
 \end{equation}
 
 Во первых зададим симметричность функции ограничителя:
@@ -168,22 +169,21 @@ k^*_{ij} (u_j - u_i) = -f_{ij} (u_j - u_i) = \sum_{k\neq i} f^*_{ik}(u_k - u_i)
 \begin{equation}
 -f_{ij}(u_j - u_i) = -\Phi(r_{ij}) (u_j - u_i) = -\Phi(1/r_{ij}) r_{ij} d_{ij} (u_j - u_i)
 \end{equation}
-Задача выразить $r_{ij}$ через $r^*_{ijk} \geq 0$
+Задача -- выразить $\Delta u_{ij}$ через $r^*_{ijk} \geq 0$
 \begin{equation}
 \label{eq:fem_tvd_rijk}
-\Delta u_{ij} = -r_{ij}(u_j - u_i) = \sum_k r^*_{ijk}(u_k - u_i)
+\Delta u_{ij} = -r_{ij}(u_j - u_i) = \sum_{k \neq i} r^*_{ijk}(u_k - u_i)
 \end{equation}
 
 \subsubsubsection{Интерполяционные методы}
 
-Из свойств ограничителя $r_{ij} \geq 0$.
 В одномерном случае $j=i+1$ -- узел по потоку. 
 \begin{equation}
 r_{ij} = r_{i,i+1} = \frac{u_i - u_{i-1}}{u_{i+1} - u_{i}}
 \hence
 \Delta u_{i,i+1} = u_{i-1} - u_{i}.
 \end{equation}
-В многомерном случае
+Многомерным обобщением является
 \begin{equation}
 \label{eq:fem_tvd_rij_nd}
 r_{ij} = \frac{u_i - u^*}{u_j - u_{i}}
@@ -200,7 +200,7 @@ r_{ij} = \frac{u_i - u^*}{u_j - u_{i}}
 \end{figure}
 
 \paragraph{Интерполяция/Экстраполяция в инцидентном элементе $E_a$}
-Найдём элемент $E_a$, ближайший к фиктивной точке $\vec x^*$.
+Среди элементов, инцидентрых узлу $i$, найдём элемент $E_a$, ближайший к фиктивной точке $\vec x^*$.
 Он может как содержать в себе эту фиктивную точку, так и не содержать (на \figref{fig:fem_tvd_interpolation} представлен второй случай).
 Тогда можно записать
 \begin{equation}
@@ -222,7 +222,7 @@ r^*_{ijk} = \phi_k^{(a)}(\vec x^*).
 
 \paragraph{Интерполяция в содержащем элементе $E_b$}
 Теперь для интерполяции используем элемент, точно содержащий $\vec x^*$
-независимо от того, содержит он узел $i$ или нет. Тогда аналогично
+независимо от того, является ли он инцидентным узлу $i$. Тогда аналогично
 \begin{equation}
 \label{eq:fem_tvd_interpolation_eb}
 u_i - u(\vec x^*) = \sum_{k\in E_b} \phi^{(a)}_k(\vec x^*) (u_i - u_k).
@@ -307,7 +307,7 @@ r^*_{ijk} = \frac{2}{m_i}\max(0, \vec c_{ik} \cdot (\vec x_j - \vec x_i)).
 \cref{eq:fem_tvd_matrices_1d} для одномерной аналогии).
 
 \subsubsubsection{Алгебраический метод}
-Обобщим одномерный критерий TVD:
+Запишем одномерный критерий TVD в виде:
 \begin{equation}
 r_{i,i+1} = \frac{k_{i,i-1} (u_{i-1} - u_{i})}{k_{i,i+1} (u_{i+1} - u_{i})}
 \end{equation}
@@ -315,29 +315,25 @@ r_{i,i+1} = \frac{k_{i,i-1} (u_{i-1} - u_{i})}{k_{i,i+1} (u_{i+1} - u_{i})}
 Наивное многомерное обобщение могло бы выглядеть так
 \begin{equation}
 r_{ij} = \frac
-{\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})}
-{\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})}
+{\displaystyle\sum_k \max(0, k_{ik}) (u_{k} - u_{i})}
+{\displaystyle\sum_k \min(0, k_{ik}) (u_{k} - u_{i})}
 \end{equation}
 
-Тогда запишем разность
+Тогда
 \begin{equation}
-\Delta u_{ij} = -r_{ij}(u_j - u_i) = \sum_k r^*_{ijk}(u_k - u_i),
-\end{equation}
-где
-\begin{equation}
-r^*_{ijk} = \frac{-k_{ik}^+ (u_j - u_i)} {\displaystyle\sum_k k_{ik}^- (u_k - u_i)}
+r^*_{ijk} = \frac{-\max(0, k_{ik}) (u_j - u_i)} {\displaystyle\sum_k \min(0, k_{ik}) (u_k - u_i)}
 \end{equation}
 
-Такое определение не гарантирует положительность $r_{ijk}$.
+Такое определение не гарантирует положительность $r^*_{ijk}$.
 Необходимо, чтобы знаки $(u_j - u_i)$ и $(u_k - u_i)$ совпадали.
 Заметим ещё одно свойство одномерной схемы:
 в случае монотонного поведения $u_i$, знаки разностей $(u_{i+1} - u_i)$, $(u_{i-1} - u_i)$ в числителе и знаменателе различаются.
 Причём знак в знаменателе совпадает со знаком текущего узла по потоку $j$ (который в одномерном случае равен $i+1$).
-Тогда
+Тогда естественным обобщением выглядит
 \begin{equation}
 r_{ij} = \begin{cases}
-\frac {\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})^-} {\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})^-}, &\quad u_i \geq u_j, \\[30pt]
-\frac {\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})^+} {\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})^+}, &\quad u_i < u_j.
+\frac {\displaystyle\sum_k \max(0, k_{ik}) \min(0, (u_{k} - u_{i}))} {\displaystyle\sum_k \min(0, k_{ik}) \min(0, (u_{k} - u_{i}))}, &\quad u_i \geq u_j, \\[30pt]
+\frac {\displaystyle\sum_k \max(0, k_{ik}) \max(0, (u_{k} - u_{i}))} {\displaystyle\sum_k \min(0, k_{ik}) \max(0, (u_{k} - u_{i}))}, &\quad u_i < u_j.
 \end{cases}
 \end{equation}
 
@@ -351,11 +347,13 @@ Q_i^- / P_i^-, &\quad u_i \geq u_i,\\
 \end{equation}
 
 \begin{align}
-&Q_i^{\pm} = \sum_k k_{ik}^+(u_k - u_i)^{\pm}, \\
-&P_i^{\pm} = \sum_k k_{ik}^-(u_k - u_i)^{\mp}.
+&Q_i^{\pm} = \sum_k \max(0, k_{ik})\substack{\max \\ \min} (u_k - u_i), \\
+&P_i^{\pm} = \sum_k \min(0, k_{ik})\substack{\min \\ \max} (u_k - u_i).
 \end{align}
 
-Вспомитная строку $j$ окончательно запишем антидиффузию:
+Вспомитная строку $j$
+\cref{eq:fem_tvd_fji}
+окончательно запишем антидиффузию:
 \begin{equation}
 f_{ij} = f_{ji} = \min(\Phi(r_{ij}) d_{ij}, l_{ji})
 \end{equation}

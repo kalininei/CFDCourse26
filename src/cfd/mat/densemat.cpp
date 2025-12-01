@@ -1,4 +1,5 @@
 #include "densemat.hpp"
+#include "cfd/mat/csrmat.hpp"
 
 using namespace cfd;
 
@@ -77,4 +78,25 @@ std::vector<double> DenseMatrix::mult_vec_p(const double*) const {
 
 double DenseMatrix::mult_vec_p(size_t, const double*) const {
     _THROW_NOT_IMP_;
+}
+
+CsrMatrix DenseMatrix::to_csr() const {
+    std::vector<size_t> addr{0};
+    std::vector<size_t> cols;
+    std::vector<double> vals;
+
+    auto it = data_.begin();
+    for (size_t i = 0; i < n_rows(); ++i) {
+        addr.push_back(addr.back());
+        for (size_t j = 0; j < n_cols(); ++j) {
+            if (std::abs(*it) > 1e-16) {
+                addr.back() += 1;
+                cols.push_back(j);
+                vals.push_back(*it);
+            }
+            ++it;
+        }
+    }
+
+    return CsrMatrix(std::move(addr), std::move(cols), std::move(vals));
 }

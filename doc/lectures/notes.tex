@@ -55,165 +55,83 @@
 \tableofcontents
 \newpage
 
-\begin{align}
-&\dfr{u_i}{t} + U\frac{u_{i+1} - u_{i-1}}{2h} = 0,  \\
-&\dfr{u_i}{t} + U\frac{u_{i} - u_{i-1}}{h} = 0
-\end{align}
-Тогда
-\begin{align}
-&\dfr{u_i}{t} = \frac{U}{2h}(u_{i-1} - u_i) - \frac{U}{2h}(u_{i+1} - u_i), \\
-&\dfr{u_i}{t} = \frac{U}{h}(u_{i-1} - u_i)
-\end{align}
-Элементы матриц $\mat K$, $\mat L$, $\mat D$:
 \begin{equation}
-\begin{array}{rcccl}
-& i-1 & i & i+1 & \\
-\hline
-(\mat K)_i = [ & \frac{U}{2h}  & 0 & -\frac{U}{2h} & ] \\
-(\mat L)_i = [ & \frac{U}{h}  & -\frac{U}{h} & 0 & ] \\
-(\mat D)_i = [ & \frac{U}{2h}  & -\frac{U}{h} & \frac{1}{2h} & ] \\
+\begin{array}{lrcccl}
+\mat M & [ & \frac{h}{6}  & \frac{2 h}{3}  & \frac{h}{6} & ] \\
+\mat M_{SUPG} & [ & \frac{1}{2 U} & 0 & -\frac{1}{2 U} & ] \\
+\mat K & [ & \frac{U}{2} & 0 & -\frac{U}{2} & ] \\
+\mat K_{SUPG} & [ & \frac{1}{h} & -\frac{2}{h} & \frac{1}{h} & ] \\
 \end{array}
 \end{equation}
-Идея ограничения потока:
-\begin{equation}
-\mat M_L\dfr{u}{t} = \left(\mat K + \mat D - \mat F(u)\right)u
-\end{equation}
-В случае условия несжимаемости для скорости переноса можно записать
-\begin{equation}
-\label{eq:fem_tvd_init}
-m_i\dfr{u_i}{t} = \sum_{j\neq i} \left(k_{ij} + d_{ij} - f_{ij}\right) (u_j - u_i) =
-\sum_{j\neq i} \sigma_{ij} (u_j - u_i).
-\end{equation}
-Идея TVD-схем -- введём критерий экстремума $r_{ij}$ такой что
-\begin{equation}
-f_{ij} = \Phi(r_{ij}) d_{ij} > 0.
-\end{equation}
 
-$F(u)$ -- симметричный оператор $\hence f_{ij} = f_{ji}$.
-Рассмотрим направленную связь $\overrightarrow{ij}$, такую что $k_{ij} < 0$.
-Тогда:
-\begin{align}
-k_{ij} < 0, \\
-k_{ji} > 0, \\
-l_{ij} = 0, \\
-l_{ji} > 0.
-\end{align}
-Для выполнения критерия Хартена уравнения
-\cref{eq:fem_tvd_init}
-в $j$-ой строке достаточно положить
 \begin{equation}
-f_{ij} < k_{ji} + d_{ji} = l_{ji}.
-\end{equation}
-Теперь рассмотрим строку $i$.
-Очевидно, что формальный критерий Хартена $\sigma_{ij} \geq 0$ не выполняется:
-\begin{equation}
-\sigma_{ij} = -f_{ij} = -\Phi(r_{ij}) d_{ij} < 0
-\end{equation}
-Выберем $\Phi(r_{ij})$ таким образом, чтобы антидиффузный поток из узла $j$ в узел $i$
-можно было разложить в сумму диффузных:
-\begin{equation}
-\sigma_{ij} (u_j - u_i) = -f_{ij} (u_j - u_i) = \sum_{k\neq i} f^*_{ik}(u_k - u_i)
-\end{equation}
-
-Во первых зададим симметричность функции ограничителя:
-\begin{equation}
-\Phi(r) = r \Phi(1/r)
-\end{equation}
-Тогда
-\begin{equation}
--f_{ij}(u_j - u_i) = -\Phi(r_{ij}) (u_j - u_i) = -\Phi(1/r_{ij}) r_{ij} d_{ij} (u_j - u_i)
-\end{equation}
-Задача выразить $r_{ij}$ через $r^*_{ik} \geq 0$
-\begin{equation}
-\Delta u_{ij} = -r_{ij}(u_j - u_i) = \sum_k r^*_{ijk}(u_k - u_i)
-\end{equation}
-
-\subsection{Интерполяционные методы}
-
-Из свойств ограничителя $r_{ij} \geq 0$.
-В одномерном случае $j=i+1$ -- узел по потоку. 
-\begin{equation}
-r_{ij} = r_{i,i+1} = \frac{u_i - u_{i-1}}{u_{i+1} - u_{i}}
-\hence
-\Delta u_{i,i+1} = u_{i-1} - u_{i}.
-\end{equation}
-В многомерном случае
-\begin{equation}
-r_{ij} = \frac{u_i - u^*}{u_j - u_{i}}
-\end{equation}
-
-TODO
-
-\subsection{Алгебраический метод}
-Обобщим одномерный критерий TVD:
-\begin{equation}
-r_{i,i+1} = \frac{k_{i,i-1} (u_{i-1} - u_{i})}{k_{i,i+1} (u_{i+1} - u_{i})}
-\end{equation}
-
-Наивное многомерное обобщение могло бы выглядеть так
-\begin{equation}
-r_{ij} = \frac
-{\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})}
-{\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})}
-\end{equation}
-
-Тогда запишем разность
-\begin{equation}
-\Delta u_{ij} = -r_{ij}(u_j - u_i) = \sum_k r^*_{ijk}(u_k - u_i),
-\end{equation}
-где
-\begin{equation}
-r^*_{ijk} = \frac{-k_{ik}^+ (u_j - u_i)} {\displaystyle\sum_k k_{ik}^- (u_k - u_i)}
-\end{equation}
-
-Такое определение не гарантирует положительность $r_{ijk}$.
-Необходимо, чтобы знаки $(u_j - u_i)$ и $(u_k - u_i)$ совпадали.
-Заметим ещё одно свойство одномерной схемы:
-в случае монотонного поведения $u_i$, знаки разностей $(u_{i+1} - u_i)$, $(u_{i-1} - u_i)$ в числителе и знаменателе различаются.
-Причём знак в знаменателе совпадает со знаком текущего узла по потоку $j$ (который в одномерном случае равен $i+1$).
-Тогда
-\begin{equation}
-r_{ij} = \begin{cases}
-\frac {\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})^-} {\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})^-}, &\quad u_i \geq u_j, \\[30pt]
-\frac {\displaystyle\sum_k k^+_{ik} (u_{k} - u_{i})^+} {\displaystyle\sum_k k^-_{ik} (u_{k} - u_{i})^+}, &\quad u_i < u_j.
-\end{cases}
-\end{equation}
-
-Окончательно запишем
-\begin{equation}
-r_{ij} = \begin{cases}
-Q_i^+ / P_i^+, &\quad u_i \geq u_j,\\
-Q_i^- / P_i^-, &\quad u_i \geq u_i,\\
-\end{cases}
+\left(\mat M + \epsilon \mat M_{SUPG} - \dt \theta \left(\mat K + \epsilon \mat K_{SUPG}\right) \right) \hat u =
+\left(\mat M + \epsilon \mat M_{SUPG} + \dt (1 - \theta) \left(\mat K + \epsilon \mat K_{SUPG}\right) \right) u
 \end{equation}
 
 \begin{align}
-&Q_i^{\pm} = \sum_k k_{ik}^+(u_k - u_i)^{\pm}, \\
-&P_i^{\pm} = \sum_k k_{ik}^-(u_k - u_i)^{\mp}.
+a_{ii} & = \frac{2 h}{3} + \frac{2 \dt \theta \epsilon}{h} \\
+a_{i,i-1} & = \frac{h}{6} + \frac{\epsilon}{2 U} - \frac{\dt \theta U}{2} - \frac{\dt \theta \epsilon}{h} \\
+a_{i,i+1} & = \frac{h}{6} - \frac{\epsilon}{2 U} + \frac{\dt \theta U}{2} - \frac{\dt \theta \epsilon}{h} \\
+b_{ii} & = \frac{2 h}{3} - \frac{2 \dt (1 - \theta) \epsilon}{h} \\
+b_{i,i-1} & = \frac{h}{6} + \frac{\epsilon}{2 U} + \frac{\dt (1 - \theta) U}{2} + \frac{\dt (1 - \theta) \epsilon}{h} \\
+b_{i,i+1} & = \frac{h}{6} - \frac{\epsilon}{2 U} - \frac{\dt (1 - \theta) U}{2} + \frac{\dt (1 - \theta) \epsilon}{h}
 \end{align}
 
-Вспомитная строку $j$ окончательно запишем антидиффузию:
+Из условия противопотоковости:
 \begin{equation}
-f_{ij} = f_{ji} = \min(\Phi(r_{ij}) d_{ij}, l_{ji})
+\epsilon \geq \frac{U h}{2}
+\end{equation}
+Пусть
+\begin{equation}
+\epsilon = \kappa \frac{U h }{2}
 \end{equation}
 
+Введём число Куранта
+\begin{equation}
+C = \frac{U \dt}{h}
+\end{equation}
 
-Алгоритм будет иметь такой вид
-\begin{enumerate}
-\item
-Вычислить $k_{ij}$ -- сеточную матрицу переноса второго порядка,
-\item
-Вычислить линейную диффузию $d_{ij} = \max(0, -k_{ij}, -k_{ji})$.
-\item
-Вычислить $l_{ij} = k_{ij} + d_{ij}$
-\item
-Для каждого узла $i$ определить $Q^{\pm}_i$, $P^{\mp}_i$
-\item
-В цикле для напраленных граней $\overrightarrow{ij}$ определить $f_{ij}$
-\item
-окончательно собрать матрицу переноса с ограничением
-$\sigma_{ij} = k_{ij} + d_{ij} - f_{ij}$.
+Перепишем:
+\begin{align}
+a_{ii} & = h\left(\frac{2}{3} + \theta \kappa C\right) \geq 0 \label{eq:fem_supg_theta_cond1}\\
+a_{i,i-1} & = \frac{h}{2}\left(\frac{1}{3} + \frac{\kappa}{2} - \theta C - \theta C \kappa \right) \leq 0 \label{eq:fem_supg_theta_cond2}\\
+a_{i,i+1} & = \frac{h}{2}\left(\frac{1}{3} - \frac{\kappa}{2} + \theta C - \theta C \kappa \right) \leq 0 \label{eq:fem_supg_theta_cond3}\\
+b_{ii} & = h\left(\frac{2}{3} - (1-\theta) C \kappa \right) \geq 0 \label{eq:fem_supg_theta_cond4}\\
+b_{i,i-1} & = \frac{h}{2}\left(\frac{1}{3} + \frac{\kappa}{2} + (1-\theta)C + (1-\theta)C \kappa \right) \geq 0 \label{eq:fem_supg_theta_cond5}\\
+b_{i,i+1} & = \frac{h}{2}\left(\frac{1}{3} - \frac{\kappa}{2} - (1-\theta)C + (1-\theta)C \kappa \right) \geq 0 \label{eq:fem_supg_theta_cond6}
+\end{align}
 
-\end{enumerate}
+Условия \cref{eq:fem_supg_theta_cond1,eq:fem_supg_theta_cond5} выполняются всегда.
+Неравенства \cref{eq:fem_supg_theta_cond2,eq:fem_supg_theta_cond3} дают условие
+\begin{equation}
+\label{eq:fem_supg_theta_cond23mod}
+\kappa \geq \frac{6\theta C + 2}{6\theta C - 3},
+\quad
+2\theta C \geq 1
+\end{equation}
+Из \cref{eq:fem_supg_theta_cond4} следует
+\begin{equation}
+\kappa \leq \frac{2}{3(1-\theta)C}
+\end{equation}
+Из \cref{eq:fem_supg_theta_cond6} --
+\begin{equation}
+\begin{cases}
+&\kappa \leq \frac{6 (1 -\theta)C - 2}{6 (1-\theta) C -3}, \quad 3(1-\theta)C \leq 1, \\
+&\kappa \geq \frac{6 (1 -\theta)C - 2}{6 (1-\theta) C -3}, \quad 2(1-\theta)C \geq 1
+\end{cases}
+\end{equation}
+У этих неравенств нет решений.
+
+Улучшим свойства матрицы левой части, используя сосредоточенную матрицу масс.
+Тогда вместо \cref{eq:fem_supg_theta_cond23mod}
+получим
+\begin{equation}
+\begin{cases}
+\frac{2\theta C}{1 + 2\theta C} \leq \kappa \leq \frac{2\theta C}{1 - 2 \theta C}, & \quad 2\theta C \leq 1 \\
+\kappa \geq \frac{2\theta C}{1 + 2\theta C}, & \quad 2 \theta C  \geq 1
+\end{cases}
+\end{equation}
+
 
 \end{document}

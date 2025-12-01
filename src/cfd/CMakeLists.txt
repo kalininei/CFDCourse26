@@ -4,6 +4,7 @@ set(SRC
     mat/lodmat.cpp
     mat/densemat.cpp
     mat/sparse_matrix_solver.cpp
+    mat/algebraic_bc.cpp
     geom/simplex.cpp
     geom/searcher.cpp
     geom/jacobi.cpp
@@ -49,6 +50,7 @@ set(HEADERS
     mat/sparse_matrix_solver.hpp
     mat/densemat.hpp
     mat/matrix_iter.hpp
+    mat/algebraic_bc.hpp
     geom/point.hpp
     geom/simplex.hpp
     geom/searcher.hpp

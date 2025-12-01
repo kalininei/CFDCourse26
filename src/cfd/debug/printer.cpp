@@ -45,6 +45,13 @@ void dbg::print(const std::vector<double>& vec) {
     }
 }
 
+void dbg::print(const std::vector<Vector>& vec) {
+    std::cout << "-- SIZE = " << vec.size() << std::endl;
+    for (Vector v: vec) {
+        std::cout << v.x << " " << v.y << " " << v.z << std::endl;
+    }
+}
+
 void dbg::print_feat(const std::vector<double>& vec) {
     double abs_sum = 0;
     double abs_min = std::numeric_limits<double>::max();

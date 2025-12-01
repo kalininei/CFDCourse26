@@ -5,6 +5,8 @@
 
 namespace cfd {
 
+class CsrMatrix;
+
 class DenseMatrix : public IMatrix {
 public:
     DenseMatrix(size_t nrows, size_t ncols);
@@ -24,6 +26,8 @@ public:
     double value(size_t irow, size_t icol) const override;
     std::vector<double> mult_vec_p(const double* u) const override;
     double mult_vec_p(size_t irow, const double* u) const override;
+
+    CsrMatrix to_csr() const;
 
 private:
     const size_t nrows_;

@@ -18,6 +18,8 @@ struct FemAssembler {
     size_t n_elements() const;
     size_t n_bases() const;
     const CsrStencil& stencil() const;
+    CsrMatrix zero_matrix() const;
+    CsrMatrix unit_matrix() const;
 
     const FemElement& element(size_t icell) const;
     const FemElement& boundary_element(size_t iface) const;
@@ -48,15 +50,15 @@ struct FemAssembler {
                                        std::vector<double>& global_vector) const;
 
 protected:
-    std::vector<FemElement> _elements;
+    std::vector<FemElement> elements_;
 
-    std::vector<std::vector<size_t>> _tab_elem_basis;
-    std::vector<std::vector<size_t>> _tab_elem_csr_address;
-    std::vector<Point> _ref_points;
+    std::vector<std::vector<size_t>> tab_elem_basis_;
+    std::vector<std::vector<size_t>> tab_elem_csr_address_;
+    std::vector<Point> ref_points_;
     std::map<size_t, size_t> tab_face_elem_;
     std::map<size_t, FemElement> boundary_elements_;
 
-    CsrStencil _stencil;
+    CsrStencil stencil_;
 };
 
 } // namespace cfd
