@@ -41,6 +41,10 @@
 \usepackage{mdframed}
 \usepackage{cancel}
 \usepackage{tcolorbox}
+\usepackage{subcaption}
+\captionsetup[subfigure]{labelformat=brace, labelsep=space}
+\renewcommand{\thesubfigure}{\asbuk{subfigure}}
+
 \include{latex_defs}
 \include{clisting}
 \include{sub3}
@@ -54,6 +58,8 @@
 \newpage
 \tableofcontents
 \newpage
+
+\section{SUPG}
 
 \begin{equation}
 \begin{array}{lrcccl}
@@ -133,5 +139,134 @@ b_{i,i+1} & = \frac{h}{2}\left(\frac{1}{3} - \frac{\kappa}{2} - (1-\theta)C + (1
 \end{cases}
 \end{equation}
 
+\section{Нелинейные уравнения сохранения}
+\begin{equation}
+\label{eq:nonlinf_law}
+\dfr{u}{t} + \nabla \cdot \vec F(u) = 0.
+\end{equation}
+Перепишем в неконсервативном виде:
+\begin{equation}
+\dfr{u}{t} + \vec a(u) \cdot \nabla u = 0, \quad \vec a(u) = \vec F'(u).
+\end{equation}
+$\vec a(u)$ -- скорость переноса.
+
+\subsection{Задача Римана}
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{riemann_problem_1.pdf}
+        \caption{Начальные условия}
+        \label{fig:riemann_problem_init_a}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{riemann_problem_2.pdf}
+        \caption{Решение при $a=\const$}
+        \label{fig:riemann_problem_init_b}
+    \end{subfigure}
+    \caption{Задача Римана}
+    \label{fig:riemann_problem_init}
+\end{figure}
+
+Рассмотрим классическую задачу Римана, включающую в себя одномерное уравнение сохранение
+\cref{eq:nonlinf_law} и начальные условия со скачком в точке $x=0$ (см. \figref{fig:riemann_problem_init_a}):
+\begin{align}
+&\dfr{u}{t} + \dfr{F(u)}{x} = 0,\\
+&u(x, 0) = \begin{cases} 
+u_L, \quad & x \leq 0, \\
+u_R, \quad & x > 0.
+\end{cases}
+\end{align}
+
+При постоянной скорости потока $a = F'(u) = \const$
+получим тривиальное решение типа бегущей волны $u(x, t) = u(x-a t, 0)$,
+проиллюстрированное на \figref{fig:riemann_problem_init_b}.
+Положение фронта в этом случае определится как $x_w = a t$.
+
+\subsubsection{Случай выпуклого потока}
+Далее будем рассматривать случаи непостоянных $a$, или $F''(u) \neq 0$.
+Сначала рассмотрим случай неубывающей по $u$ скорости переноса: $F''(u) > 0$.
+
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{riemann_problem_3.pdf}
+        \caption{Волна уплотнения}
+        \label{fig:riemann_problem_init_c}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{riemann_problem_4.pdf}
+        \caption{Волна разряжения}
+        \label{fig:riemann_problem_init_d}
+    \end{subfigure}
+    \caption{Решение задачи Римана для выпуклого потока}
+    \label{fig:riemann_problem_init}
+\end{figure}
+
+\paragraph{Волна уплотнения} Пусть $u_L > u_R$. Тогда вследствии выпуклости $a_L \geq a_R$.
+Следуя формальным рассужденям получим, что за время $t$ точка сверху окажется правее,
+чем точка снизу: $$x_L = a_L t > x_R = a_R t.$$ Такая ситуация (см. красный график на \figref{fig:riemann_problem_init_c})
+порождает опрокидывание волны и не может быть реализована на практике.
+В действительности реализуется решение типа волны уплотнения с координатой $x_w(t)$ (см. синий график на \figref{fig:riemann_problem_init_c}).
+При этом скорость движения волны $s$ будет определяться
+из 
+условия Рэнкина--Гюгонио:
+\begin{equation}
+s = \dfr{x_w}{t} = \frac{F(u_R) - F(u_L)}{u_R - u_L}.
+\end{equation}
+
+Из возрастания $F'(u)$ и $u_L > u_R$ можно (используя теорему Лагранжа о средних) записать
+неравенство
+\begin{equation}
+x_2 < x_w < x_1
+\end{equation}
+-- условие Лакса физичности скачка уплотнения.
+Решение на момент $t$ будет целиком определяться положением фронта:
+\begin{equation}
+u(x, t) = \begin{cases}
+u_L, \quad & x \geq s\,t, \\
+u_R, \quad & x < s\,t, \\
+\end{cases}
+\end{equation}
+
+\paragraph{Волна разрежения} Теперь рассмотрим обратную ситуацию $u_L < u_R$ ($a_L < a_R$).
+В этом случае 
+точка, двигающаяся от $u_L$, отстаёт от точки, двигающейся от $u_R$ (\figref{fig:riemann_problem_init_d}).
+Тогда между $x_L$ и $x_R$ образуется зона разрежения.
+Для неё можно записать
+\begin{equation}
+x_w = a(u_w) t.
+\end{equation}
+Выразим искомую функцию
+\begin{equation}
+u_w = a^{-1}(a_w), \quad a_w = \frac{x_w}{t}
+\end{equation}
+Поскольку $a$ на отрезке $[u_R, u_L]$
+монотонно возрастает от $a_R$ до $a_L$,
+то её обратное значение от  $a_R < a_w < a_L$
+существует и лежит в пределах $u_R < u_w < u_L$.
+Таким образом, реализуется физически
+корректное решение (\figref{fig:riemann_problem_init_d}).
+В случае скачка разрежение итоговое решение запишется как
+\begin{equation}
+u(x, t) = \begin{cases}
+u_L,                              \quad & x < a(u_L) t, \\
+a^{-1}\left(\sfrac{x}{t}\right),   \quad & a(u_L) \leq x \leq a(u_R) \\
+u_R,                              \quad & x > a(u_R) t, \\
+\end{cases}
+\end{equation}
+
+\subsubsection{Случай вогнутого потока}
+Пусть $F'' < 0$. Решение задачи в
+этом случае может быть получено
+на основе случая выпуклого потока заменой $u' = -u$.
+
+\subsubsection{Случай невыпуклого потока}
 
 \end{document}

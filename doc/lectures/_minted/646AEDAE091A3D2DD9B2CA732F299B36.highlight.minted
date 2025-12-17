@@ -1,0 +1,9 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n}{std}\PYG{o}{::}\PYG{n}{vector}\PYG{o}{\PYGZlt{}}\PYG{k+kt}{size\PYGZus{}t}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{tab}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{info}\PYG{p}{.}\PYG{n}{ipoints}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// узловые}
+\PYG{k}{for}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{size\PYGZus{}t}\PYG{+w}{ }\PYG{n}{iface}\PYG{o}{:}\PYG{+w}{ }\PYG{n}{info}\PYG{p}{.}\PYG{n}{ifaces}\PYG{p}{)\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{tab}\PYG{p}{.}\PYG{n}{push\PYGZus{}back}\PYG{p}{(}\PYG{n}{iface}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{n}{grid}\PYG{p}{.}\PYG{n}{n\PYGZus{}points}\PYG{p}{());}\PYG{+w}{ }\PYG{c+c1}{// граневые}
+\PYG{p}{\PYGZcb{}}
+\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{info}\PYG{p}{.}\PYG{n}{n\PYGZus{}points}\PYG{p}{()}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{4}\PYG{p}{)\PYGZob{}}\PYG{+w}{ }\PYG{c+c1}{// bubble для 4\PYGZhy{}x узловых}
+\PYG{+w}{    }\PYG{n}{tab}\PYG{p}{.}\PYG{n}{push\PYGZus{}back}\PYG{p}{(}\PYG{n}{grid}\PYG{p}{.}\PYG{n}{n\PYGZus{}points}\PYG{p}{()}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{n}{grid}\PYG{p}{.}\PYG{n}{n\PYGZus{}faces}\PYG{p}{()}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{n}{q\PYGZus{}element\PYGZus{}index}\PYG{o}{++}\PYG{p}{);}
+\PYG{p}{\PYGZcb{}}
+\end{MintedVerbatim}

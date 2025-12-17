@@ -1,0 +1,12 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{f}\PYG{p}{(}\PYG{n}{Point}\PYG{+w}{ }\PYG{n}{xi}\PYG{p}{)\PYGZob{}}
+\PYG{+w}{    }\PYG{p}{...}
+\PYG{p}{\PYGZcb{}}
+\PYG{n}{std}\PYG{o}{::}\PYG{n}{shared\PYGZus{}ptr}\PYG{o}{\PYGZlt{}}\PYG{n}{Quadrature}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{quad}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{...;}
+\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{integral}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{0.0}\PYG{p}{;}
+\PYG{k}{for}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{size\PYGZus{}t}\PYG{+w}{ }\PYG{n}{k}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{k}\PYG{o}{\PYGZlt{}}\PYG{n}{quad}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{size}\PYG{p}{();}\PYG{+w}{ }\PYG{o}{++}\PYG{n}{k}\PYG{p}{)\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{Point}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{quad}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{point}\PYG{p}{(}\PYG{n}{k}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{w}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{quad}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{weight}\PYG{p}{(}\PYG{n}{k}\PYG{p}{);}
+\PYG{+w}{   }\PYG{n}{integral}\PYG{+w}{ }\PYG{o}{+=}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{*}\PYG{n}{f}\PYG{p}{(}\PYG{n}{p}\PYG{p}{);}
+\PYG{p}{\PYGZcb{}}
+\end{MintedVerbatim}

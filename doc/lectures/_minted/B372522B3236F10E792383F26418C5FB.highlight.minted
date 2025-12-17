@@ -1,0 +1,89 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+cp}{\PYGZsh{}ifndef \PYGZus{}\PYGZus{}CFD\PYGZus{}FEM\PYGZus{}I\PYGZus{}ELEMENT\PYGZus{}HPP\PYGZus{}\PYGZus{}}
+\PYG{c+cp}{\PYGZsh{}define \PYGZus{}\PYGZus{}CFD\PYGZus{}FEM\PYGZus{}I\PYGZus{}ELEMENT\PYGZus{}HPP\PYGZus{}\PYGZus{}}
+
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZdq{}cfd/geom/jacobi.hpp\PYGZdq{}}
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZdq{}cfd/grid/i\PYGZus{}grid.hpp\PYGZdq{}}
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZdq{}cfd/mat/densemat.hpp\PYGZdq{}}
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZdq{}cfd/numeric\PYGZus{}integration/quadrature.hpp\PYGZdq{}}
+\PYG{c+cp}{\PYGZsh{}include}\PYG{+w}{ }\PYG{c+cpf}{\PYGZlt{}functional\PYGZgt{}}
+
+\PYG{k}{namespace}\PYG{+w}{ }\PYG{n+nn}{cfd}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+
+\PYG{c+c1}{///////////////////////////////////////////////////////////////////////////////}
+\PYG{c+c1}{// Element Geometry}
+\PYG{c+c1}{///////////////////////////////////////////////////////////////////////////////}
+\PYG{k}{class}\PYG{+w}{ }\PYG{n+nc}{IElementGeometry}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{k}{public}\PYG{o}{:}
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{o}{\PYGZti{}}\PYG{n}{IElementGeometry}\PYG{p}{()}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k}{default}\PYG{p}{;}
+
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{n}{JacobiMatrix}\PYG{+w}{ }\PYG{n+nf}{jacobi}\PYG{p}{(}\PYG{n}{Point}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{n}{Point}\PYG{+w}{ }\PYG{n+nf}{to\PYGZus{}physical}\PYG{p}{(}\PYG{n}{Point}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{\PYGZus{}THROW\PYGZus{}NOT\PYGZus{}IMP\PYGZus{}}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{n}{Point}\PYG{+w}{ }\PYG{n+nf}{to\PYGZus{}parametric}\PYG{p}{(}\PYG{n}{Point}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{\PYGZus{}THROW\PYGZus{}NOT\PYGZus{}IMP\PYGZus{}}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{n}{Point}\PYG{+w}{ }\PYG{n+nf}{parametric\PYGZus{}center}\PYG{p}{()}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{\PYGZus{}THROW\PYGZus{}NOT\PYGZus{}IMP\PYGZus{}}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{p}{\PYGZcb{};}
+
+\PYG{c+c1}{///////////////////////////////////////////////////////////////////////////////}
+\PYG{c+c1}{// Element Basis}
+\PYG{c+c1}{///////////////////////////////////////////////////////////////////////////////}
+\PYG{k}{class}\PYG{+w}{ }\PYG{n+nc}{IElementBasis}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{k}{public}\PYG{o}{:}
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{o}{\PYGZti{}}\PYG{n}{IElementBasis}\PYG{p}{()}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k}{default}\PYG{p}{;}
+
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{k+kt}{size\PYGZus{}t}\PYG{+w}{ }\PYG{n+nf}{size}\PYG{p}{()}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{vector}\PYG{o}{\PYGZlt{}}\PYG{n}{Point}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{parametric\PYGZus{}reference\PYGZus{}points}\PYG{p}{()}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{vector}\PYG{o}{\PYGZlt{}}\PYG{k+kt}{double}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{value}\PYG{p}{(}\PYG{n}{Point}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{vector}\PYG{o}{\PYGZlt{}}\PYG{n}{Vector}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{grad}\PYG{p}{(}\PYG{n}{Point}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{vector}\PYG{o}{\PYGZlt{}}\PYG{n}{std}\PYG{o}{::}\PYG{n}{array}\PYG{o}{\PYGZlt{}}\PYG{k+kt}{double}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{6}\PYG{o}{\PYGZgt{}\PYGZgt{}}\PYG{+w}{ }\PYG{n}{upper\PYGZus{}hessian}\PYG{p}{(}\PYG{n}{Point}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{\PYGZus{}THROW\PYGZus{}NOT\PYGZus{}IMP\PYGZus{}}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{p}{\PYGZcb{};}
+
+\PYG{n}{std}\PYG{o}{::}\PYG{n}{shared\PYGZus{}ptr}\PYG{o}{\PYGZlt{}}\PYG{n}{IElementGeometry}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{build\PYGZus{}geometry\PYGZus{}from\PYGZus{}basis}\PYG{p}{(}\PYG{n}{std}\PYG{o}{::}\PYG{n}{shared\PYGZus{}ptr}\PYG{o}{\PYGZlt{}}\PYG{n}{IElementBasis}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{geometry\PYGZus{}basis}\PYG{p}{,}
+\PYG{+w}{                                                            }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{vector}\PYG{o}{\PYGZlt{}}\PYG{n}{Point}\PYG{o}{\PYGZgt{}\PYGZam{}}\PYG{+w}{ }\PYG{n}{x}\PYG{p}{);}
+
+\PYG{c+c1}{///////////////////////////////////////////////////////////////////////////////}
+\PYG{c+c1}{// FemElement}
+\PYG{c+c1}{///////////////////////////////////////////////////////////////////////////////}
+\PYG{k}{struct}\PYG{+w}{ }\PYG{n+nc}{FemElement}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{std}\PYG{o}{::}\PYG{n}{shared\PYGZus{}ptr}\PYG{o}{\PYGZlt{}}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{IElementGeometry}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{geometry}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{std}\PYG{o}{::}\PYG{n}{shared\PYGZus{}ptr}\PYG{o}{\PYGZlt{}}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{IElementBasis}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{basis}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{std}\PYG{o}{::}\PYG{n}{shared\PYGZus{}ptr}\PYG{o}{\PYGZlt{}}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{Quadrature}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{quadrature}\PYG{p}{;}
+\PYG{p}{\PYGZcb{};}
+
+\PYG{c+c1}{//////////////////////////////////////////////////////////////////////////////}
+\PYG{c+c1}{// FemElementValue}
+\PYG{c+c1}{//////////////////////////////////////////////////////////////////////////////}
+\PYG{k}{class}\PYG{+w}{ }\PYG{n+nc}{FemElementValue}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{k}{public}\PYG{o}{:}
+\PYG{+w}{    }\PYG{n}{FemElementValue}\PYG{p}{(}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{FemElement}\PYG{o}{*}\PYG{+w}{ }\PYG{n}{elem}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{Point}\PYG{+w}{ }\PYG{n}{xi\PYGZus{}point}\PYG{p}{);}
+\PYG{+w}{    }\PYG{o}{\PYGZti{}}\PYG{n}{FemElementValue}\PYG{p}{();}
+
+\PYG{+w}{    }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{IElementGeometry}\PYG{o}{*}\PYG{+w}{ }\PYG{n}{geom}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{IElementBasis}\PYG{o}{*}\PYG{+w}{ }\PYG{n}{basis}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{Point}\PYG{+w}{ }\PYG{n}{xi}\PYG{p}{;}
+
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{phi}\PYG{p}{(}\PYG{k+kt}{size\PYGZus{}t}\PYG{+w}{ }\PYG{n}{i}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{p}{;}\PYG{+w}{      }\PYG{c+c1}{// phi\PYGZus{}i at (xi)}
+\PYG{+w}{    }\PYG{n}{Vector}\PYG{+w}{ }\PYG{n+nf}{grad\PYGZus{}phi}\PYG{p}{(}\PYG{k+kt}{size\PYGZus{}t}\PYG{+w}{ }\PYG{n}{i}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// dphi\PYGZus{}i/dx,dy,dz at xi}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{laplace}\PYG{p}{(}\PYG{k+kt}{size\PYGZus{}t}\PYG{+w}{ }\PYG{n}{i}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{p}{;}\PYG{+w}{  }\PYG{c+c1}{// div(grad(phi\PYGZus{}i)) at xi}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{modj}\PYG{p}{()}\PYG{+w}{ }\PYG{k}{const}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{const}\PYG{+w}{ }\PYG{n}{JacobiMatrix}\PYG{o}{*}\PYG{+w}{ }\PYG{n+nf}{jacobi}\PYG{p}{()}\PYG{+w}{ }\PYG{k}{const}\PYG{p}{;}
+\PYG{+w}{    }\PYG{c+c1}{// f \PYGZhy{}\PYGZhy{} local element vector: f.size() == basis\PYGZhy{}\PYGZgt{}size()}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{interpolate}\PYG{p}{(}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{vector}\PYG{o}{\PYGZlt{}}\PYG{k+kt}{double}\PYG{o}{\PYGZgt{}\PYGZam{}}\PYG{+w}{ }\PYG{n}{f}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{Vector}\PYG{+w}{ }\PYG{n+nf}{interpolate}\PYG{p}{(}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{vector}\PYG{o}{\PYGZlt{}}\PYG{n}{Vector}\PYG{o}{\PYGZgt{}\PYGZam{}}\PYG{+w}{ }\PYG{n}{f}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{divergence}\PYG{p}{(}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{vector}\PYG{o}{\PYGZlt{}}\PYG{n}{Vector}\PYG{o}{\PYGZgt{}\PYGZam{}}\PYG{+w}{ }\PYG{n}{f}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{p}{;}
+
+\PYG{k}{private}\PYG{o}{:}
+\PYG{+w}{    }\PYG{k}{struct}\PYG{+w}{ }\PYG{n+nc}{Cache}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{std}\PYG{o}{::}\PYG{n}{unique\PYGZus{}ptr}\PYG{o}{\PYGZlt{}}\PYG{n}{Cache}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{pcache\PYGZus{}}\PYG{p}{;}
+\PYG{p}{\PYGZcb{};}
+
+\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{c+c1}{// namespace cfd}
+\PYG{c+cp}{\PYGZsh{}endif}
+\end{MintedVerbatim}

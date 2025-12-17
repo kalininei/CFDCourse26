@@ -1,0 +1,4 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k}{auto}\PYG{+w}{ }\PYG{n}{basis}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{elem}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{basis}\PYG{p}{;}\PYG{+w}{   }\PYG{c+c1}{// shape\PYGZhy{}функции с параметрическом пространстве}
+\PYG{k}{auto}\PYG{+w}{ }\PYG{n}{geom}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{elem}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{geometry}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// геом. свойства включая матрицу Якоби}
+\end{MintedVerbatim}

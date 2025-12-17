@@ -1,0 +1,17 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k}{using}\PYG{+w}{ }\PYG{n}{iter\PYGZus{}t}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{vector}\PYG{o}{\PYGZlt{}}\PYG{k+kt}{size\PYGZus{}t}\PYG{o}{\PYGZgt{}::}\PYG{n}{const\PYGZus{}iterator}\PYG{p}{;}
+\PYG{c+c1}{// указатели на начало и конец описания строки в массиве cols}
+\PYG{n}{iter\PYGZus{}t}\PYG{+w}{ }\PYG{n}{it\PYGZus{}start}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{cols}\PYG{p}{.}\PYG{n}{begin}\PYG{p}{()}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{n}{addr}\PYG{p}{[}\PYG{n}{irow}\PYG{p}{];}
+\PYG{n}{iter\PYGZus{}t}\PYG{+w}{ }\PYG{n}{it\PYGZus{}end}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{cols}\PYG{p}{.}\PYG{n}{begin}\PYG{p}{()}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{n}{addr}\PYG{p}{[}\PYG{n}{irow}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{];}
+\PYG{c+c1}{// поиск значения icol в отсортированной последовательности [it\PYGZus{}start, it\PYGZus{}end)}
+\PYG{n}{iter\PYGZus{}t}\PYG{+w}{ }\PYG{n}{fnd}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{lower\PYGZus{}bound}\PYG{p}{(}\PYG{n}{it\PYGZus{}start}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{it\PYGZus{}end}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{icol}\PYG{p}{);}
+\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{fnd}\PYG{+w}{ }\PYG{o}{!=}\PYG{+w}{ }\PYG{n}{it\PYGZus{}end}\PYG{+w}{ }\PYG{o}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{o}{*}\PYG{n}{fnd}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n}{icol}\PYG{p}{)\PYGZob{}}
+\PYG{+w}{	}\PYG{c+c1}{// если нашли, то определяем индекс найденного элемента в массиве cols}
+\PYG{+w}{	}\PYG{k+kt}{size\PYGZus{}t}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{fnd}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{cols}\PYG{p}{.}\PYG{n}{begin}\PYG{p}{();}
+\PYG{+w}{	}\PYG{c+c1}{// и возвращаем значение из vals по этому индексу}
+\PYG{+w}{	}\PYG{k}{return}\PYG{+w}{ }\PYG{n}{vals}\PYG{p}{[}\PYG{n}{a}\PYG{p}{];}
+\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{	}\PYG{c+c1}{// если не нашли, значит элемент [irow, icol] находится вне шаблона. Возвращаем 0}
+\PYG{+w}{	}\PYG{k}{return}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+\end{MintedVerbatim}

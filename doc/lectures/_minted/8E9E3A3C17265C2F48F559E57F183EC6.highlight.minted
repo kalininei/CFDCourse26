@@ -1,0 +1,3 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n}{std}\PYG{o}{::}\PYG{n}{shared\PYGZus{}ptr}\PYG{o}{\PYGZlt{}}\PYG{k}{const}\PYG{+w}{ }\PYG{n}{Quadrature}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{quad}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{elem}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{quadrature}\PYG{p}{;}\PYG{+w}{  }\PYG{c+c1}{// коэффициенты квадратурной формулы}
+\end{MintedVerbatim}

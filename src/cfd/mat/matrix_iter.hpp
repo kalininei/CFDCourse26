@@ -13,7 +13,7 @@ template<typename T>
 concept CsrMatrixConcept = std::derived_from<std::remove_cvref_t<T>, CsrMatrix>;
 
 // ========================= [ROW, COLUMN, VALUE]
-// -> [irow, jcol, val&]
+// -> [irow, jcol, val&...]
 template<CsrMatrixConcept M1, CsrMatrixConcept... M>
 auto ijv(M1&& m1, M&&... m) {
     return std::views::iota(0u, m1.n_rows()) | std::views::transform([&](size_t irow) {
@@ -27,7 +27,7 @@ auto ijv(M1&& m1, M&&... m) {
 }
 
 // ========================== [COLUMN, VALUE]
-// -> [jcol, val&]
+// -> [jcol, val&...]
 template<CsrMatrixConcept M1, CsrMatrixConcept... M>
 auto jv(size_t irow, M1&& m1, M&&... m) {
     return std::views::iota(m1.addr()[irow], m1.addr()[irow + 1]) | std::views::transform([irow, &m1, &m...](size_t a) {
@@ -36,7 +36,7 @@ auto jv(size_t irow, M1&& m1, M&&... m) {
 }
 
 // ========================== [VALUE]
-// -> [val&]
+// -> [val&...]
 template<CsrMatrixConcept M1, CsrMatrixConcept... M>
 auto v(M1&& m1, M&&... m) {
     return std::views::iota(0u, m1.n_nonzeros()) | std::views::transform([&](size_t a) {
@@ -44,7 +44,7 @@ auto v(M1&& m1, M&&... m) {
            });
 };
 
-// -> [val&] for i == j
+// -> [val&...] for i == j
 template<CsrMatrixConcept M1, CsrMatrixConcept... M>
 auto v_diag(M1&& m1, M&&... m) {
     return std::views::iota(0u, m1.n_rows()) | std::views::transform([&](size_t irow) {
