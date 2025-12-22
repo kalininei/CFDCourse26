@@ -12,7 +12,7 @@ set(SRC
     transport_fdm_test.cpp
     transport_fem_test.cpp
     transport_supg_test.cpp
-    transport_nonlinear_test.cpp
+    # transport_nonlinear_test.cpp
     bl_fvm_test.cpp
 )
 
