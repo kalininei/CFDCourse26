@@ -9,6 +9,107 @@
 
 using namespace cfd;
 
+namespace {
+class Poisson2Worker {
+public:
+    Poisson2Worker(const RegularGrid2D& grid, double hx, double hy, std::vector<double> rhs)
+        : grid_(grid), hx_(hx), hy_(hy), rhs_(rhs) {}
+
+    // returns norm2(u - u_exact)
+    std::vector<double> solve() {
+        // 1. build SLAE
+        CsrMatrix mat = approximate_lhs();
+
+        auto rhs = build_rhs();
+
+        // 2. solve SLAE
+        AmgcMatrixSolver solver;
+        solver.set_matrix(mat);
+        solver.solve(rhs, u_);
+
+        // 3. compute norm2
+        return u_;
+    }
+
+private:
+    const RegularGrid2D grid_;
+    const double hx_;
+    const double hy_;
+
+    std::vector<double> rhs_;
+    std::vector<double> u_;
+
+    CsrMatrix approximate_lhs() const {
+        // fill using 'easy-to-construct' sparse matrix format
+        LodMatrix mat(grid_.n_points());
+
+        double diag = 2.0 / hx_ / hx_ + 2 / hy_ / hy_;
+        double nondiag_x = -1.0 / hx_ / hx_;
+        double nondiag_y = -1.0 / hy_ / hy_;
+
+        // internal
+        for (size_t j = 1; j < grid_.ny(); ++j) {
+            for (size_t i = 1; i < grid_.nx(); ++i) {
+                mat.add_value(grid_.to_linear_point_index({i, j}), grid_.to_linear_point_index({i, j}), diag);
+
+                mat.add_value(grid_.to_linear_point_index({i, j}), grid_.to_linear_point_index({i - 1, j}), nondiag_x);
+                mat.add_value(grid_.to_linear_point_index({i, j}), grid_.to_linear_point_index({i + 1, j}), nondiag_x);
+
+                mat.add_value(grid_.to_linear_point_index({i, j}), grid_.to_linear_point_index({i, j - 1}), nondiag_y);
+                mat.add_value(grid_.to_linear_point_index({i, j}), grid_.to_linear_point_index({i, j + 1}), nondiag_y);
+            }
+        }
+
+        // boundary
+        for (size_t j = 0; j < grid_.ny() + 1; ++j) {
+            // left boundary
+            mat.set_value(grid_.to_linear_point_index({0, j}), grid_.to_linear_point_index({0, j}), 1);
+            // right boundary
+            mat.set_value(grid_.to_linear_point_index({grid_.nx(), j}), grid_.to_linear_point_index({grid_.nx(), j}),
+                          1);
+        }
+        for (size_t i = 0; i < grid_.nx() + 1; ++i) {
+            // bottom boundary
+            mat.set_value(grid_.to_linear_point_index({i, 0}), grid_.to_linear_point_index({i, 0}), 1);
+
+            // top boundary
+            mat.set_value(grid_.to_linear_point_index({i, grid_.ny()}), grid_.to_linear_point_index({i, grid_.ny()}),
+                          1);
+        }
+
+        return mat.to_csr();
+    }
+
+    std::vector<double> build_rhs() const {
+        std::vector<double> rhs(grid_.n_points());
+
+        for (size_t j = 1; j < grid_.ny(); ++j) {
+            for (size_t i = 1; i < grid_.nx(); ++i) {
+                rhs[grid_.to_linear_point_index({i, j})] = rhs_[grid_.to_linear_point_index({i, j})];
+            }
+        }
+
+        for (size_t j = 0; j < grid_.ny() + 1; ++j) {
+            // left boundary
+            rhs[grid_.to_linear_point_index({0, j})] = 0;
+
+            // right boundary
+            rhs[grid_.to_linear_point_index({grid_.nx(), j})] = 0;
+        }
+        for (size_t i = 0; i < grid_.nx() + 1; ++i) {
+            // bottom boundary
+            rhs[grid_.to_linear_point_index({i, 0})] = 0;
+
+            // top boundary
+            rhs[grid_.to_linear_point_index({i, grid_.ny()})] = 0;
+        }
+
+        return rhs;
+    }
+};
+
+} // namespace
+
 struct CavitySimpleWorker {
     CavitySimpleWorker(double Re, size_t n_cells, double alpha_u, double alpha_p);
     void initialize_saver(bool save_exact_fields, std::string stem, size_t iter_step);
@@ -45,7 +146,11 @@ private:
     const double alpha_p_;
 
     std::vector<double> p_;
+
+    std::vector<double> r_u_;
     std::vector<double> u_;
+
+    std::vector<double> r_v_;
     std::vector<double> v_;
 
     const double diff_x_;
@@ -80,6 +185,7 @@ private:
     double v_ip_jp(size_t i, size_t j) const;
     double p_ip_jp(size_t i, size_t j) const;
     std::vector<Vector> build_main_grid_velocity() const;
+    std::vector<double> build_main_grid_vorticity() const;
 };
 
 CavitySimpleWorker::CavitySimpleWorker(double Re, size_t n_cells, double alpha_u, double alpha_p)
@@ -116,6 +222,10 @@ double CavitySimpleWorker::set_uvp(const std::vector<double>& u, const std::vect
     // residuals
     auto r_u = compute_residual_vec(mat_u_, rhs_u_, u_);
     auto r_v = compute_residual_vec(mat_v_, rhs_v_, v_);
+
+    r_u_ = r_u;
+    r_v_ = r_v;
+
     double nrm_u = (*std::max_element(r_u.begin(), r_u.end()));
     double nrm_v = (*std::max_element(r_v.begin(), r_v.end()));
 
@@ -146,6 +256,15 @@ void CavitySimpleWorker::save_current_fields(size_t iter, bool force) {
             grid_.save_vtk(filepath);
             VtkUtils::add_cell_data(p_, "pressure", filepath);
             VtkUtils::add_point_vector(build_main_grid_velocity(), "velocity", filepath);
+
+            auto vorticity = build_main_grid_vorticity();
+            VtkUtils::add_point_data(vorticity, "vorticity", filepath);
+
+            Poisson2Worker worker(grid_, hx_, hy_, vorticity);
+
+            auto streamFunction = worker.solve();
+
+            VtkUtils::add_point_data(streamFunction, "streamFunction", filepath);
         }
     }
     // pressure
@@ -160,6 +279,7 @@ void CavitySimpleWorker::save_current_fields(size_t iter, bool force) {
         if (std::string filepath = writer_u_->add_iter(iter, force); !filepath.empty()) {
             yf_grid_.save_vtk(filepath);
             VtkUtils::add_point_data(u_, "velocity-x", filepath);
+            VtkUtils::add_point_data(r_u_, "velocity-x-res", filepath);
         }
     }
     // v
@@ -167,6 +287,7 @@ void CavitySimpleWorker::save_current_fields(size_t iter, bool force) {
         if (std::string filepath = writer_v_->add_iter(iter, force); !filepath.empty()) {
             xf_grid_.save_vtk(filepath);
             VtkUtils::add_point_data(v_, "velocity-y", filepath);
+            VtkUtils::add_point_data(r_v_, "velocity-y-res", filepath);
         }
     }
 }
@@ -462,6 +583,58 @@ std::vector<Vector> CavitySimpleWorker::build_main_grid_velocity() const {
     return ret;
 }
 
+std::vector<double> CavitySimpleWorker::build_main_grid_vorticity() const {
+    std::vector<double> vort(grid_.n_points());
+
+    // internal
+    for (size_t j = 1; j < grid_.ny(); ++j) {
+        for (size_t i = 1; i < grid_.nx(); ++i) {
+            size_t ind = grid_.to_linear_point_index({i, j});
+            size_t ind_top = grid_.yface_grid_index_i_jp(i, j);
+            size_t ind_bot = grid_.yface_grid_index_i_jp(i, j - 1);
+            size_t ind_left = grid_.xface_grid_index_ip_j(i - 1, j);
+            size_t ind_right = grid_.xface_grid_index_ip_j(i, j);
+
+            vort[ind] = (v_[ind_right] - v_[ind_left]) / hx_ - (u_[ind_top] - u_[ind_bot]) / hy_;
+        }
+    }
+
+    for (size_t j = 1; j < grid_.ny(); ++j) {
+        // left boundary
+        size_t ind_left = grid_.to_linear_point_index({0, j});
+        vort[ind_left] = v_[grid_.xface_grid_index_ip_j(0, j)] / (hx_ / 2);
+        // right boundary
+        size_t ind_right = grid_.to_linear_point_index({grid_.nx(), j});
+        vort[ind_right] = -v_[grid_.xface_grid_index_ip_j(grid_.nx() - 1, j)] / (hx_ / 2);
+    }
+    for (size_t i = 1; i < grid_.nx(); ++i) {
+        // bottom boundary
+        size_t ind_bot = grid_.to_linear_point_index({i, 0});
+        vort[ind_bot] = -(u_[grid_.yface_grid_index_i_jp(i, 0)]) / (hy_ / 2);
+
+        // top boundary
+        size_t ind_top = grid_.to_linear_point_index({i, grid_.ny()});
+        vort[ind_top] = (u_[grid_.yface_grid_index_i_jp(i, grid_.ny() - 1)]) / (hy_ / 2);
+    }
+
+    vort[0] = (vort[1] + vort[grid_.to_linear_point_index({0, 1})]) / 2;
+
+    vort[grid_.to_linear_point_index({grid_.nx(), 0})] =
+        (vort[grid_.to_linear_point_index({grid_.nx() - 1, 0})] + vort[grid_.to_linear_point_index({grid_.nx(), 1})]) /
+        2;
+
+    vort[grid_.to_linear_point_index({0, grid_.ny()})] =
+        (vort[grid_.to_linear_point_index({0, grid_.ny() - 1})] + vort[grid_.to_linear_point_index({1, grid_.ny()})]) /
+        2;
+
+    vort[grid_.to_linear_point_index({grid_.nx(), grid_.ny()})] =
+        (vort[grid_.to_linear_point_index({grid_.nx() - 1, grid_.ny()})] +
+         vort[grid_.to_linear_point_index({grid_.nx(), grid_.ny() - 1})]) /
+        2;
+
+    return vort;
+}
+
 TEST_CASE("Cavity, SIMPLE fdm algorithm", "[cavity-fdm-simple]") {
     std::cout << std::endl << "--- cfd_test [cavity-fdm-simple] --- " << std::endl;
 
@@ -469,13 +642,13 @@ TEST_CASE("Cavity, SIMPLE fdm algorithm", "[cavity-fdm-simple]") {
     double Re = 100;
     double alpha_u = 0.8;
     double alpha_p = 0.3;
-    size_t n_cells = 30;
+    size_t n_cells = 100;
     size_t max_it = 1000;
-    double eps = 1e-0;
+    double eps = 1e-2;
 
     // worker initialization
     CavitySimpleWorker worker(Re, n_cells, alpha_u, alpha_p);
-    worker.initialize_saver(false, "cavity-fdm", 5);
+    worker.initialize_saver(false, "cavity-fdm", 50);
 
     // initial condition
     std::vector<double> u_init(worker.u_size(), 0.0);
@@ -502,5 +675,5 @@ TEST_CASE("Cavity, SIMPLE fdm algorithm", "[cavity-fdm-simple]") {
     }
     worker.save_current_fields(it, true);
 
-    CHECK(it == 9);
+    CHECK(it == 49);
 }
