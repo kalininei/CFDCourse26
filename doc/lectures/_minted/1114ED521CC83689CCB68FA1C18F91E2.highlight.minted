@@ -1,3 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-std::vector\PYGZlt{}int\PYGZgt{} IGrid::tab\PYGZus{}cell\PYGZus{}face(size\PYGZus{}t icell)
-\end{MintedVerbatim}

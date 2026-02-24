@@ -1,5 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{c+c1}{// Читаем сетку из файла /app/test\PYGZus{}data/pebigrid.vtk}
-\PYG{n}{std}\PYG{o}{::}\PYG{n}{string}\PYG{+w}{ }\PYG{n}{fn}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{test\PYGZus{}directory\PYGZus{}file}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}pebigrid.vtk\PYGZdq{}}\PYG{p}{);}
-\PYG{n}{UnstructuredGrid2D}\PYG{+w}{ }\PYG{n}{grid}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{UnstructuredGrid2D}\PYG{o}{::}\PYG{n}{vtk\PYGZus{}read}\PYG{p}{(}\PYG{n}{fn}\PYG{p}{);}
-\end{MintedVerbatim}

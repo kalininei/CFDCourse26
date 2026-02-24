@@ -1,4 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{AmgcMatrixSolver}\PYG{+w}{ }\PYG{n+nf}{solver\PYGZus{}}\PYG{p}{(}\PYG{n}{SOLVER\PYGZus{}MAX\PYGZus{}ITER}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{SOLVER\PYGZus{}EPS}\PYG{p}{);}
-\PYG{n}{solver\PYGZus{}}\PYG{p}{.}\PYG{n}{set\PYGZus{}matrix}\PYG{p}{(}\PYG{n}{B\PYGZus{}}\PYG{p}{);}
-\end{MintedVerbatim}

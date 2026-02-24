@@ -1,8 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{c+c1}{// LHS = MASS \PYGZhy{} 0.5 * tau * K}
-\PYG{n}{CsrMatrix}\PYG{+w}{ }\PYG{n+nf}{lhs}\PYG{p}{(}\PYG{n}{fem\PYGZus{}}\PYG{p}{.}\PYG{n}{stencil}\PYG{p}{());}
-\PYG{n}{lhs}\PYG{p}{.}\PYG{n}{set\PYGZus{}diagonal}\PYG{p}{(}\PYG{n}{lumped\PYGZus{}mass\PYGZus{}}\PYG{p}{);}\PYG{+w}{  }\PYG{c+c1}{// diagonal}
-\PYG{k}{for}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{size\PYGZus{}t}\PYG{+w}{ }\PYG{n}{i}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{;}\PYG{+w}{ }\PYG{n}{i}\PYG{o}{\PYGZlt{}}\PYG{n}{lhs}\PYG{p}{.}\PYG{n}{n\PYGZus{}nonzeros}\PYG{p}{();}\PYG{+w}{ }\PYG{o}{++}\PYG{n}{i}\PYG{p}{)\PYGZob{}}
-\PYG{+w}{    }\PYG{n}{lhs}\PYG{p}{.}\PYG{n}{vals}\PYG{p}{()[}\PYG{n}{i}\PYG{p}{]}\PYG{+w}{ }\PYG{o}{\PYGZhy{}=}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{l+m+mf}{0.5}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{tau\PYGZus{}}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{n}{high\PYGZus{}order\PYGZus{}transport\PYGZus{}}\PYG{p}{.}\PYG{n}{vals}\PYG{p}{()[}\PYG{n}{i}\PYG{p}{];}
-\PYG{p}{\PYGZcb{}}
-\end{MintedVerbatim}

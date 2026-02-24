@@ -1,6 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k}{for}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{size\PYGZus{}t}\PYG{+w}{ }\PYG{n}{ipoint}\PYG{o}{:}\PYG{+w}{ }\PYG{n}{grid\PYGZus{}}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{tab\PYGZus{}cell\PYGZus{}point}\PYG{p}{(}\PYG{n}{ielem}\PYG{p}{))\PYGZob{}}
-\PYG{+w}{    }\PYG{n}{Point}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{grid\PYGZus{}}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{point}\PYG{p}{(}\PYG{n}{ipoint}\PYG{p}{);}
-\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{proj}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{dot\PYGZus{}product}\PYG{p}{(}\PYG{n}{p}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{velocity}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{/}\PYG{+w}{ }\PYG{n}{abs\PYGZus{}velocity}\PYG{p}{;}
-\PYG{p}{\PYGZcb{}}
-\end{MintedVerbatim}

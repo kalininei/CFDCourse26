@@ -1,7 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n+nf}{exact\PYGZus{}solution}\PYG{p}{(}\PYG{n}{Point}\PYG{+w}{ }\PYG{n}{p}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{const}\PYG{+w}{ }\PYG{k}{override}\PYG{p}{\PYGZob{}}
-\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{p}\PYG{p}{.}\PYG{n}{x}\PYG{p}{;}
-\PYG{+w}{    }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{y}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{p}\PYG{p}{.}\PYG{n}{y}\PYG{p}{;}
-\PYG{+w}{    }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{cos}\PYG{p}{(}\PYG{l+m+mi}{10}\PYG{o}{*}\PYG{n}{x}\PYG{o}{*}\PYG{n}{x}\PYG{p}{)}\PYG{o}{*}\PYG{n}{sin}\PYG{p}{(}\PYG{l+m+mi}{10}\PYG{o}{*}\PYG{n}{y}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{n}{sin}\PYG{p}{(}\PYG{l+m+mi}{10}\PYG{o}{*}\PYG{n}{x}\PYG{o}{*}\PYG{n}{x}\PYG{p}{)}\PYG{o}{*}\PYG{n}{cos}\PYG{p}{(}\PYG{l+m+mi}{10}\PYG{o}{*}\PYG{n}{x}\PYG{p}{);}
-\PYG{p}{\PYGZcb{}}
-\end{MintedVerbatim}

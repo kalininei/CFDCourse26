@@ -1,5 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k}{auto}\PYG{+w}{ }\PYG{n}{geom}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{make\PYGZus{}shared}\PYG{o}{\PYGZlt{}}\PYG{n}{TriangleLinearGeometry}\PYG{o}{\PYGZgt{}}\PYG{p}{(}\PYG{n}{p0}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{p1}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{p2}\PYG{p}{);}
-\PYG{k}{auto}\PYG{+w}{ }\PYG{n}{basis}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{std}\PYG{o}{::}\PYG{n}{make\PYGZus{}shared}\PYG{o}{\PYGZlt{}}\PYG{n}{TriangleLinearBasis}\PYG{o}{\PYGZgt{}}\PYG{p}{();}
-\PYG{k}{auto}\PYG{+w}{ }\PYG{n}{quad}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{quadrature\PYGZus{}triangle\PYGZus{}gauss3}\PYG{p}{();}
-\end{MintedVerbatim}

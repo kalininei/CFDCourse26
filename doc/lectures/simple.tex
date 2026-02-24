@@ -1,0 +1,745 @@
+\section{Моделирирование течения вязкой несжимаемой жикости}
+\subsection{Система уравнений Навье-Стокса}
+
+Будем рассматривать стационарную двумерную систему уравнений
+Навье-Стокса для вязкой несжимаемой жидкости.
+В безразмерном консервативном виде в декартовой системе координат она имеет вид
+
+\begin{align}
+    \label{eq:ns2d_u}
+    & \dfr{u^2}{x} + \dfr{uv}{y} =
+        -\dfr{p}{x}
+        + \frac{1}{\Ren}\left(\dfrq{u}{x} + \dfrq{u}{y}\right),\\[5pt]
+    \label{eq:ns2d_v}
+    & \dfr{uv}{x} + \dfr{v^2}{y} =
+        -\dfr{p}{y}
+        + \frac{1}{\Ren}\left(\dfrq{v}{x} + \dfrq{v}{y}\right), \\[5pt]
+    \label{eq:ns2d_div}
+    &\dfr{u}{x} + \dfr{v}{y} = 0.
+\end{align}
+
+Неизвестными являются поля скорости: $u$ -- в направлении оси $x$,
+$v$ -- в направлении оси $y$, и давления $p$.
+
+Число Рейнольдса определено через характерную скорость $U$, [м/c] и
+характерный линейный размер $L$, [м] как
+\begin{equation*}
+    \Ren = \frac{UL\rho}{\mu},
+\end{equation*}
+где $\rho$, [кг/м$^3$] -- постоянная (вследствии несжимаемости) плотность жидкости, а
+$\mu$, [Па$\cdot$с] -- динамическая вязкость жидоксти.
+
+Характерое значение для давление выпишется в виде:
+$ p^0 = \rho U^2 $, [Па].
+
+Для решения этой системы будем использовать метод конечных разностей
+с аппроксимацией по пространству второго порядка и последовательное (раздельное) решение входящих в неё
+уравнений.
+
+Глядя на вид уранений \cref{eq:ns2d_u,eq:ns2d_v,eq:ns2d_div}
+можно выделить несколько проблем, которые необходимо решить
+при построении расчётной схемы:
+\begin{itemize}
+\item нелинейность конвективного оператора в \eqref{eq:ns2d_u}, \eqref{eq:ns2d_v},
+\item отсутствие явного уравнения для определения давления,
+\item аппркосимация первых производных для давления и скорости со вторым порядком точности.
+\end{itemize}
+
+
+Для решения первой проблемы будем использовать итерационный процесс с линеаризацией -- то есть
+записывать уравнение на итерационном слое используя значения неизвестных полей с прошлого слоя.
+Вторую проблему будем решать с помощью алгоритма SIMPLE
+связывания давления и скорости (Pressure-Velocity Coupling).
+
+\subsection{Схема расчёта SIMPLE}
+\label{sec:simple_scheme}
+
+\subsubsection{Линеаризация}
+Для избавления от нелинейности по скорости в системе \cref{eq:ns2d_u,eq:ns2d_div} в качестве скорости переноса будем
+использовать значение с прошлой итерации.
+Тогда задача на одном итерационном слое примет вид
+
+\begin{align}
+    \label{eq:ns2d_semi_u}
+    & \dfr{u \hat u}{x} + \dfr{v \hat u}{y} =
+        -\dfr{\hat p}{x}
+        + \frac{1}{\Ren}\left(\dfrq{\hat u}{x} + \dfrq{\hat u}{y}\right),\\[5pt]
+    \label{eq:ns2d_semi_v}
+    & \dfr{u\hat v}{x} + \dfr{v \hat v}{y} =
+        -\dfr{\hat p}{y}
+        + \frac{1}{\Ren}\left(\dfrq{\hat v}{x} + \dfrq{\hat v}{y}\right), \\[5pt]
+    \label{eq:ns2d_semi_div}
+    &\dfr{\hat u}{x} + \dfr{\hat v}{y} = 0.
+\end{align}
+
+На итерационном слое значения $u, v, p$
+известны, а $\hat u, \hat v, \hat p$ подлежат определению.
+
+Критерием выхода из итерационного процесса является пороговое условие на невязку,
+вычисленную с использованием найденных на слое значений неизвестных:
+\begin{align}
+    \nonumber
+    &r_u = \dfr{\hat u \hat u}{x} + \dfr{\hat u \hat v}{y}
+        + \dfr{\hat p}{x}
+        - \frac{1}{\Ren}\left(\dfrq{\hat u}{x} + \dfrq{\hat u}{y}\right),\\[5pt]
+    \nonumber
+    &r_v = \dfr{\hat u\hat v}{x} + \dfr{\hat v \hat v}{y}
+        +\dfr{\hat p}{y}
+        - \frac{1}{\Ren}\left(\dfrq{\hat v}{x} + \dfrq{\hat v}{y}\right), \\[5pt]
+    \label{eq:ns2d_residual}
+    &\max(\lVert r_u \rVert, \lVert r_v \rVert) < \eps.
+\end{align}
+
+\subsubsection{Релаксация по скорости}
+\label{sec:simple-algo}
+
+В результате пространственной аппроксимации уравнений \cref{eq:ns2d_u}
+получим матричную систему вида
+\begin{align}
+\nonumber
+&\mat{A}^u \hat u = -\dfr{\hat p}{x}. \\[5pt]
+\nonumber
+&\mat{A}^v \hat v = -\dfr{\hat p}{y}.
+\end{align}
+Отметим, что хотя матрицы $\mat{A}^u$ и $\mat{A}^v$ получены в результате
+аппроксимации одного и того же дифференциального оператора (конвекции и диффузии),
+они могут различаться из-за особенностей аппроксимации.
+
+Эта система при малых числах $\Ren$  не имеет диагонального преобладания
+и неудобна для численного решения. Чтобы исправить этот недостаток
+введём релаксацию по диагональному параметру с коэффициентом $\alpha_u$:
+\begin{equation}
+\label{eq:ns2d_linearized_u}
+\frac{1}{\alpha_u} a^u_{ii}\hat u_i = -\sum_{j\neq i} a^u_{ij} \hat u_j -\dfr{\hat p}{x} + \frac{\alpha_u - 1}{\alpha_u} a^u_{ii} u_i
+\end{equation}
+
+\subsubsection{Связывание давления и скорости}
+Приведём алгоритм для явного выражения уравнения для давления из
+уравнения неразрывности \eqref{eq:ns2d_semi_div}.
+
+Распишем искомые перенные в виде суммы 
+\begin{equation}
+    \label{eq:ns2d_decomp}
+\begin{array}{l}
+    \hat u = u^* + u',\\
+    \hat v = v^* + v',\\
+    \hat p = p + p'.
+\end{array}
+\end{equation}
+
+Пусть введённое выше поле $u^*$ удовлетворяет уравнению
+\begin{align}
+    \label{eq:ns2d_ustar}
+    &\frac{1}{\alpha_u} a^u_{ii} u^*_i = -\sum_{j\neq i} a^u_{ij} u^*_j - \dfr{p}{x} + \frac{\alpha_u - 1}{\alpha_u} a^u_{ii} u_i, \\[5pt]
+    \label{eq:ns2d_vstar}
+    &\frac{1}{\alpha_u} a^v_{ii} v^*_i = -\sum_{j\neq i} a^v_{ij} v^*_j - \dfr{p}{y} + \frac{\alpha_u - 1}{\alpha_u} a^v_{ii} v_i,
+\end{align}
+
+Тогда уравнение для поправки скорости запишем вычтя последнее выражение из
+уравнения \eqref{eq:ns2d_linearized_u}:
+\begin{align}
+  \label{eq:ns2d_uprime}
+  &\frac{1}{\alpha_u} a^u_{ii} u'_i = -\sum_{j\neq i} a^u_{ij} u'_j - \dfr{p'}{x}, \\[5pt]
+  \label{eq:ns2d_vprime}
+  &\frac{1}{\alpha_u} a^v_{ii} v'_i = -\sum_{j\neq i} a^v_{ij} v'_j - \dfr{p'}{y},
+\end{align}
+
+Основная идея алгоритма SIMPLE заключается в приближённом представлении выражения \eqref{eq:ns2d_uprime}
+в явном виде относительно поправки. Для этого отбросим внедиагональные компоненты в матрице $\mat A$.
+Тогда можно явно выразить поправку скорости как
+\begin{equation}
+    \label{eq:ns2d_uprime_approx}
+    u'_i \approx -d^u_i \left(\dfr{p'}{x}\right)_i, \quad d^u_i = \frac{\alpha_u}{a^u_{ii}}
+\end{equation}
+
+Аналогичные рассуждения в отношении поправки поперечной скорости $v'$ приводят к выражению
+
+\begin{equation}
+    \label{eq:ns2d_vprime_approx}
+    v'_i \approx -d^v_i \left(\dfr{p'}{y}\right)_i, \quad d^v_i = \frac{\alpha_u}{a^v_{ii}}
+\end{equation}
+
+Далее используем уравнение неразрывности \cref{eq:ns2d_semi_div}. Подставим
+в него разложения \cref{eq:ns2d_decomp} и используем
+\cref{eq:ns2d_uprime_approx,eq:ns2d_vprime_approx}.
+Тогда
+получим уравнение Пуассона с непостоянным по пространству векторным коэффициентом диффузии $\left(d^u, d^v\right)$
+относительно поправки давления $p'$:
+\begin{equation}
+    \label{eq:ns2d_pprime_diff}
+    -\left[
+    \dfr{}{x}\left(
+       d^u \dfr{p'}{x} 
+            \right)
+    +\dfr{}{y}\left(
+       d^v \dfr{p'}{y} 
+            \right)
+    \right]
+    =
+    -\left(\dfr{u^*}{x} + \dfr{v^*}{y}\right).
+\end{equation}
+
+\subsubsection{Итерационный процесс}
+Определим порядок вычислений на итерационном слое.
+Напомним, что значения $u, v, p$ с
+предыдущего слоя нам известно и задача
+состоит в нахождении значений $\hat u, \hat v, \hat p$
+на текущем слое.
+
+\begin{enumerate}
+\item Из уравнений \eqref{eq:ns2d_ustar}, \eqref{eq:ns2d_vstar}
+      вычисляются значения $u^*, v^*$;
+\item Они используются для вычисления правой части уравнения \eqref{eq:ns2d_pprime_diff},
+      в результате решения которого находится поправка давления $p'$;
+\item Дифференцируя найденную поправку давления найдём поправки скорости $u', v'$
+      из выражений \eqref{eq:ns2d_uprime_approx}, \eqref{eq:ns2d_vprime_approx};
+\item Окончательно выразим значения переменных для текущего слоя из \eqref{eq:ns2d_decomp}.
+      Для улучшения стабильности алгоритма значение давления вычисляют
+      с некоторым коэффициентом релаксации $\alpha_p$:
+      \begin{equation*}
+           \hat p = p + \alpha_p p';
+      \end{equation*}
+\item Далее проводится вычисление невязки с ипользованием найденных значений $\hat u, \hat v, \hat p$
+      из выражения \eqref{eq:ns2d_residual}. Если она недостаточно мала,
+      то выполняется присваивание
+      $
+           u = \hat u, \; v=\hat v, \; p = \hat p
+      $ 
+      и возвращение на шаг 1.
+\end{enumerate}
+
+Полученные на каждом шаге итерационного процесса компоненты скорости $\hat u, \hat v$
+точно удовлетворяют уравнению неразрывности \eqref{eq:ns2d_semi_div}, но
+уравнения движения \eqref{eq:ns2d_semi_u}, \eqref{eq:ns2d_semi_v} выполняются лишь приближённо.
+
+Всего в алгоритме SIMPLE есть два параметра: коэффициент
+релаксации давления $\alpha_p$ и коэффициент релаксации скорости $\alpha_u$.
+Характерые значения для этих параметров:
+\begin{equation*}
+\alpha_u = 0.8, \quad \alpha_p = 0.3.
+\end{equation*}
+
+\subsection{Пространственная аппроксимация методом конечных разностей}
+\label{sec:simple_scheme_fdm}
+
+Для численной реализации алгоритма решения
+необходимо провести пространственную аппроксимацию полудискретизованных
+выражений
+\eqref{eq:ns2d_ustar}, \eqref{eq:ns2d_vstar}, \eqref{eq:ns2d_uprime_approx},
+\eqref{eq:ns2d_vprime_approx}, \eqref{eq:ns2d_pprime_diff}.
+
+Для решения проблем с неустойчивостью схемы по давлению (checkboard instability)
+проводить конечноразностную аппроксимацию будем на разнесённой сетке (Staggered Grid).
+
+\subsubsection{Разнесённая сетка}
+
+Будем использовать структурированную четырёхугольную сетку
+с постоянным шагом по пространству.
+При этом неизвестные параметры будем задавать
+по схеме, представленной на \figref{fig:staggered_grid}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\linewidth]{staggered_grid.png}
+\caption{Разнесённая сетка}
+\label{fig:staggered_grid}
+\end{figure}
+
+Введём разбиение сетки:
+$n_x$ -- количество ячеек в направлении $x$,
+$n_y$ -- количество ячеек в направлении $y$.
+
+Очевидно, что при использовании такого разнесённого шаблона,
+количество точек, в которых заданы значения, будет
+различным для разных параметров.
+Так количество узловых значений давления будет равно $n_x \times n_y$,
+продольной скорости $u$ -- $(n_x+1) \times n_y$, а поперечной $v$ -- $n_x \times (n_y+1)$.
+
+Использование такого расположения узловых точек
+даёт преимущество при аппроксимации
+первых производных. Так, конечная разность
+\begin{equation*}
+\left.\dfr{p}{x}\right|_{i, j+\tfrac12} = \frac{p_{i+\tfrac12,j+\tfrac12} - p_{i-\tfrac12,j+\tfrac12}}{h_x} + o(h_x^2)
+\end{equation*}
+будем симметричной в узле $i,j+\tfrac12$, где задана
+компонента скорости $u$, и поэтому будет иметь там второй порядок точности.
+
+Выражения \eqref{eq:ns2d_ustar}, \eqref{eq:ns2d_uprime_approx} аппроксимируются
+на сетке для $u$, выражения \eqref{eq:ns2d_vstar}, \eqref{eq:ns2d_vprime_approx} -- 
+на сетке для $v$, а \eqref{eq:ns2d_pprime_diff} -- на сетке для $p$.
+
+Введём сквозную линейную нумерацию узлов сетки: нулевой узел разположим в левом нижнем углу,
+далее будем индексировать слева направа и потом снизу вверх.
+Для основной сетки перевод двумерного индекса $i,j$ в сквозной индекс будет проводится по формуле
+\begin{equation}
+    \label{eq:ns2d_kij}
+    k(i,j) = j(n_x+1)+i.
+\end{equation}
+Для сеток, на которых заданы сеточные параметры, такой перевод примет вид
+\begin{align}
+    \label{eq:ns2d_kipjp}
+    &k(i+\tfrac12,j+\tfrac12) = jn_x + i, \quad - \; \text{сетка для давления } p\\[10pt]
+    \label{eq:ns2d_kijp}
+    &k(i,j+\tfrac12) = j(n_x+1) + i, \quad - \;  \text{сетка для продольной скорости } {\color{red} u} \\[10pt]
+    \label{eq:ns2d_kipj}
+    &k(i+\tfrac12,j) = jn_x + i, \quad - \; \text{сетка для поперечной скорости } {\color{blue} v}
+\end{align}
+
+\subsubsection{Уравнения движения}
+
+Запишем конечноразностную аппроксимацию уравнения \eqref{eq:ns2d_ustar} для пробной скорости $u^*$ в ``красных'' узлах сетки
+$\left(i, j+\tfrac12\right)$:
+
+\begin{align}
+    \label{eq:ns2d_ustar_discr}
+       &\frac{1}{\alpha_u}\frac{2}{\Ren}\left(\frac{1}{h_x^2} + \frac{1}{h_y^2}\right)
+          \left(u^*_{i,j+\tfrac12}\right)   \\[10pt]
+    \nonumber
+       &-\frac{1}{\Ren}\frac{1}{h_x^2}
+          \left(
+            u^*_{i-1,j+\tfrac12} + u^*_{i+1,j+\tfrac12}
+          \right)
+       -\frac{1}{\Ren}\frac{1}{h_y^2}
+          \left(
+            u^*_{i,j-\tfrac12} + u^*_{i,j+\tfrac32}
+          \right)   \\[10pt]
+    \nonumber
+       &+\frac{1}{h_x}
+          \left(
+            \left(u u^*\right)_{i+\tfrac12,j+\tfrac12}-
+            \left(u u^*\right)_{i-\tfrac12,j+\tfrac12}
+          \right)
+        +\frac{1}{h_y}
+          \left(
+            \left(v u^*\right)_{i,j+1}-
+            \left(v u^*\right)_{i,j}
+          \right)   \\[10pt]
+    \nonumber
+       =&\frac{1-\alpha_u}{\alpha_u}\frac{2}{\Ren}\left(\frac{1}{h_x^2} + \frac{1}{h_y^2}\right)
+          \left(u_{i,j+\tfrac12}\right)   \\[10pt]
+    \nonumber
+       &-\frac{1}{h_x}\left(p_{i+\tfrac12,j+\tfrac12} - p_{i-\tfrac12,j+\tfrac12}\right).
+\end{align}
+
+В приведённом выражении
+за исключением конвективных слагаемых вида $u u$ все остальные
+сеточные вектора используются на своих сетках.
+Конвективные слагаемые распишем через полусуммы вида:
+\begin{equation*}
+    u_{i+\tfrac12} = \frac{u_{i} + u_{i+1}}{2} + o(h^2)
+\end{equation*}
+
+Тогда
+\begin{align*}
+    \left(u u^*\right)_{i+\tfrac12,j+\tfrac12} =&
+        \left(u_{i+\tfrac12,j+\tfrac12} \vphantom{u^*_{\tfrac12}}\right)\left(u^*_{i+\tfrac12,j+\tfrac12}\right) =
+        \frac14 \left(u_{i, j+\tfrac12} + u_{i+1,j+\tfrac12}\vphantom{u^*_{\tfrac12}}\right)
+                \left(u^*_{i, j+\tfrac12} + u^*_{i+1,j+\tfrac12}\right), \\[10pt]
+    \left(u u^*\right)_{i-\tfrac12,j+\tfrac12} =&
+        \frac14 \left(u_{i, j+\tfrac12} + u_{i-1,j+\tfrac12}\vphantom{u^*_{\tfrac12}}\right)
+                \left(u^*_{i, j+\tfrac12} + u^*_{i-1,j+\tfrac12}\right), \\[10pt]
+    \left(v u^*\right)_{i,j+1} =&
+        \frac14 \left(v_{i+\tfrac12, j+1} + v_{i-\tfrac12,j+1}\vphantom{u^*_{\tfrac12}}\right)
+                \left(u^*_{i, j+\tfrac32} + u^*_{i,j+\tfrac12}\right), \\[10pt]
+    \left(v u^*\right)_{i,j} =&
+        \frac14 \left(v_{i+\tfrac12, j} + v_{i-\tfrac12,j}\vphantom{u^*_{\tfrac12}}\right)
+                \left(u^*_{i, j+\tfrac12} + u^*_{i,j-\tfrac12}\right).
+\end{align*}
+
+Схему \eqref{eq:ns2d_vstar}
+можно записать в виде системы линейных уравнений вида
+\begin{equation}
+    \label{eq:ns2d_ustar_slae}
+    \mat{A}^u u^* = b^{u},
+\end{equation}
+Сеточная матрица $A^u$ будет иметь $(n_x+1)n_y$ строк.
+Для строки, соответствующей $\left(i,j+\tfrac12\right)$ узлу ненулевыми будут столбцы,
+соответствующие узлам:
+\begin{itemize}
+\item $\left(i,j+\tfrac12\right)$,
+\item $\left(i+1,j+\tfrac12\right)$,
+\item $\left(i-1,j+\tfrac12\right)$,
+\item $\left(i,j+\tfrac32\right)$,
+\item $\left(i,j-\tfrac12\right)$.
+\end{itemize}
+
+В случае использования стандартной нумерации узлов структурированной сетки,
+когда нулевой индекс соответствуют левому нижнему узлу и далее нумерация идёт
+с быстрым индексом $i$, то матрица будет пятидиагональной.
+
+
+Подставим полученные выражения в конвективную часть выражения \eqref{eq:ns2d_ustar_discr}.
+Множитель при диагональном элементе $u^*_{i,j+\tfrac12}$ будет равен:
+\begin{align*}
+        \frac{\tau}{4}\Biggl(
+         \underbrace{\frac{u_{i,j+\tfrac12} - u_{i-1,j+\tfrac12}}{h_x}}_{\left.\ddfr{u}{x}\right|_{i-\tfrac12,j+\tfrac12}}
+        +\underbrace{\frac{u_{i+1,j+\tfrac12} - u_{i,j+\tfrac12}}{h_x}}_{\left.\ddfr{u}{x}\right|_{i+\tfrac12,j+\tfrac12}}
+        +\underbrace{\frac{v_{i+\tfrac12,j+1} - v_{i+\tfrac12,j}}{h_y}}_{\left.\ddfr{v}{y}\right|_{i+\tfrac12,j+\tfrac12}}
+        +\underbrace{\frac{v_{i-\tfrac12,j+1} - v_{i-\tfrac12,j}}{h_y}}_{\left.\ddfr{v}{y}\right|_{i-\tfrac12,j+\tfrac12}}
+        \Biggr)
+\end{align*}
+
+Сумма первого и четвёртого слагаемых представляет собой разностный
+аналог уравнения неразрывности \eqref{eq:ns2d_semi_div}, записанной для ``чёрного'' узла
+сетки $i-\tfrac12, j+\tfrac12$ относительно компонент
+скорости с предыдущей итерации.
+Как было сказано ранее,
+в настоящем алгоритме
+уравнение неразрывности для итоговых по результатам итерации скорости в этих узлах выполняется точно.
+Поэтому эта сумма в точности будет равна нулю. Аналогичный результат получится
+и для суммы второго и третьего слагаемых. Отсюда следует вывод, что
+конвективное слагаемое не даёт вклад в диагональ итоговой матрицы (как и следовало ожидать от симметричной аппроксимации).
+
+Окончательно запишем все пять ненулевых вхождений в строку матрицы:
+\begin{align}
+    \label{eq:ns2d_au}
+    \mat{A}^u\left[
+        k\left(i,j+\tfrac12\right),
+        k\left(i,j+\tfrac12\right)\right]
+        &= \frac{1}{\alpha_u}\frac{2}{\Ren}\left(\frac{1}{h_x^2} + \frac{1}{h_y^2}\right)
+        \quad - \;\text{основная диагональ}, \\[10pt]
+    \nonumber
+    \mat{A}^u\left[
+        k\left(i,j+\tfrac12\right),
+        k\left(i+1,j+\tfrac12\right)\right]
+        &= -\frac{1}{\Ren}\frac{1}{h_x^2}
+           +\frac{1}{4h_x}\left(u_{i,j+\tfrac12}+u_{i+1,j+\tfrac12}\right)
+        \quad - \;\text{первая верхняя диагональ}, \\[10pt]
+    \nonumber
+    \mat{A}^u\left[
+        k\left(i,j+\tfrac12\right),
+        k\left(i-1,j+\tfrac12\right)\right]
+        &= -\frac{1}{\Ren}\frac{1}{h_x^2}
+           -\frac{1}{4h_x}\left(u_{i,j+\tfrac12}+u_{i-1,j+\tfrac12}\right)
+        \quad - \;\text{первая нижняя диагональ}, \\[10pt]
+    \nonumber
+    \mat{A}^u\left[
+        k\left(i,j+\tfrac12\right),
+        k\left(i,j+\tfrac32\right)\right]
+        &= -\frac{1}{\Ren}\frac{1}{h_y^2}
+           +\frac{1}{4h_y}\left(v_{i+\tfrac12,j+1}+v_{i-\tfrac12,j+1}\right)
+        \quad - \;\text{вторая верхняя диагональ}, \\[10pt]
+    \nonumber
+    \mat{A}^u\left[
+        k\left(i,j+\tfrac12\right),
+        k\left(i,j-\tfrac12\right)\right]
+        &= -\frac{1}{\Ren}\frac{1}{h_y^2}
+           -\frac{1}{4h_y}\left(v_{i+\tfrac12,j}+v_{i-\tfrac12,j}\right)
+        \quad - \;\text{вторая нижняя диагональ}.
+\end{align}
+Правая часть аппроксимируется в виде
+\begin{equation*}
+    b^{u}[k(i, j+\tfrac12)] = - \frac{1}{h_x}\left(p_{i+\tfrac12,j+\tfrac12} - p_{i-\tfrac12,j+\tfrac12}\right)
+        + \frac{\alpha_u-1}{\alpha_u}\frac{2}{\Ren}\left(\frac{1}{h_x^2} + \frac{1}{h_y^2}\right) u_{i, j+\tfrac12}.
+\end{equation*}
+Здесь $k(i,j)$ -- функция перевода двумерного индекса в сквозной \eqref{eq:ns2d_kijp}.
+
+Аналогичные выкладки для второго из уравнений движения \eqref{eq:ns2d_vstar}
+дают систему уравнений
+\begin{equation}
+    \label{eq:ns2d_vstar_slae}
+    \mat{A}^v v^* = b^{v},
+\end{equation}
+элементы пятидиагональной матрицы которой имеют вид
+\begin{align}
+    \label{eq:ns2d_av}
+    \mat{A}^v\left[
+        k\left(i+\tfrac12,j\right),
+        k\left(i+\tfrac12,j\right)\right]
+        &= \frac{1}{\alpha_u}\frac{2}{\Ren}\left(\frac{1}{h_x^2} + \frac{1}{h_y^2}\right)
+        \quad - \;\text{основная диагональ}, \\[10pt]
+    \nonumber
+    \mat{A}^v\left[
+        k\left(i+\tfrac12,j\right),
+        k\left(i+\tfrac32,j\right)\right]
+        &= -\frac{1}{\Ren}\frac{1}{h_x^2}
+           +\frac{1}{4h_x}\left(u_{i+1,j+\tfrac12}+u_{i+1,j-\tfrac12}\right)
+        \quad - \;\text{первая верхняя диагональ}, \\[10pt]
+    \nonumber
+    \mat{A}^v\left[
+        k\left(i+\tfrac12,j\right),
+        k\left(i-\tfrac12,j\right)\right]
+        &= -\frac{1}{\Ren}\frac{1}{h_x^2}
+           -\frac{1}{4h_x}\left(u_{i,j+\tfrac12}+u_{i,j-\tfrac12}\right)
+        \quad - \;\text{первая нижняя диагональ}, \\[10pt]
+    \nonumber
+    \mat{A}^v\left[
+        k\left(i+\tfrac12,j\right),
+        k\left(i+\tfrac12,j+1\right)\right]
+        &= -\frac{1}{\Ren}\frac{1}{h_y^2}
+           +\frac{1}{4h_y}\left(v_{i+\tfrac12,j}+v_{i+\tfrac12,j+1}\right)
+        \quad - \;\text{вторая верхняя диагональ}, \\[10pt]
+    \nonumber
+    \mat{A}^v\left[
+        k\left(i+\tfrac12,j\right),
+        k\left(i+\tfrac12,j-1\right)\right]
+        &= -\frac{1}{\Ren}\frac{1}{h_y^2}
+           -\frac{1}{4h_y}\left(v_{i+\tfrac12,j}+v_{i+\tfrac12,j-1}\right)
+        \quad - \;\text{вторая нижняя диагональ}.
+\end{align}
+Правая часть аппроксимируется в виде
+\begin{equation*}
+    b^{v}[k(i+\tfrac12, j)] =  - \frac{1}{h_y}\left(p_{i+\tfrac12, j+\tfrac12} - p_{i+\tfrac12,j-\tfrac12}\right)
+        + \frac{\alpha_u-1}{\alpha_u}\frac{2}{\Ren}\left(\frac{1}{h_x^2} + \frac{1}{h_y^2}\right) v_{i, j+\tfrac12}.
+\end{equation*}
+Используется функция перевода двумерного индекса в сквозной из \eqref{eq:ns2d_kipj}.
+
+\subsubsection{Уравнение для поправки давления}
+Распишем уравнение \eqref{eq:ns2d_pprime_diff}
+на ``чёрной'' сетке методом конечных разностей.
+Для первого слагаемого получим
+\begin{equation}
+\label{eq:ns2d_d2pdx2}
+\begin{array}{ll}
+\left.\ddfr{}{x}\left(d^u \ddfr{p'}{x}\right) \right|_{i+\tfrac12, j+\tfrac12}
+    &\approx
+        \dfrac{1}{h_x}\left(
+            d^u_{i+1, j+\tfrac12} \left. \ddfr{p'}{x} \right|_{i+1, j+\tfrac12} -
+            d^u_{i, j+\tfrac12} \left. \ddfr{p'}{x} \right|_{i, j+\tfrac12}
+        \right) \\[10pt]
+
+    &=
+        \dfrac{1}{h_x}\left(
+            d^u_{i+1, j+\tfrac12} \dfrac{p'_{i+\tfrac32,j+\tfrac12} - p'_{i+\tfrac12,j+\tfrac12}}{h_x} - 
+            d^u_{i, j+\tfrac12}  \dfrac{p'_{i+\tfrac12,j+\tfrac12} - p'_{i-\tfrac12,j+\tfrac12}}{h_x}
+        \right).
+\end{array}
+\end{equation}
+Коэффициенты $d^u$ и $d^v$ определяются для ``красной'' и ``синей'' сеток через диагональные значения матриц $\mat A$:
+\begin{align}
+\label{eq:ns2d_du_fdm}
+d^u_{i,j+\tfrac12} =    \sfrac{1}{\mat{A}^u\left[
+        k\left(i,j+\tfrac12\right),
+        k\left(i,j+\tfrac12\right)\right]}, \\[5pt]
+\label{eq:ns2d_dv_fdm}
+d^v_{i+\tfrac12,j} =    \sfrac{1}{\mat{A}^v\left[
+        k\left(i+\tfrac12,j\right),
+        k\left(i+\tfrac12,j\right)\right]}.
+\end{align}
+Аналогично расписываются остальные слагаемые. В результате получим систему линейных уравнений вида
+\begin{equation}
+    \label{eq:ns2d_pprime_slae}
+    A^p p' = b^p,
+\end{equation}
+где ненулевые коэффициенты пятидиагональной матрицы примут вид
+\begin{align}
+    \label{eq:ns2d_ap}
+    A^p[k(i+\tfrac12, j+\tfrac12), k(i+\tfrac12, j+\tfrac12)] =&
+        \frac{1}{h_x^2}\left( d^u_{i+1,j+\tfrac12} + d^u_{i,j+\tfrac12} \right)
+        +\frac{1}{h_y^2}\left( d^v_{i+\tfrac12,j} + d^v_{i+\tfrac12,j+1} \right), \\[10pt]
+    \nonumber
+    A^p[k(i+\tfrac12, j+\tfrac12), k(i+\tfrac32, j+\tfrac12)] =&
+        -\frac{1}{h_x^2}d^u_{i+1,j+\tfrac12}, \\[10pt]
+    \nonumber
+    A^p[k(i+\tfrac12, j+\tfrac12), k(i-\tfrac12, j+\tfrac12)] =&
+        -\frac{1}{h_x^2}d^u_{i,j+\tfrac12}, \\[10pt]
+    \nonumber
+    A^p[k(i+\tfrac12, j+\tfrac12), k(i+\tfrac12, j+\tfrac32)] =&
+        -\frac{1}{h_y^2}d^v_{i+\tfrac12,j+1}, \\[10pt]
+    \nonumber
+    A^p[k(i+\tfrac12, j+\tfrac12), k(i+\tfrac12, j-\tfrac12)] =&
+        -\frac{1}{h_y^2}d^v_{i+\tfrac12,j}.\\[10pt]
+\end{align}
+Столбец свободных членов аппроксимируется в виде
+\begin{equation}
+    \label{eq:ns2d_bp}
+    b^p[k(i+\tfrac12,j+\tfrac12)] = 
+        -\left(
+              \frac{u^*_{i+1,j+\tfrac12} - u^*_{i,j+\tfrac12}}{h_x}
+            + \frac{v^*_{i+\tfrac12,j+1} - v^*_{i+\tfrac12,j}}{h_y}
+        \right).
+\end{equation}
+Здесь используется функция перевода двумерного индекса в сквозной из $\eqref{eq:ns2d_kipjp}$.
+
+В результате использования \eqref{eq:ns2d_du}, \eqref{eq:ns2d_dv} левая часть системы уравнений \eqref{eq:ns2d_pprime_slae}
+будет постоянна на всех итерациях, что удобно для инициализации алгебраических решателей этой системы
+(можно провести инициализацию один раз до начала счёта).
+
+Это отличает эту систему от двух других систем, возникающих
+из аппроксимации уравнений движения \eqref{eq:ns2d_ustar_slae}, \eqref{eq:ns2d_vstar_slae},
+левые части которых зависят от значений с предыдущих
+итерационных слоёв. Этот момент обуславливает выбор
+решателей для этих систем, которые в эффективных гидродинамических кодах обычно
+отличаются, от решателя для системы \eqref{eq:ns2d_pprime_slae}.
+
+
+\subsubsection{Уравнение для поправки скорости}
+И наконец рассмотрим аппроксимацию выражений \eqref{eq:ns2d_uprime_approx},
+\eqref{eq:ns2d_vprime_approx}, которые примут явный вид
+\begin{align}
+    \label{eq:ns2d_uprime_discr}
+    u'_{i,j+\tfrac12} = -d^u_{i,j+\tfrac12} \frac{p'_{i+\tfrac12,j+\tfrac12} - p'_{i-\tfrac12, j+\tfrac12}}{h_x}, \\[10pt]
+    \label{eq:ns2d_vprime_discr}
+    v'_{i+\tfrac12,j} = -d^v_{i+\tfrac12,j} \frac{p'_{i+\tfrac12,j+\tfrac12} - p'_{i+\tfrac12, j-\tfrac12}}{h_x}.
+\end{align}
+
+\subsubsection{Учёт граничных условий}
+\label{sec:simple-bc}
+
+Для уравнений Навье-Стокса на каждой границе расчётной области
+требуется столько условий, сколько есть уравнений движения.
+Для двумерной задачи \cref{eq:ns2d_u,eq:ns2d_div,eq:ns2d_v}
+нужно задать два граничных условия.
+
+При использовании разнесённой сетки граница области проходит
+по граням основной сетки. 
+На нижней и верхней границах расчётной области
+присутствуют узлы для $v$, но отсутствуют
+узлы для $u$.
+На правой и левой границах, наоборот,
+есть узлы с заданными компонентами $u$,
+но нет узлов с компонентами $v$.
+Узловые значения для давления $p$
+никогда не бывают граничными.
+
+Для простоты пока будем рассматривать только случай с заданными значениями
+двух компонент скорости на каждой из границ задачи:
+\begin{align*}
+    &\left. u(x, y) \right|_{x,y\in\Gamma} = u^\Gamma(x, y), \\
+    &\left. v(x, y) \right|_{x,y\in\Gamma} = v^\Gamma(x, y).
+\end{align*}
+
+В схеме SIMPLE частные граничные условия 
+для скорости учитываются при решении задачи
+для пробных скоростей $u^*, v^*$.
+Тогда для поправки скорости $u', v'$ на границах
+будут справедливы соответствующие однородные граничные условия (нулевые значения в нашем случае):
+
+\begin{align}
+    \label{eq:ns2d_usplit_bc}
+    &\left. u^*(x, y) \right|_{x,y\in\Gamma} = u^\Gamma(x, y), \\
+    \nonumber
+    &\left. v^*(x, y) \right|_{x,y\in\Gamma} = v^\Gamma(x, y), \\
+    \nonumber
+    &\left. u'(x, y) \right|_{x,y\in\Gamma} = 0,\\
+    \nonumber
+    &\left. v'(x, y) \right|_{x,y\in\Gamma} = 0.
+\end{align}
+
+Для учёта граничных условий по скорости требуется модифицировать
+системы линейных уравнений \eqref{eq:ns2d_ustar_slae}, \eqref{eq:ns2d_vstar_slae}.
+
+Рассмотрим нижнюю границу $j=0$.
+
+На нижней границе явно присутствуют узлы ``синей'' сетки.
+Значит можно явно установить значения для скорости $v$
+путём постановки нулей с единицой на диагонали в строке матрицы и отнесением необходимого
+граничного значение в правый вектор столбец системы \eqref{eq:ns2d_vstar_slae}:
+\begin{align}
+    \label{eq:ns2d_bc1}
+    &A^v[k(i+\tfrac12, 0), s] = \delta_{ks}, \quad \forall i, \; \forall s\\[10pt]
+    \nonumber
+    &b^{v}[k(i+\tfrac12, 0)] = v^\Gamma.
+\end{align}
+Такая модификация просто заменяет $k(i+\tfrac12, 0)$ -ое уравнение
+системы \eqref{eq:ns2d_vstar_slae} на выражение
+\begin{equation*}
+    v^*_{i+\tfrac12, 0} = v^\Gamma.
+\end{equation*}
+
+Узлов для компонет $u$ на нижней границе нет.
+Рассмотрим первый ряд точек ``красной'' сетки: $(i, \tfrac12)$.
+Если бы мы захотели заполнить коэффициенты системы
+линейных уравнений \eqref{eq:ns2d_ustar_slae}
+по выведенным выше формулам \eqref{eq:ns2d_au}
+для узла, расположенного в этом ряду, мы бы столкнулись
+с необходимостью установки значения в фиктивную колонку:
+последнее из уравнений \eqref{eq:ns2d_au}
+предписывает нам установить значение по адресу
+$[k(i, \tfrac12), k(i, -\tfrac12)]$, который, очевидно, не присутствует в матрице.
+
+Действительно, $k(i,\tfrac12)$-ая строка системы уравнений \eqref{eq:ns2d_au}
+имеет вид
+\begin{equation}
+    \label{eq:ns2d_au_low}
+      D    u^*_{i, \tfrac12}
+    + U^1  u^*_{i+1, \tfrac12}
+    + L^1  u^*_{i-1, \tfrac12}
+    + U^2 u^*_{i, \tfrac32}
+    + L^2 u^*_{i, -\tfrac12} 
+    = b^u_{i, \tfrac12},
+\end{equation}
+где $D$ -- коэффициент с основной диагонали, $U^{1,2}, L^{1,2}$ -- 
+коэффициенты с двух верхних и двух нижних диагоналей, вычисляемые по формулам \eqref{eq:ns2d_au}.
+Вторая нижняя диагональ у этой строки матрицы отсутствует.
+Она соответствует вкладу от узла $(i, -\tfrac12)$, который лежит вне области расчёта, на полшага ниже
+нижней границе.
+
+Тем не менее, такой фиктивный узел мы можем 
+использовать для записи аппроксимации
+\begin{equation*}
+    u^*_{i,0} = u^\Gamma = \frac{u^*_{i,\tfrac12} + u^*_{i, -\tfrac12}}{2} + o(h_x^2).
+\end{equation*}
+или
+\begin{equation*}
+    u^*_{i, -\tfrac12} \approx 2u^\Gamma - u^*_{i,\tfrac12}.
+\end{equation*}
+
+Подставляя это выражение в строку \eqref{eq:ns2d_au_low} получим
+\begin{equation*}
+      (D - L^2) u^*_{i, \tfrac12}
+    + U^1       u^*_{i+1, \tfrac12}
+    + L^1       u^*_{i-1, \tfrac12}
+    + U^2       u^*_{i, \tfrac32}
+    = b^u_{i, \tfrac12} + 2 u^\Gamma.
+\end{equation*}
+
+Таким образом, добавление коэффициента в фиктивную колонку строки матрицы при
+наличие условия первого рода на границе равносильно
+вычитанию этого коэффициента из диагонального элемента этой строки
+и вычитанием удвоенного граничного значения из правой части.
+В случае нижней границы получим
+\begin{align}
+    \label{eq:ns2d_bc2}
+    &A^u[k(i, \tfrac12), k(i, \tfrac12)] \mathrel{-}= A^u[k(i, -\tfrac12)], \\[10pt]
+    \nonumber
+    &b^u[k(i, \tfrac12)] \mathrel{-}= 2 u^\Gamma.
+\end{align}
+
+Приёмы \eqref{eq:ns2d_bc1}, \eqref{eq:ns2d_bc2}
+используются и на остальных границах для
+постановки граничных условий для скорости.
+
+При сборке системы линейных уравнений для
+поправки давления \eqref{eq:ns2d_pprime_slae}
+так же возникает проблема с обращением
+к фиктивным узлам. Например, при рассмотрении левой стенки ($i=0$
+третье из уравнений \eqref{eq:ns2d_ap} описывает
+несуществующий столбец $k(-\tfrac12, j+\tfrac12)$.
+Если обратиться к выражению \eqref{eq:ns2d_d2pdx2},
+то будет видно, что это слагаемое пришло в результате
+расписывания граничной производной $p'$,
+которая, исходя из выражения \eqref{eq:ns2d_uprime_approx} пропорциональна граничному значению $u'$,
+то есть, вспоминая \eqref{eq:ns2d_usplit_bc}, равна нулю:
+\begin{equation*}
+\left. \dfr{p'}{x} \right|_{0,j+\tfrac12} = -\frac{1}{\tau d^u} u'_{0,j+\tfrac12} = 0.
+\end{equation*}
+
+То есть добавлять слагаемые, соответствующие фиктивным узлам, в матрицу $A^p$ не нужно.
+Не нарушая общности выведённых ранее выражений \eqref{eq:ns2d_ap},
+просто модифицируем значения коэффициентов $d^u, d^v$:
+\begin{align}
+    \label{eq:ns2d_bc3}
+    d^u_{0, j+\tfrac12} = d^u_{n_x+1, j+\tfrac12} = 0, \\[10pt]
+    \nonumber
+    d^v_{i+\tfrac12, 0} = d^u_{i+\tfrac12, n_y+1} = 0.
+\end{align}
+
+В исходных уравнениях
+\eqref{eq:ns2d_u}-\eqref{eq:ns2d_div}
+давление присутствует только в виде своих производных.
+Если в задаче нигде не задано явное граничное условие
+для давления, то решение для давления
+будет определено только с точностью до константы.
+Чтобы убрать эту неопределённость
+рекомендуется явно положить давление нулю
+в любом узле. Например, в случае нулевого узла,
+по аналогии с \eqref{eq:ns2d_bc1} запишем:
+\begin{align}
+    \label{eq:ns2d_bc4}
+    &A^p[k(\tfrac12, \tfrac12), s] = \delta_{ks}, \\[10pt]
+    \nonumber
+    &b^{p}[k(\tfrac12, \tfrac12)] = 0.
+\end{align}
+
+

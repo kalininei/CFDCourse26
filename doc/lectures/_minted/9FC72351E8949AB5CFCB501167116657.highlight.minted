@@ -1,3 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-dbg::print(irow, mat)
-\end{MintedVerbatim}

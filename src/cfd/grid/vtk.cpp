@@ -271,8 +271,8 @@ VtkUtils::TimeSeriesWriter::TimeSeriesWriter(std::string stem) : stem_(stem), se
     ofs << "}" << std::endl;
 }
 
-std::string VtkUtils::TimeSeriesWriter::add(double tm) {
-    if (step_ > 0) {
+std::string VtkUtils::TimeSeriesWriter::add(double tm, bool force) {
+    if (!force && step_ > 0) {
         int itime_point = get_time_point_index(tm);
         if (itime_point > last_saved_point_) {
             last_saved_point_ = itime_point;
@@ -295,6 +295,10 @@ std::string VtkUtils::TimeSeriesWriter::add(double tm) {
     save_series();
 
     return ret;
+}
+
+std::string VtkUtils::TimeSeriesWriter::add_iter(size_t iter, bool force) {
+    return add(static_cast<double>(iter), force);
 }
 
 void VtkUtils::TimeSeriesWriter::save_series() const {
@@ -324,4 +328,8 @@ int VtkUtils::TimeSeriesWriter::get_time_point_index(double tm) const {
 void VtkUtils::TimeSeriesWriter::set_time_step(double tm_step, double eps) {
     step_ = tm_step;
     step_eps_ = eps;
+}
+
+void VtkUtils::TimeSeriesWriter::set_iter_step(size_t iter_step) {
+    return set_time_step(static_cast<double>(iter_step));
 }

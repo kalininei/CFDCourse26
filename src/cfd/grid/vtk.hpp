@@ -133,7 +133,8 @@ struct VtkUtils {
          * vtk file with instant data in the "<stem>" directory. The latter should
          * be done manually using the returned filename.
          */
-        std::string add(double tm);
+        std::string add(double tm, bool force = false);
+        std::string add_iter(size_t iter, bool force = false);
 
         /**
          * @breif set saving time step
@@ -146,6 +147,7 @@ struct VtkUtils {
          * time points will return empty strings.
          */
         void set_time_step(double tm_step, double eps = 1e-6);
+        void set_iter_step(size_t iter_step);
 
     private:
         const std::string stem_;
