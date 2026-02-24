@@ -134,6 +134,16 @@ struct CavitySimpleWorker {
         return {1, 0};
     }
 
+    double get_vorticity_max() const {
+        double max = 0;
+
+        for (size_t i = 0; i < grid_.n_cells(); ++i) {
+            max = std::max(max, std::abs(vorticity_[i]));
+        }
+
+        return max;
+    }
+
 private:
     const RegularGrid2D grid_;
     const RegularGrid2D cc_grid_;
@@ -152,6 +162,8 @@ private:
 
     std::vector<double> r_v_;
     std::vector<double> v_;
+
+    std::vector<double> vorticity_;
 
     const double diff_x_;
     const double diff_y_;
@@ -257,10 +269,10 @@ void CavitySimpleWorker::save_current_fields(size_t iter, bool force) {
             VtkUtils::add_cell_data(p_, "pressure", filepath);
             VtkUtils::add_point_vector(build_main_grid_velocity(), "velocity", filepath);
 
-            auto vorticity = build_main_grid_vorticity();
-            VtkUtils::add_point_data(vorticity, "vorticity", filepath);
+            vorticity_ = build_main_grid_vorticity();
+            VtkUtils::add_point_data(vorticity_, "vorticity", filepath);
 
-            Poisson2Worker worker(grid_, hx_, hy_, vorticity);
+            Poisson2Worker worker(grid_, hx_, hy_, vorticity_);
 
             auto streamFunction = worker.solve();
 
@@ -648,7 +660,7 @@ TEST_CASE("Cavity, SIMPLE fdm algorithm", "[cavity-fdm-simple]") {
 
     // worker initialization
     CavitySimpleWorker worker(Re, n_cells, alpha_u, alpha_p);
-    worker.initialize_saver(false, "cavity-fdm", 50);
+    worker.initialize_saver(false, "cavity-fdm", 1);
 
     // initial condition
     std::vector<double> u_init(worker.u_size(), 0.0);
