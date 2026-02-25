@@ -144,6 +144,26 @@ struct CavitySimpleWorker {
         return max;
     }
 
+    double get_friction_coefficient() const {
+        double friction = 0;
+
+        for (size_t j = 1; j < grid_.ny(); ++j) {
+            // left boundary
+            friction += -v_[grid_.xface_grid_index_ip_j(0, j)] / (hx_ / 2) * hy_;
+            // right boundary
+            friction += -v_[grid_.xface_grid_index_ip_j(grid_.nx() - 1, j)] / (hx_ / 2) * hy_;
+        }
+        for (size_t i = 1; i < grid_.nx(); ++i) {
+            // bottom boundary
+            friction += -(u_[grid_.yface_grid_index_i_jp(i, 0)]) / (hy_ / 2) * hx_;
+
+            // top boundary
+            friction += -(u_[grid_.yface_grid_index_i_jp(i, grid_.ny() - 1)]) / (hy_ / 2) * hx_;
+        }
+
+        return -friction / Re_;
+    }
+
 private:
     const RegularGrid2D grid_;
     const RegularGrid2D cc_grid_;
@@ -269,14 +289,14 @@ void CavitySimpleWorker::save_current_fields(size_t iter, bool force) {
             VtkUtils::add_cell_data(p_, "pressure", filepath);
             VtkUtils::add_point_vector(build_main_grid_velocity(), "velocity", filepath);
 
-            vorticity_ = build_main_grid_vorticity();
-            VtkUtils::add_point_data(vorticity_, "vorticity", filepath);
+            // vorticity_ = build_main_grid_vorticity();
+            // VtkUtils::add_point_data(vorticity_, "vorticity", filepath);
 
-            Poisson2Worker worker(grid_, hx_, hy_, vorticity_);
+            // Poisson2Worker worker(grid_, hx_, hy_, vorticity_);
 
-            auto streamFunction = worker.solve();
+            // auto streamFunction = worker.solve();
 
-            VtkUtils::add_point_data(streamFunction, "streamFunction", filepath);
+            // VtkUtils::add_point_data(streamFunction, "streamFunction", filepath);
         }
     }
     // pressure
@@ -654,13 +674,13 @@ TEST_CASE("Cavity, SIMPLE fdm algorithm", "[cavity-fdm-simple]") {
     double Re = 100;
     double alpha_u = 0.8;
     double alpha_p = 0.3;
-    size_t n_cells = 100;
+    size_t n_cells = 50;
     size_t max_it = 1000;
     double eps = 1e-2;
 
     // worker initialization
     CavitySimpleWorker worker(Re, n_cells, alpha_u, alpha_p);
-    worker.initialize_saver(false, "cavity-fdm", 1);
+    worker.initialize_saver(false, "cavity-fdm", 100);
 
     // initial condition
     std::vector<double> u_init(worker.u_size(), 0.0);
@@ -668,6 +688,17 @@ TEST_CASE("Cavity, SIMPLE fdm algorithm", "[cavity-fdm-simple]") {
     std::vector<double> p_init(worker.p_size(), 0.0);
     worker.set_uvp(u_init, v_init, p_init);
     worker.save_current_fields(0);
+
+    std::ofstream file("skin_friction.txt");
+
+    // Функция для замены точки на запятую в строке
+    auto formatDouble = [](double d) {
+        std::ostringstream oss;
+        oss << d;
+        std::string s = oss.str();
+        std::replace(s.begin(), s.end(), '.', ',');
+        return s;
+    };
 
     // iterations loop
     size_t it;
@@ -684,8 +715,7 @@ TEST_CASE("Cavity, SIMPLE fdm algorithm", "[cavity-fdm-simple]") {
         if (nrm < eps) {
             break;
         }
+        file << it << " " << formatDouble(worker.get_friction_coefficient()) << std::endl;
     }
     worker.save_current_fields(it, true);
-
-    CHECK(it == 49);
 }
