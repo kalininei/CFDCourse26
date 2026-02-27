@@ -147,18 +147,18 @@ struct CavitySimpleWorker {
     double get_friction_coefficient() const {
         double friction = 0;
 
-        for (size_t j = 1; j < grid_.ny(); ++j) {
+        for (size_t j = 0; j < grid_.ny(); ++j) {
             // left boundary
-            friction += -v_[grid_.xface_grid_index_ip_j(0, j)] / (hx_ / 2) * hy_;
+            friction += -(v_[grid_.xface_grid_index_ip_j(0, j)]) / (hx_ / 2) * hy_;
             // right boundary
-            friction += -v_[grid_.xface_grid_index_ip_j(grid_.nx() - 1, j)] / (hx_ / 2) * hy_;
+            friction += (v_[grid_.xface_grid_index_ip_j(grid_.nx() - 1, j)]) / (hx_ / 2) * hy_;
         }
-        for (size_t i = 1; i < grid_.nx(); ++i) {
+        for (size_t i = 0; i < grid_.nx(); ++i) {
             // bottom boundary
-            friction += -(u_[grid_.yface_grid_index_i_jp(i, 0)]) / (hy_ / 2) * hx_;
+            friction += (u_[grid_.yface_grid_index_i_jp(i, 0)]) / (hy_ / 2) * hx_;
 
             // top boundary
-            friction += -(u_[grid_.yface_grid_index_i_jp(i, grid_.ny() - 1)]) / (hy_ / 2) * hx_;
+            friction += (1 - u_[grid_.yface_grid_index_i_jp(i, grid_.ny() - 1)]) / (hy_ / 2) * hx_;
         }
 
         return -friction / Re_;
@@ -289,8 +289,8 @@ void CavitySimpleWorker::save_current_fields(size_t iter, bool force) {
             VtkUtils::add_cell_data(p_, "pressure", filepath);
             VtkUtils::add_point_vector(build_main_grid_velocity(), "velocity", filepath);
 
-            // vorticity_ = build_main_grid_vorticity();
-            // VtkUtils::add_point_data(vorticity_, "vorticity", filepath);
+            vorticity_ = build_main_grid_vorticity();
+            VtkUtils::add_point_data(vorticity_, "vorticity", filepath);
 
             // Poisson2Worker worker(grid_, hx_, hy_, vorticity_);
 
@@ -674,22 +674,13 @@ TEST_CASE("Cavity, SIMPLE fdm algorithm", "[cavity-fdm-simple]") {
     double Re = 100;
     double alpha_u = 0.8;
     double alpha_p = 0.3;
-    size_t n_cells = 50;
+
     size_t max_it = 1000;
     double eps = 1e-2;
 
     // worker initialization
-    CavitySimpleWorker worker(Re, n_cells, alpha_u, alpha_p);
-    worker.initialize_saver(false, "cavity-fdm", 100);
 
-    // initial condition
-    std::vector<double> u_init(worker.u_size(), 0.0);
-    std::vector<double> v_init(worker.v_size(), 0.0);
-    std::vector<double> p_init(worker.p_size(), 0.0);
-    worker.set_uvp(u_init, v_init, p_init);
-    worker.save_current_fields(0);
-
-    std::ofstream file("skin_friction.txt");
+    std::ofstream file("convergence.txt");
 
     // Функция для замены точки на запятую в строке
     auto formatDouble = [](double d) {
@@ -700,22 +691,35 @@ TEST_CASE("Cavity, SIMPLE fdm algorithm", "[cavity-fdm-simple]") {
         return s;
     };
 
-    // iterations loop
-    size_t it;
-    for (it = 1; it < max_it; ++it) {
-        double nrm = worker.step();
+    for (size_t n_cells: {160, 170, 180, 190, 200, 210, 220, 230, 240, 250}) {
+        CavitySimpleWorker worker(Re, n_cells, alpha_u, alpha_p);
+        worker.initialize_saver(false, "cavity-fdm", 1);
 
-        // print norm and pressure value at the top-right corner
-        std::cout << it << " " << nrm << " " << worker.pressure().back() << std::endl;
+        // initial condition
+        std::vector<double> u_init(worker.u_size(), 0.0);
+        std::vector<double> v_init(worker.v_size(), 0.0);
+        std::vector<double> p_init(worker.p_size(), 0.0);
+        worker.set_uvp(u_init, v_init, p_init);
+        worker.save_current_fields(0);
+        // iterations loop
+        size_t it;
+        for (it = 1; it < max_it; ++it) {
+            double nrm = worker.step();
 
-        // export solution to vtk
-        worker.save_current_fields(it);
+            // print norm and pressure value at the top-right corner
+            std::cout << it << " " << nrm << " " << worker.pressure().back() << std::endl;
 
-        // break if residual is low enough
-        if (nrm < eps) {
-            break;
+            // export solution to vtk
+            worker.save_current_fields(it);
+
+            // break if residual is low enough
+            if (nrm < eps) {
+                break;
+            }
         }
-        file << it << " " << formatDouble(worker.get_friction_coefficient()) << std::endl;
+
+        file << n_cells << " " << formatDouble(worker.get_friction_coefficient()) << std::endl;
+
+        worker.save_current_fields(it, true);
     }
-    worker.save_current_fields(it, true);
 }
