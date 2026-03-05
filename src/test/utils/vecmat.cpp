@@ -15,6 +15,14 @@ double compute_residual(const cfd::CsrMatrix& m, const std::vector<double>& rhs,
     return *std::max_element(res.begin(), res.end());
 }
 
+std::vector<double> vector_sum(const std::vector<double>& v1, const std::vector<double>& v2) {
+    std::vector<double> ret(v1);
+    for (size_t i = 0; i < ret.size(); ++i) {
+        ret[i] += v2[i];
+    }
+    return ret;
+}
+
 std::vector<double> vector_sum(const std::vector<double>& v1, double coef, const std::vector<double>& v2) {
 
     std::vector<double> ret(v1);
@@ -30,6 +38,14 @@ std::vector<cfd::Vector> vector_sum(const std::vector<cfd::Vector>& v1, double c
     std::vector<cfd::Vector> ret(v1);
     for (size_t i = 0; i < ret.size(); ++i) {
         ret[i] += coef * v2[i];
+    }
+    return ret;
+}
+
+std::vector<double> vector_sum(double c1, const std::vector<double>& v1, double c2, const std::vector<double>& v2) {
+    std::vector<double> ret(v1.size());
+    for (size_t i = 0; i < ret.size(); ++i) {
+        ret[i] = c1 * v1[i] + c2 * v2[i];
     }
     return ret;
 }

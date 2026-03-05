@@ -94,7 +94,8 @@ void UnstructuredGrid2D::Cache::need_tab_cell_face(const UnstructuredGrid2D& gri
 
 UnstructuredGrid2D::UnstructuredGrid2D(const std::vector<Point>& points,
                                        const std::vector<std::vector<size_t>>& cell_point)
-    : _points(points), _cells(cell_point) {
+    : _points(points),
+      _cells(cell_point) {
     initialize();
 }
 

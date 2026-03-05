@@ -43,7 +43,10 @@ public:
     }
 
     ATestTransport1Worker(std::shared_ptr<IGrid> grid, double tau)
-        : grid_(grid), tau_(tau), u_(grid_->n_points()), boundary_cells_(grid->boundary_cells()) {
+        : grid_(grid),
+          tau_(tau),
+          u_(grid_->n_points()),
+          boundary_cells_(grid->boundary_cells()) {
 
         for (size_t i = 0; i < grid_->n_cells(); ++i) {
             u_[i] = init_solution(grid_->cell_center(i).x);
@@ -162,7 +165,10 @@ class TestTransport1WorkerTheta : public ATestTransport1Worker {
 
 public:
     TestTransport1WorkerTheta(size_t n_cells, double tau, double theta)
-        : ATestTransport1Worker(n_cells, tau), theta_(theta), E_(init_build_e()), L_(init_build_l()),
+        : ATestTransport1Worker(n_cells, tau),
+          theta_(theta),
+          E_(init_build_e()),
+          L_(init_build_l()),
           B_(init_build_b()) {}
 
 private:

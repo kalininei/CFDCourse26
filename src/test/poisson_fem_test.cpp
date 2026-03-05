@@ -388,7 +388,9 @@ namespace {
 struct TestPoissonRadialWorker : public ITestPoissonFemWorker {
 
     TestPoissonRadialWorker(const Grid1D& grid)
-        : ITestPoissonFemWorker(grid, build_fem(grid)), r0_(grid.point(0).x), r1_(grid.point(grid.n_points() - 1).x),
+        : ITestPoissonFemWorker(grid, build_fem(grid)),
+          r0_(grid.point(0).x),
+          r1_(grid.point(grid.n_points() - 1).x),
           q_(-1.0) {}
 
     static FemAssembler build_fem(const IGrid& grid);
@@ -561,7 +563,10 @@ namespace {
 struct TestPoissonRadial2Worker : public ITestPoissonFemWorker {
 
     TestPoissonRadial2Worker(const IGrid& grid, double r0, double r1)
-        : ITestPoissonFemWorker(grid, build_fem(grid, r0)), r0_(r0), r1_(r1), q_(-1.0) {}
+        : ITestPoissonFemWorker(grid, build_fem(grid, r0)),
+          r0_(r0),
+          r1_(r1),
+          q_(-1.0) {}
 
     static FemAssembler build_fem(const IGrid& grid, double r0);
 

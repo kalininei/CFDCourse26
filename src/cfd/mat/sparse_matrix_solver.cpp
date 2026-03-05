@@ -19,7 +19,9 @@ public:
         amgcl::runtime::solver::wrapper<backend_t>>;
 
     Impl(matrix_t mat, param_t param)
-        : solver_(mat, param), dim_((int)mat.nrows), maxit_(param.get("solver.maxiter", -1)) {}
+        : solver_(mat, param),
+          dim_((int)mat.nrows),
+          maxit_(param.get("solver.maxiter", -1)) {}
 
     void solve(const std::vector<double>& rhs, std::vector<double>& x) const {
         x.resize(dim_, 0);
@@ -51,6 +53,10 @@ AmgcMatrixSolver::AmgcMatrixSolver(std::initializer_list<std::pair<std::string, 
     for (auto it: amgc_params) {
         params_[it.first] = it.second;
     }
+}
+
+AmgcMatrixSolver::AmgcMatrixSolver(const CsrMatrix& mat, int maxit, double eps) : AmgcMatrixSolver(maxit, eps) {
+    set_matrix(mat);
 }
 
 AmgcMatrixSolver::~AmgcMatrixSolver() = default;

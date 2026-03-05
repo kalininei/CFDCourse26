@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cmath>
+#include <iostream>
 
 namespace cfd {
 
@@ -79,6 +80,10 @@ public:
         p /= a;
         return p;
     }
+    friend std::ostream& operator<<(std::ostream& os, const Point& p) {
+        os << "(" << p.x << ", " << p.y << ")";
+        return os;
+    }
 };
 
 /**
@@ -94,6 +99,16 @@ using Vector = Point;
  */
 inline double dot_product(const Vector& v1, const Vector& v2) {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+inline Point rotate(const Point& p, double angle_radians, const Point& center = Point{}) {
+    double x = center.x + (p.x - center.x) * cos(angle_radians) - (p.y - center.y) * sin(angle_radians);
+    double y = center.y + (p.x - center.x) * sin(angle_radians) + (p.y - center.y) * cos(angle_radians);
+    return Point{x, y};
+}
+
+inline Vector coord_mult(const Vector& v1, const Vector& v2) {
+    return Vector{v1.x * v2.x, v1.y * v2.y, v1.z * v2.z};
 }
 
 /**

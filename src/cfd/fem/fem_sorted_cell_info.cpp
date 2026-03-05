@@ -4,7 +4,8 @@
 using namespace cfd;
 
 PolygonElementInfo::PolygonElementInfo(const IGrid& grid, size_t icell1)
-    : icell(icell1), ipoints(grid.tab_cell_point(icell)) {
+    : icell(icell1),
+      ipoints(grid.tab_cell_point(icell)) {
 
     std::vector<size_t> orig_ifaces = grid.tab_cell_face(icell);
 

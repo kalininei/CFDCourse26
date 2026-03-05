@@ -6,7 +6,9 @@ using namespace cfd;
 DenseMatrix::DenseMatrix(size_t nrows, size_t ncols) : nrows_(nrows), ncols_(ncols), data_(nrows * ncols, 0) {}
 
 DenseMatrix::DenseMatrix(size_t nrows, size_t ncols, const std::vector<double>& values)
-    : nrows_(nrows), ncols_(ncols), data_(values) {}
+    : nrows_(nrows),
+      ncols_(ncols),
+      data_(values) {}
 
 void DenseMatrix::set_value(size_t irow, size_t icol, double value) {
     data_[irow * ncols_ + icol] = value;

@@ -13,7 +13,10 @@ struct FemElementValue::Cache {
 };
 
 FemElementValue::FemElementValue(const FemElement* elem, Point xi_point)
-    : geom(elem->geometry.get()), basis(elem->basis.get()), xi(xi_point), pcache_(new Cache()) {}
+    : geom(elem->geometry.get()),
+      basis(elem->basis.get()),
+      xi(xi_point),
+      pcache_(new Cache()) {}
 
 FemElementValue::~FemElementValue(){};
 

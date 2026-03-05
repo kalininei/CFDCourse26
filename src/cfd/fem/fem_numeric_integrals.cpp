@@ -35,7 +35,10 @@ std::vector<double> matrix_upper_to_sym(size_t nrows, const std::vector<double>&
 
 NumericElementIntegrals::NumericElementIntegrals(const Quadrature* quad, std::shared_ptr<const IElementGeometry> geom,
                                                  std::shared_ptr<const IElementBasis> basis)
-    : _quad(quad), _geom(geom), _basis(basis), _quad_jacobi(build_quad_jacobi(*quad, *geom)) {}
+    : _quad(quad),
+      _geom(geom),
+      _basis(basis),
+      _quad_jacobi(build_quad_jacobi(*quad, *geom)) {}
 
 std::vector<double> NumericElementIntegrals::mass_matrix() const {
     std::vector<std::vector<double>> values;

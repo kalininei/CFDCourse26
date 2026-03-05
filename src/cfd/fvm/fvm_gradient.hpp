@@ -32,6 +32,8 @@ protected:
 
 struct IFvmCellGradient : public IFvmGradient {
     virtual ~IFvmCellGradient() = default;
+
+    Vector cell_compute(size_t icell, const std::vector<double>& u) const;
 };
 
 struct LeastSquaresFvmCellGradient : public IFvmCellGradient {

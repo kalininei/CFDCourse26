@@ -22,6 +22,7 @@ set(SRC
     debug/printer.cpp
     debug/saver.cpp
     debug/tictoc.cpp
+    debug/grid_manip.cpp
     fvm/fvm_extended_collocations.cpp
     fvm/fvm_gradient.cpp
     fvm/fvm_dfdn.cpp

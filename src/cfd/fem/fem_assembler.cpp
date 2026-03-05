@@ -5,7 +5,8 @@ using namespace cfd;
 
 FemAssembler::FemAssembler(size_t n_bases, const std::vector<FemElement>& elements,
                            const std::vector<std::vector<size_t>>& tab_elem_basis)
-    : elements_(elements), tab_elem_basis_(tab_elem_basis) {
+    : elements_(elements),
+      tab_elem_basis_(tab_elem_basis) {
 
     // stencil
     std::vector<std::set<size_t>> tab_basis_basis(n_bases);

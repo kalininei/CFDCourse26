@@ -1,0 +1,146 @@
+\subsection{Лекция 17 (28.02.26) Задача об обтекании цилиндра. PISO + МКО}
+В тесте \cvar{cylinder-fvm} из файла \ename{cylinder_fvm_test.cpp}
+реализовано решение задачи о нестационарном обтекании цилиндра методом PISO 
+с испльзованием конечнообъемной аппроксимации на неструктурированной сетке (см. \secref{sec:fvm_piso_steps}).
+\paragraph{Постановка задачи}
+представлена на \figref{fig:cylinder-problem}.
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\linewidth]{cylinder_problem.pdf}
+\caption{К постановке задачи об обтекании цилиндра}
+\label{fig:cylinder-problem}
+\end{figure}
+
+\paragraph{Баланс сил. Коэффициенты сил. Сопротивление.}
+Проинтегрируем уравнение движения 
+\cref{eq:ns2d_u}
+по области расчёта $D$:
+$$
+\arint{\dfr{u^2}{x}}{D}{\vec x} +
+\arint{\dfr{uv}{y}}{D}{\vec x} =
+-\arint{\dfr{p}{x}}{D}{\vec x} + \frac{1}{\Ren} \arint{\nabla^2 u}{D}{\vec x}.
+$$
+Интегрирование по частям даёт:
+\begin{align*}
+&\arint{\dfr{f}{x}}{D}{\vec x} = \arint{f}{\Gamma_{out}}{s} - \arint{f}{\Gamma_{in}}{s} + \arint{f n_x}{\gamma}{s} \\[10pt]
+&\arint{\dfr{f}{y}}{D}{\vec x} = \arint{f}{\Gamma_{top}}{s} - \arint{f}{\Gamma_{bot}}{s}+ \arint{f n_y}{\gamma}{s}, \\[10pt]
+&\arint{\nabla^2 f}{D}{\vec x} = \arint{\dfr{f}{n}}{\Gamma}{s} + \arint{\dfr{f}{n}}{\gamma}{s}, \quad \Gamma = \Gamma_{in} \cap \Gamma_{out} \cap \Gamma_{bot} \cap \Gamma_{top}
+\end{align*}
+Учтём, что на обтекаемом теле скорости равны нулю, а верхняя и нижняя границы непротекаемы.
+Тогда
+$$
+\arint{\left(u^2 + p\right)}{\Gamma_{in}}{s}
+-\arint{\left(u^2 + p\right)}{\Gamma_{out}}{s} =
+\arint{p \, n_x}{\gamma}{s} - \frac1\Ren\arint{\dfr{u}{n}}{\gamma}{s}
+$$
+Полученное выражение есть баланс сил в $x$ направлении.
+Слева стоит сила, обусловленная перепадом динамического давления
+(если считать профили скорости на входе и на выходе примерно одинаковыми, то останется только перепад статического давления).
+А справа - силы сопротивления потоку вследствии наличия препятствия. И эти силы уравнавешивают друг друга.
+Первое слагаемое в правой части -- есть сопротивление формы, второе -- сопротивление трения из-за эффектов вязкости.
+
+Коэффициенты этих сил имеют следующее выражение:
+\begin{equation}
+\label{eq:ns2d_cx}
+\begin{array}{lll}
+	C^p_x =& 2 \displaystyle\arint{p\,n_x}{\gamma}{s} & \text{-- коэффициент сопротивления формы} \\[20pt]
+	C^f_x =& -\dfrac2\Ren \displaystyle\arint{\dfr{u}{n}}{\gamma}{s} & \text{-- коэффициент сопротивления трения} \\[20pt]
+	C_x =& C^p_x + C^f_x & \text{-- коэффициент сопротивления}
+\end{array}
+\end{equation}
+Чтобы из этих безразмерных коэффициентов получить реальные силы, измеряемые в Ньютонах, нужно умножить их на $\tfrac12 \rho U^2 L^2$.
+\paragraph{Подъёмная сила}
+Аналогично проинтегрируем уравнение движение в направлении $y$
+\cref{eq:ns2d_v}. С учётом граничных условий получим выражение для баланса сил в поперечном направлении
+$$
+\arint{p}{\Gamma_{bot}}{s}
+-\arint{p}{\Gamma_{top}}{s} =
+\arint{p \, n_y}{\gamma}{s} - \frac1\Ren\arint{\dfr{v}{n}}{\gamma}{s}
+$$
+и соответствующие коэффициенты
+\begin{equation}
+\label{eq:ns2d_cy}
+\begin{array}{lll}
+	C^p_y =& 2 \displaystyle\arint{p n_y}{\gamma}{s} & \text{} \\[20pt]
+	C^f_y =& -\dfrac2\Ren \displaystyle\arint{\dfr{v}{n}}{\gamma}{s} & \text{} \\[20pt]
+	C_y =& C^p_y + C^f_y & \text{-- коэффициент подъёмной силы}
+\end{array}
+\end{equation}
+
+Для работы необходимо увеличить конечное время расчёта \cvar{end_time}
+до значения, на котором устанавливается автоколебательный режим течения.
+Расчёты и замеры времени исполнения проводить в релизной сборке.
+\begin{enumerate}
+\item
+Нарисовать поля течения.
+Провести расчёт без аппроксимации Rhie-Chow и визуализировать шахматные осцилляции.
+\item 
+Посчитать коэффициенты сопротивления и подъемной силы цилиндра.
+Нарисовать графики $C_x(t)$, $C_y(t)$.
+\item
+Реализовать метод PIMPLE (см. \secref{sec:fvm_pimple_steps}). Подобрать оптимальные значения шага по времени и количества
+внутренних PISO итераций, а также параметров релаксаций $\alpha_u$, $\alpha_p$ для максимально быстрого расчёта.
+Сравнить полученные графики $C_x(t)$, $C_y(t)$ для различных настроек.
+\item
+Замерить время исполнения отдельных шагов расчёта. Оптимизировать код для ускорения счёта.
+\end{enumerate}
+
+\paragraph{Рекомендации к программированию}
+\begin{itemize}
+\item п.1: Аппроксимация граничных значение пробной скорости $\unij^*$
+осущестляется по методике \secref{sec:rhie_chow}
+в методе \cvar{compute_un_face_rhie_chow}.
+Чтобы отключить эту интерполяцию, при расчёте $\unij^*$
+следует воспользоваться реализацией
+\cvar{compute_un_face}
+испльзующий наивный подход \cref{eq:ns2d_fvm_utilde_n}.
+
+\item п.2: Для вычисления коэффициентов сил по формулам \cref{eq:ns2d_cx,eq:ns2d_cy}
+           требуется определить лежащие на цилиндре точки коллокации и вычилсить в них производную скорости, давление и нормаль.
+\begin{cppcode}
+for (size_t icolloc: boundary_info_.cyl){   // цикл по точка коллокации на цилиндре
+    size_t iface = collocations_.face_index(icolloc);  // индекс граничной грани
+    double pbnd = p_[icolloc]; // давление на грани
+    Vector n = grid_.face_normal(iface); // нормаль к грани.
+    double dudn = df_dn_computer_.compute(iface, u_); // dudn
+    double dvdn = df_dn_computer_.compute(iface, v_); // dvdn
+    if (grid_.tab_face_cell(iface)[0] == INVALID_INDEX){
+        // сеточная нормаль смотрит внутрь. Развернём все направленные данные
+        n *= -1;
+        dudn *= -1;
+        dvdn *= -1;
+    }
+    double face_area = grid_.face_area(iface);
+    // ... вычисление коэффициентов
+}
+\end{cppcode}
+\item п.3: Для реализации PIMPLE нужно вставить цикл по итерациям внутрь цикла по времени.
+\begin{cppcode}
+    for (time = time_step; time < end_time+1e-6; time += time_step){
+        std::cout << "time= " << time << std::endl;
+        worker.init_time_step();
+        for (size_t it=0; it < max_it; ++it){    // <- SIMPLE
+            double nrm = worker.init_step();
+            worker.step(max_piso_iters, piso_eps);
+        }
+        worker.save_current_fields(time);
+    }
+\end{cppcode}
+Метод \cvar{init_step()} возвращает невязку текущих значений решения. Её можно
+использовать для контроля сходимости.
+
+\item п.4: Для улучшения производительности в первую очередь следует сменить решатель
+           для уравнений моментов:
+\begin{cppcode}
+AmgcMatrixSolver::solve_slae(mat_u_, rhs_u_, u_star);
+AmgcMatrixSolver::solve_slae(mat_v_, rhs_v_, v_star);
+\end{cppcode}
+           Вместо многосеточного решателя предлагается испльзовать простые
+           итерационные алгоритмы (\cref{sec:sae_simple}). Например SOR.
+           При этом доводить их до сходимости не обязательно. Так как за окончательную сходимость отвечает внешний SIMPLE цикл.
+
+           Также стоит рассмотреть возможность сборки диффузной части матрицы A (из метода
+           \cvar{assemble_u_matrix()})  один раз на шаге инициализации.
+           В самом методе вместо вычисления диффузии просто прибавить предрасчитанную матрицу.
+           Если у предрасчитанной диффузной и итоговой матрицы одинаковый шаблон, то можно просто добавить val массив csr представления.
+\end{itemize}

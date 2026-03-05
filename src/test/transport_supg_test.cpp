@@ -113,7 +113,11 @@ public:
     }
 
     ATestTransportWorker(std::shared_ptr<IGrid> grid, double tau, const IFemBuilder& builder, const ISolution& solution)
-        : grid_(grid), fem_(builder.build()), tau_(tau), u_(fem_.n_bases(), 0.0), solution_(solution),
+        : grid_(grid),
+          fem_(builder.build()),
+          tau_(tau),
+          u_(fem_.n_bases(), 0.0),
+          solution_(solution),
           boundary_bases_(builder.boundary_bases()) {
 
         // velocity
@@ -305,7 +309,8 @@ class ThetaSupg : public ATestTransportWorker {
 public:
     ThetaSupg(std::shared_ptr<IGrid> grid, double tau, double theta, const IFemBuilder& builder,
               const ISolution& solution)
-        : ATestTransportWorker(grid, tau, builder, solution), solver_(1000, 1e-12) {
+        : ATestTransportWorker(grid, tau, builder, solution),
+          solver_(1000, 1e-12) {
 
         lhs_ = fem_.zero_matrix();
         rhs_ = fem_.zero_matrix();

@@ -15,6 +15,7 @@ public:
      * @param eps    tolerance value
      */
     AmgcMatrixSolver(int maxit = 1000, double eps = 1e-8);
+    AmgcMatrixSolver(const CsrMatrix& mat, int maxit = 1000, double eps = 1e-8);
 
     /**
      * @param amgc_params  set of AMGCL non-default parameters

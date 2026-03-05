@@ -115,7 +115,11 @@ public:
     }
 
     ATestTransportWorker(std::shared_ptr<IGrid> grid, double tau, const IFemBuilder& builder, const ISolution& solution)
-        : grid_(grid), fem_(builder.build()), tau_(tau), u_(fem_.n_bases(), 0.0), solution_(solution),
+        : grid_(grid),
+          fem_(builder.build()),
+          tau_(tau),
+          u_(fem_.n_bases(), 0.0),
+          solution_(solution),
           boundary_bases_(builder.boundary_bases()) {
 
         // velocity
@@ -386,7 +390,8 @@ private:
 class CrankNicolsonUpwind : public ATestTransportWorker {
 public:
     CrankNicolsonUpwind(std::shared_ptr<IGrid> grid, double tau, const IFemBuilder& builder, const ISolution& solution)
-        : ATestTransportWorker(grid, tau, builder, solution), solver_(1000, 1e-12) {
+        : ATestTransportWorker(grid, tau, builder, solution),
+          solver_(1000, 1e-12) {
         // LHS = MASS - 0.5 * tau * L
         CsrMatrix lhs(fem_.stencil());
         for (size_t i = 0; i < lhs.n_nonzeros(); ++i) {
@@ -418,7 +423,8 @@ private:
 class CrankNicolsonCentral : public ATestTransportWorker {
 public:
     CrankNicolsonCentral(std::shared_ptr<IGrid> grid, double tau, const IFemBuilder& builder, const ISolution& solution)
-        : ATestTransportWorker(grid, tau, builder, solution), solver_(1000, 1e-12) {
+        : ATestTransportWorker(grid, tau, builder, solution),
+          solver_(1000, 1e-12) {
         // LHS = MASS - 0.5 * tau * K
         CsrMatrix lhs(fem_.stencil());
         for (size_t i = 0; i < lhs.n_nonzeros(); ++i) {
@@ -612,7 +618,8 @@ class CrankNicolsonFct : public AFct {
 
 public:
     CrankNicolsonFct(std::shared_ptr<IGrid> grid, double tau, const IFemBuilder& builder, const ISolution& solution)
-        : AFct(grid, tau, builder, solution), solver_(1000, 1e-12) {
+        : AFct(grid, tau, builder, solution),
+          solver_(1000, 1e-12) {
         // LHS = MASS_LUMPED - 0.5 * tau * L
         lhs_.set_stencil(fem_.stencil());
         lhs_.set_diagonal(mass_lumped_);
@@ -833,7 +840,8 @@ public:
 
 protected:
     TvdAntidiffusion(const ATestTransportWorker& worker, std::function<double(double)> limiter)
-        : worker_(worker), limiter_(limiter) {
+        : worker_(worker),
+          limiter_(limiter) {
         const CsrMatrix& K = worker_.high_order_transport();
         edges_.clear();
         // build directed edges i->j
@@ -1044,7 +1052,8 @@ template<typename Antidiffusion, Limiter Lim>
 class ExplicitTvd : public ATestTransportWorker {
 public:
     ExplicitTvd(std::shared_ptr<IGrid> grid, double tau, const IFemBuilder& builder, const ISolution& solution)
-        : ATestTransportWorker(grid, tau, builder, solution), antidiffusion_(*this, limiter<Lim>) {}
+        : ATestTransportWorker(grid, tau, builder, solution),
+          antidiffusion_(*this, limiter<Lim>) {}
 
 private:
     Antidiffusion antidiffusion_;

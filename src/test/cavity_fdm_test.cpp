@@ -83,10 +83,18 @@ private:
 };
 
 CavitySimpleWorker::CavitySimpleWorker(double Re, size_t n_cells, double alpha_u, double alpha_p)
-    : grid_(0, 1, 0, 1, n_cells, n_cells), cc_grid_(grid_.cell_centered_grid()), xf_grid_(grid_.xface_centered_grid()),
-      yf_grid_(grid_.yface_centered_grid()), hx_(1.0 / static_cast<double>(n_cells)),
-      hy_(1.0 / static_cast<double>(n_cells)), Re_(Re), alpha_u_(alpha_u), alpha_p_(alpha_p),
-      diff_x_(1.0 / Re_ / hx_ / hx_), diff_y_(1.0 / Re_ / hy_ / hy_), diff_diag_(2 * (diff_x_ + diff_y_)),
+    : grid_(0, 1, 0, 1, n_cells, n_cells),
+      cc_grid_(grid_.cell_centered_grid()),
+      xf_grid_(grid_.xface_centered_grid()),
+      yf_grid_(grid_.yface_centered_grid()),
+      hx_(1.0 / static_cast<double>(n_cells)),
+      hy_(1.0 / static_cast<double>(n_cells)),
+      Re_(Re),
+      alpha_u_(alpha_u),
+      alpha_p_(alpha_p),
+      diff_x_(1.0 / Re_ / hx_ / hx_),
+      diff_y_(1.0 / Re_ / hy_ / hy_),
+      diff_diag_(2 * (diff_x_ + diff_y_)),
       du_(alpha_u_ / diff_diag_) {
     assemble_p_prime_solver();
 }

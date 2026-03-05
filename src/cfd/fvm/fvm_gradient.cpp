@@ -138,6 +138,13 @@ std::vector<Vector> IFvmGradient::compute(const std::vector<double>& u) const {
     return compute(u.data());
 }
 
+Vector IFvmCellGradient::cell_compute(size_t icell, const std::vector<double>& u) const {
+    double x = data_[0].mult_vec(icell, u);
+    double y = data_[1].mult_vec(icell, u);
+    double z = (data_[2].n_rows() > 0) ? data_[2].mult_vec(icell, u) : 0.0;
+    return {x, y, z};
+}
+
 IFvmFaceGradient::IFvmFaceGradient(const IGrid& grid, const FvmExtendedCollocations& colloc,
                                    const IFvmCellGradient& cg) {
     LodMatrix grad_x(grid.n_faces());

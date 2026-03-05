@@ -223,7 +223,8 @@ class TestPoissonFvmWorker_2D : public ITestPoissonFvmWorker {
 public:
     TestPoissonFvmWorker_2D(std::string grid_fn)
         : ITestPoissonFvmWorker(std::make_shared<UnstructuredGrid2D>(UnstructuredGrid2D::vtk_read(grid_fn, true))),
-          ecol_(*grid()), grad_computer_(std::make_shared<LeastSquaresFvmFaceGradient>(*grid(), ecol_)) {
+          ecol_(*grid()),
+          grad_computer_(std::make_shared<LeastSquaresFvmFaceGradient>(*grid(), ecol_)) {
         initialize();
         u_.resize(ecol_.size());
         std::fill(u_.begin(), u_.end(), 0.0);
@@ -337,7 +338,9 @@ public:
 class TestPoissonFvmWorker_Radial1D : public ITestPoissonFvmWorker {
 public:
     TestPoissonFvmWorker_Radial1D(double r0, double lambda0, size_t n_cells)
-        : ITestPoissonFvmWorker(std::make_shared<RadialGrid1D>(r0, 1.0 + r0, n_cells)), ecol_(*grid()), r0_(r0) {
+        : ITestPoissonFvmWorker(std::make_shared<RadialGrid1D>(r0, 1.0 + r0, n_cells)),
+          ecol_(*grid()),
+          r0_(r0) {
 
         // lambda
         lambda_.resize(ecol_.size());

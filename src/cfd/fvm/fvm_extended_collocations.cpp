@@ -89,3 +89,14 @@ size_t FvmExtendedCollocations::boundary_colloc(size_t iface) const {
         throw std::runtime_error("not a boundary face: " + std::to_string(iface));
     }
 }
+
+size_t FvmExtendedCollocations::near_boundary_colloc(size_t iface) const {
+    std::array<size_t, 2> ij = tab_face_colloc(iface);
+    if (is_boundary_colloc(ij[0])) {
+        return ij[1];
+    } else if (is_boundary_colloc(ij[1])) {
+        return ij[0];
+    } else {
+        throw std::runtime_error("not a boundary face: " + std::to_string(iface));
+    }
+}

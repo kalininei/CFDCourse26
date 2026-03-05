@@ -114,6 +114,7 @@ $ p^0 = \rho U^2 $, [Па].
 \end{equation}
 
 \subsubsection{Связывание давления и скорости}
+\label{sec:ns2d_segragated}
 Приведём алгоритм для явного выражения уравнения для давления из
 уравнения неразрывности \eqref{eq:ns2d_semi_div}.
 
@@ -742,4 +743,223 @@ $[k(i, \tfrac12), k(i, -\tfrac12)]$, который, очевидно, не пр
     &b^{p}[k(\tfrac12, \tfrac12)] = 0.
 \end{align}
 
+\subsection{Пространственная аппроксимация методом конечных объёмов}
+\label{sec:simple_scheme_fem}
+В методе конечных объёмов узлами коллокации служат
+центры ячеек, поэтому бороться с шахматными осцилляциями
+путём разнесения узлов коллокации для разных
+расчётных полей (разнесённая сетка) нельзя.
+Вместо этого в набор искомых полей решения добавляется
+нормальная к грани скорость течения, определённая для центров граней (между $i$-ой и $j$-ой точками коллокаций): $\unij$.
+Для её нахождения используется специальный алгоритм Rhie-Chow, учитывающий текущее давления.
+Кроме того отдельно вычисляется градиент давления в центрах ячеек $(\nabla p)_i$.
 
+\subsubsection{Определяющие соотношения}
+Запишем конечнообъёмную аппроксимацию линеаризованного уравнения сохранения импульса (аналог \cref{eq:ns2d_linearized_u}):
+\begin{equation}
+\label{eq:ns2d_fvmsimple_momentum}
+\frac{1}{\alpha_u} a_{ii}\hat{\vec u_i} = -\sum_{j\neq i} a_{ij} \hat{\vec u_j} - m_i \left(\nabla \hat p\right)_i + \frac{\alpha_u - 1}{\alpha_u} a_{ii} \vec u_i.
+\end{equation}
+Здесь $m_i$ -- элемент матрицы масс, равный объёму ячейки $|E_i|$.
+Далее следуя методике \secref{sec:ns2d_segragated}
+подставим в него разложение \cref{eq:ns2d_decomp}
+и запишем аналоги уравнений для пробной скорости \cref{eq:ns2d_ustar,eq:ns2d_vstar}:
+\begin{equation}
+\label{eq:ns2d_fvm_ustar}
+\frac{1}{\alpha_u} a_{ii} \vec u^*_i = -\sum_{j\neq i} a_{ij} \vec u^*_j - m_i (\nabla p)_i + \frac{\alpha_u - 1}{\alpha_u} a_{ii} \vec u_i,
+\end{equation}
+и поправки \cref{eq:ns2d_uprime_approx,eq:ns2d_vprime_approx}:
+\begin{equation}
+\label{eq:ns2d_fvm_uprime}
+\vec u' \approx - d \nabla{p'}, \quad d_i = \frac{\alpha_u m_i}{a_{ii}}.
+\end{equation}
+Отметим, что в случае, если диагонали матриц для
+разных компонент скорости отличаются (например из-за нелинейных аппроксимаций конвекции),
+то коэффициент $d$ является векторным.
+Далее возьмём дивергенцию последнего выражения и воспользуемся уравнением неразрывности. Тогда
+Получим уравнение для поправки давления
+\begin{equation}
+\label{eq:ns2d_fvm_prime}
+-\nabla\cdot \left( d \nabla{p'}\right) = -\nabla \cdot \vec u^*.
+\end{equation}
+
+\subsubsection{Поправка Rhie--Chow}
+\label{sec:rhie_chow}
+Ключевым моментов алгоритма является конечнообъёмная аппроксимация правой части уравнения
+\cref{eq:ns2d_fvm_prime}:
+\begin{equation}
+\label{eq:ns2d_fvm_div_ustar}
+\arint{\nabla\cdot \vec u^*}{E_i}{\vec x} = \sum_{j\in I^i} \unij^* |\gamma_{ij}|.
+\end{equation}
+Вычисление нормальной скорости на грани по наивной формуле приведёт к шахматным осцилляциям. То есть
+\begin{equation}
+\label{eq:ns2d_fvm_illegal_unij}
+\unij^* \neq \frac{\vec u^*_i + \vec u^*_j}{2} \vec n_{ij}.
+\end{equation}
+Вместо этого выразим $u^*$ из соотношения \cref{eq:ns2d_fvm_ustar}:
+\begin{equation}
+\label{eq:ns2d_fvm_ustar2}
+\vec u^* = \tilde{\vec u} - d (\nabla p), \qquad
+\tilde{\vec u}_i = -\frac{\alpha_u}{a_{ii}}\sum_{j\neq i} a_{ij} \vec u^*_j + \left(\alpha_u - 1\right) \vec u_i.
+\end{equation}
+Далее спроецируем это выражение на нормаль к грани $\gamma_{ij}$:
+\begin{equation*}
+\unij^* = \left(\tilde u_n\right)_{ij} - d_{ij} \left(\dfr{p}{n}\right)_{ij}.
+\end{equation*}
+Для определения $\tilde\unij$ воспользуемся полусуммой
+\begin{equation}
+\label{eq:ns2d_fvm_utilde_n}
+\left(\tilde u_n\right)_{ij} = \frac{\tilde{\vec u}_i + \tilde{\vec u}_j}{2} \cdot \vec n_{ij},
+\end{equation}
+каждое слагаемое которого распишем с помощью первого из выражений \cref{eq:ns2d_fvm_ustar2}. Окончательно получим
+\begin{equation}
+\label{eq:ns2d_fvm_unij_star}
+\unij^* = \frac12\left(\vec u^*_i + \vec u^*_j\right) \cdot \vec n_{ij} + \frac12\left(d_i(\nabla p)_i + d_j(\nabla p)_j - 2 d_{ij}\left(\nabla p\right)_{ij} \right) \cdot \vec n_{ij}.
+\end{equation}
+Коэффициент $d_{ij}$ вычисляется простой полусуммой.
+\begin{equation*}
+d_{ij} = \frac{d_i + d_j}{2}.
+\end{equation*}
+Узловые значения градиентов $\left(\nabla p)\right)_{i}$ вычисляются
+специальной процедурой на основе метода Гаусса (\secref{sec:fvm_gauss_grad}),
+a то же значение на грани определяется классической конечно-разностной схемой
+\begin{equation*}
+\left(\dfr{p}{n}\right)_{ij} \approx \frac{p_j - p_i}{h_{ij}} + \text{Skew}.
+\end{equation*}
+Это же выражение используется для определения
+нормальных комонент поправки скорости на основе формулы \cref{eq:ns2d_vprime_approx}:
+\begin{equation}
+\label{eq:ns2d_fvm_unij_prime}
+\unij' = -d_{ij} \frac{p'_j - p'_i}{h_{ij}} + \text{Skew}.
+\end{equation}
+\subsubsection{Порядок вычислений на SIMPLE итерации}
+\label{sec:fvm_simple_steps}
+На начало итерационного шага нам известны
+\begin{itemize}
+\item узловые значения скорости $\vec u$,
+\item узловые значения давления $p$,
+\item узловые значения градиента давления $(\nabla p)_i$,
+\item нормальные скорости на гранях $\unij$.
+\item
+В случае решения нестационарной задачи также известно
+значение скорости с предыдущего временного слоя $\check{\vec u}$.
+\end{itemize}
+\begin{enumerate}
+\item собираем определяющие матрицы $A$, используемые в выражениях \cref{eq:ns2d_fvmsimple_momentum}.
+Для аппроксимации конвективного слагаемого в качестве скорости переноса используям значения $\unij$.
+На этом шаге можно подставить в эту матрицу значения с предыдущих итераций и подсчитать невязку.
+Если она достаточно мала, можно выходить из итераций.
+\item Из диагонали полученной матрицы выписываем вектор $d_i$ по формуле \cref{eq:ns2d_vprime_approx}.
+      Отметим, что если диагонали матрицы $A$ для компонент скорости различаются, то получим два (или три для 3D)
+      таких вектора.
+\item по второй из формул \cref{eq:ns2d_fvm_uprime},
+      собираем правую часть и решаем уравнение \cref{eq:ns2d_fvmsimple_momentum} для нахождения $\vec u^*$.
+\item собираем пробные потоки $\unij^*$ по формуле \cref{eq:ns2d_fvm_unij_star}
+\item Решаем уравнение \cref{eq:ns2d_fvm_prime} и находим $p'$. Правую часть считаем по \cref{eq:ns2d_fvm_div_ustar}.
+\item По методике (\secref{sec:fvm_gauss_grad}) вычисляем узловые значения градиента поправки давления $\left(\nabla p'\right)_i$.
+\item Считаем поправку скорости $\vec u'$ по \cref{eq:ns2d_vprime_approx}.
+\item Считаем нормальную компоненту поправки скорости $\unij'$ по \cref{eq:ns2d_fvm_unij_prime}
+\item Обнвляем значения на итерации:
+\begin{align*}
+&\hat{\vec u} = \vec u^* + \vec u' \\
+&\hat\unij = \unij^* + \unij'\\
+&\hat p = p + \alpha_p p' \\
+&(\nabla \hat p)_i = (\nabla p)_i + \alpha_p (\nabla p')_i.
+\end{align*}
+\end{enumerate}
+
+\subsection{Модификации метода SIMPLE}
+\subsubsection{SIMPLEC}
+
+\subsubsection{SIMPLER}
+
+\subsubsection{PISO}
+\label{sec:fvm_piso_steps}
+Идея метода состоит в том, чтобы решить
+линеаризованную полудискретизованную систему уравнений Навье-Стокса
+за одну SIMPLE итерацию.
+Он не использует сглаживаний: $\alpha_p = \alpha_u = 1$.
+Диагональное преобладание матрицы $A$ обеспечивается за счёт нестационарного слагаемого
+$$\dfr{u}{t} \approx \frac{\hat u - \check u}{\dt}. $$
+с достаточно малым шагом по времени $\dt$.
+То есть этот метод подходит либо для нестационарных задач,
+либо для стационарных задач, чьё решение ищется методом установления.
+
+Вместо декомпозиции \cref{eq:ns2d_decomp}
+используем более глубокое разложение
+\begin{equation}
+    \label{eq:ns2d_piso_decomp}
+\begin{array}{l}
+    \hat{\vec u} = \vec u^* + \vec u' + \vec u'' + \vec u''' + \dots,\\
+    \hat p = p + p' + p'' + p''' + \dots.
+\end{array}
+\end{equation}
+Подставим его в исходное уравнение
+моментов
+\label{eq:ns2d_fvmsimple_momentum}.
+Итоговое уравнение разобьъём слудующим образом
+\begin{equation}
+\label{eq:ns2d_piso_momentum}
+\begin{array}{llll}
+\frac{1}{\alpha_u} a_{ii} \vec u^*_i = &-\sum_{j\neq i} a_{ij} \vec u^*_j &- m_i (\nabla p)_i  &+ \frac{\alpha_u - 1}{\alpha_u} a_{ii} \vec u_i + \frac{m_i}{\dt}\check{\vec u}_i, \\[10pt]
+\frac{1}{\alpha_u} a_{ii} \vec u'_i  = &                                  &- m_i (\nabla p')_i &\\[10pt]
+\frac{1}{\alpha_u} a_{ii} \vec u''_i = &-\sum_{j\neq i} a_{ij} \vec u'_j   &- m_i (\nabla p'')_i &\\[10pt]
+\dots &&&\\[10pt]
+\frac{1}{\alpha_u} a_{ii} \vec u^{(k)}_i =&-\sum_{j\neq i} a_{ij} \vec u^{(k-1)}_j &- m_i (\nabla p^{(k)})_i &\\[10pt]
+\end{array}
+\end{equation}
+Мы по прежнему используем факторы релаксаций для общности в исходным SIMPLE алгоритмом. Кроме того такая записть будет использована
+в следующей модификации PIMPLE.
+
+Уравнение неразрывности удовлетворим в виде:
+\begin{equation}
+\label{eq:ns2d_piso_incomp}
+\nabla \cdot \vec u^* = -\nabla \cdot \vec u', \quad \nabla \cdot \vec u'' = 0, \quad ... \quad \nabla \cdot \vec u^{(k)} = 0.
+\end{equation}
+
+
+Первые два уравнения из \cref{eq:ns2d_piso_momentum} решаются полностью аналогично SIMPLE методике.
+Поэтому на каждом временном шаге сначала выполним 
+все шаги из алгоритма \label{ref:fvm_simple_steps}.
+При этом в качестве начального приближения возьмём значения с предыдущего временного слоя.
+Далее будем вычислять последовательные приближения искомых параметров в цикле PISO:
+\begin{enumerate}
+\item Пусть мы находимся на $k$ шаге PISO итерации и значения $u^(k-1)$, $p^{(k-1)}$ нам известны.
+\item Применим к последнему из уравнений \cref{eq:ns2d_piso_momentum} оператор дивергенции.
+      С учётом \cref{eq:ns2d_piso_incomp} выпишем и решим уравнение для поправки давления
+\begin{equation*}
+- \nabla \cdot \left(d \nabla p^{(k)} \right) = -\nabla\cdot \tilde{\vec u}, \quad \tilde{\vec u}_i = -\frac{d_i}{m_i}\sum_{j\neq i} a_{ij} \vec u^{(k-1)}_j.
+\end{equation*}
+Для вычисления значений на грани промежуточной скорости $\tilde{\vec u}$ воспользуемся простой формулой \cref{eq:ns2d_fvm_utilde_n}.
+\item Определяем узловые значения градиента $(\nabla p^{(k)})_i$.
+\item Далее из того же уравнения выразим значение текущей поправки
+\begin{equation*}
+\vec u^{(k)}_i = \tilde{\vec u}_i - d_i (\nabla p^{(k)})_i.
+\end{equation*}
+\item И её нормальную компоненту на грани
+\begin{equation*}
+\unij^{(k)} = \left(\tilde{u_n}\right)_{ij} - d_{ij} (\nabla_n p^{(k)})_{ij}.
+\end{equation*}
+\item Обнвляем итоговые значения
+\begin{align*}
+&\hat{\vec u} \pluseq \vec u^{(k)} \\
+&\hat\unij \pluseq \unij^{(k)}\\
+&\hat p \pluseq \alpha_p p^{(k)} \\
+&(\nabla \hat p)_i \pluseq \alpha_p (\nabla p^{(k)})_i.
+\end{align*}
+\item Выход из PISO цикла осуществляется при
+удовлетворении линеаризованного (скорость переноса с прошлого временного слоя) уравнения моментов
+с заданной погрешностью.
+\end{enumerate}
+
+\subsubsection{PIMPLE}
+\label{sec:fvm_pimple_steps}
+Это метод объединяет в себя итерации SIMPLE \secref{sec:fvm_simple_steps},
+каждая из которых дополняется итерационным циклом PISO \secref{sec:fvm_piso_steps}.
+В отличии от чистого PISO
+здесь можно использовать релаксации $\alpha_u, \alpha_p < 1$.
+При этом мониторинг сходимости следует делать в первую очередь
+для цикла верхнего уровня. Цикл PISO можно отграничить 2-3 уточняющими итерациями.
+
+По сравнению с PISO метод PIMPLE более устойчив и допускает использования больших шагов по времени (и даже решение стационарных задач).
+Кроме того по итогу временного слоя по PIMPLE исполняется исходное (нелинеаризованное) уравнение импульса.

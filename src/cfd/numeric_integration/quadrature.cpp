@@ -3,7 +3,8 @@
 using namespace cfd;
 
 Quadrature::Quadrature(const std::vector<Point>& points, const std::vector<double>& weights)
-    : points_(points), weights_(weights){};
+    : points_(points),
+      weights_(weights){};
 
 const std::vector<Point>& Quadrature::points() const {
     return points_;

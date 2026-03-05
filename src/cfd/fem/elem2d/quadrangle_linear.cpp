@@ -6,7 +6,10 @@ using namespace cfd;
 // Geometry
 ///////////////////////////////////////////////////////////////////////////////
 QuadrangleLinearGeometry::QuadrangleLinearGeometry(Point p0, Point p1, Point p2, Point p3)
-    : _p0(p0), _p1(p1), _p2(p2), _p3(p3) {
+    : _p0(p0),
+      _p1(p1),
+      _p2(p2),
+      _p3(p3) {
     _c_1 = (p0 + p1 + p2 + p3) / 4;
     _c_xi = (-p0 + p1 + p2 - p3) / 4;
     _c_eta = (-p0 - p1 + p2 + p3) / 4;

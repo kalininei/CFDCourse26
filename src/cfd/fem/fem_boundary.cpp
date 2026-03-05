@@ -18,7 +18,9 @@ class BoundaryElementGeometry1D : public IElementGeometry {
 public:
     BoundaryElementGeometry1D(std::shared_ptr<const IElementGeometry> internal_geom, Vector jtau,
                               std::function<Point(Point)> xi_from_tau)
-        : internal_geom_(internal_geom), jtau_(jtau), xi_from_tau_(xi_from_tau) {}
+        : internal_geom_(internal_geom),
+          jtau_(jtau),
+          xi_from_tau_(xi_from_tau) {}
 
     JacobiMatrix jacobi(Point tau) const override {
         const Point xi = xi_from_tau_(tau);
@@ -38,7 +40,8 @@ private:
 class BoundaryElementBasis : public IElementBasis {
 public:
     BoundaryElementBasis(std::shared_ptr<const IElementBasis> internal_basis, std::function<Point(Point)> xi_from_tau)
-        : internal_(internal_basis), xi_from_tau_(xi_from_tau) {}
+        : internal_(internal_basis),
+          xi_from_tau_(xi_from_tau) {}
 
     size_t size() const override {
         return internal_->size();

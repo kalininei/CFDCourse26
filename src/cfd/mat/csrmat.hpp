@@ -14,7 +14,8 @@ class CsrStencil : public ISparseMatrix {
 public:
     CsrStencil() = default;
     CsrStencil(std::vector<size_t>&& addr, std::vector<size_t>&& cols)
-        : addr_(std::move(addr)), cols_(std::move(cols)) {}
+        : addr_(std::move(addr)),
+          cols_(std::move(cols)) {}
     virtual ~CsrStencil() = default;
     /**
      * @brief Fills CSR stencil by address and column vectors
@@ -64,7 +65,8 @@ public:
     CsrMatrix() = default;
     CsrMatrix(const CsrStencil& stencil) : CsrStencil(stencil), vals_(stencil.n_nonzeros(), 0.0) {}
     CsrMatrix(std::vector<size_t>&& addr, std::vector<size_t>&& cols, std::vector<double>&& vals)
-        : CsrStencil(std::move(addr), std::move(cols)), vals_(std::move(vals)) {}
+        : CsrStencil(std::move(addr), std::move(cols)),
+          vals_(std::move(vals)) {}
 
     void set_data(std::vector<size_t>&& addr, std::vector<size_t>&& cols, std::vector<double>&& vals);
 
@@ -88,6 +90,8 @@ public:
     void set_unit_row(size_t irow);
     void set_diagonal(const std::vector<double>& diag_vals);
     double row_sum(size_t irow) const;
+    void clear_row(size_t irow);
+    void add_value(size_t irow, size_t icol, double value);
 
     // overrides
     void validate() const override;

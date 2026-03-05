@@ -29,7 +29,10 @@ public:
     }
 
     ABlWorker(std::shared_ptr<Grid1D> grid, double tau)
-        : grid_(grid), tau_(tau), s_(grid->n_cells() + 2, 0), face_velocity_(grid_->n_faces(), 1.0) {}
+        : grid_(grid),
+          tau_(tau),
+          s_(grid->n_cells() + 2, 0),
+          face_velocity_(grid_->n_faces(), 1.0) {}
 
     void step() {
         time_ += tau_;

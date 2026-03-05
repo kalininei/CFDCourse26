@@ -284,6 +284,23 @@ double CsrMatrix::row_sum(size_t irow) const {
     return ret;
 }
 
+void CsrMatrix::clear_row(size_t irow) {
+    const size_t start = addr().at(irow);
+    const size_t end = addr().at(irow + 1);
+    for (size_t i = start; i < end; ++i) {
+        vals()[i] = 0;
+    }
+}
+
+void CsrMatrix::add_value(size_t irow, size_t icol, double value) {
+    size_t a = get_address(irow, icol);
+    if (a != INVALID_INDEX) {
+        vals()[a] += value;
+    } else {
+        throw std::runtime_error("Invalid index");
+    }
+}
+
 DenseMatrix CsrMatrix::to_dense() const {
     const size_t n = n_rows();
     std::vector<double> ret(n * n, 0.0);

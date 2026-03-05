@@ -37,6 +37,9 @@ public:
     // gets a collocation index for a boundary face. throws if iface is not boundary
     size_t boundary_colloc(size_t iface) const;
 
+    // gets a collocation index for a cell containing boundary face. throws if iface is not boundary
+    size_t near_boundary_colloc(size_t iface) const;
+
     // colloc -> connected collocs
     std::vector<size_t> tab_colloc_colloc(size_t icolloc) const;
 

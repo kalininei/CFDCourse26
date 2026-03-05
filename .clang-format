@@ -27,3 +27,7 @@ SpacesInLineCommentPrefix:
   Maximum: 1
 AlwaysBreakTemplateDeclarations: Yes
 SpaceBeforeRangeBasedForLoopColon: false
+
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+AllowAllConstructorInitializersOnNextLine: false
+BreakConstructorInitializers: BeforeColon

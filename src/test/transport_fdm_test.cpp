@@ -24,7 +24,10 @@ public:
     }
 
     ATestTransport1Worker(size_t n_cells, double tau)
-        : grid_(0, 1, n_cells), h_(1.0 / static_cast<double>(n_cells)), tau_(tau), u_(grid_.n_points()) {
+        : grid_(0, 1, n_cells),
+          h_(1.0 / static_cast<double>(n_cells)),
+          tau_(tau),
+          u_(grid_.n_points()) {
         for (size_t i = 0; i < grid_.n_points(); ++i) {
             u_[i] = init_solution(grid_.point(i).x);
         }
@@ -161,7 +164,10 @@ class TestTransport1WorkerTheta : public ATestTransport1Worker {
 
 public:
     TestTransport1WorkerTheta(size_t n_cells, double tau, double theta)
-        : ATestTransport1Worker(n_cells, tau), theta_(theta), E_(init_build_e()), L_(init_build_l()),
+        : ATestTransport1Worker(n_cells, tau),
+          theta_(theta),
+          E_(init_build_e()),
+          L_(init_build_l()),
           B_(init_build_b()) {}
 
 private:
