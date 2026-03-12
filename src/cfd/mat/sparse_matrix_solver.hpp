@@ -19,6 +19,16 @@ public:
 
     /**
      * @param amgc_params  set of AMGCL non-default parameters
+     *
+     * amgc_params keys:
+     * - "solver.tol"  [1e-8]
+     * - "solver.maxiter" [1000]
+     * - "solver.type" [fgmres]
+     *   possible values: cg, bicgstab, bicgstabl, gmres, lgmres, fgmres, idrs, richardson, preonly
+     * - "precond.coarsening.type" [smoothed_aggregation]
+     *   possible values: ruge_stuben, aggregation, smoothed_aggregation, smoothed_aggr_emin
+     * - "precond.relax.type" [spai0]
+     *   possible values: gauss_seidel, ilu0, iluk, ilup, ilut, damped_jacobi, spai0, spai1, chebyshev
      */
     AmgcMatrixSolver(std::initializer_list<std::pair<std::string, std::string>> amgc_params);
 

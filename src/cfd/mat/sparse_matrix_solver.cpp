@@ -75,12 +75,11 @@ void AmgcMatrixSolver::set_matrix(const CsrStencil& stencil, const std::vector<d
     amgcl_matrix.val = const_cast<double*>(mat_values.data());
 
     Impl::param_t prm;
-    prm.put("solver.type", "fgmres");
     prm.put("solver.tol", tolerance_);
     prm.put("solver.maxiter", maxit_);
+    prm.put("solver.type", "fgmres");
     prm.put("precond.coarsening.type", "smoothed_aggregation");
     prm.put("precond.relax.type", "spai0");
-    // prm.put("precond.relax.type", "gauss_seidel");
 
     for (auto it: params_) {
         prm.put(it.first, it.second);

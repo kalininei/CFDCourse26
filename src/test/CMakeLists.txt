@@ -2,6 +2,7 @@ set(SRC
     utils/filesystem.cpp
     utils/vecmat.cpp
     cfd26_test.cpp
+    infra_test.cpp
     grid_test.cpp
     mat_test.cpp
     geom_test.cpp
@@ -17,6 +18,7 @@ set(SRC
     cavity_fvm_test.cpp
     poiseuille_fvm_test.cpp
     cylinder_fvm_test.cpp
+    cavity_fvm_coupled_test.cpp
 )
 
 set(HEADERS

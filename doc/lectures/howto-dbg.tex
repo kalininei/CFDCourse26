@@ -1,0 +1,178 @@
+\subsection{Приёмы отладки}
+\subsubsection{Печать разреженной матрицы}
+Для вывода разреженных матриц любого формата
+(реализующего интерфейс \cvar{ISparseMatrix})
+Можно воспользоваться функцией \cvar{dbg::print}
+(её можно вызывать непосредственно в процессе отладки
+не прерываясь на расстановку нужных вызовов в коде и перекомпиляцию).
+\begin{cppcode}
+#include "cfd/debug/printer.hpp"
+...
+
+LodMatrix M(3);
+M.add_value(0, 0, 1.0); 
+M.add_value(1, 0, 0.0); 
+M.add_value(1, 1, 4.0); 
+M.add_value(2, 2, 3.0); 
+dbg::print(M);
+\end{cppcode}
+В результате в терминал выведется матрица
+\begin{shelloutput}
+-- SIZE = 3x3
+     1      *      *
+     0      4      *
+     *      *      3
+\end{shelloutput}
+Здесь \cvar{*} -- отмечены места, где отсутсвует значение в шаблоне матрицы (то есть ноль по построению).
+Заданные в шаблоне значения тоже могут быть нулями (как в настоящем примере на второй строке первой колонки).
+
+Если матрица имеет большую размерность, то печатать всю матрицу целиком неудобно.
+Но можно воспользоваться печатью отдельной строки.
+Так вызов
+\begin{cppcode}
+dbg::print(1, M);
+\end{cppcode}
+выведет только значения второй строки матрицы, находящиеся в шаблоне
+\begin{shelloutput}
+-- ROW = 1
+   [   0] 0   // M[1, 0] = 0
+   [   1] 4   // M[1, 1] = 4
+\end{shelloutput}
+
+\subsubsection{Сохранение отладочных полей решения}
+В процессе отладки работы с сеточными данными
+часто возникает необходимость быстро отобразить
+их на сетке. Для этого в файле \ename{debug/saver.hpp}
+имеется набор вспомогательных функций (каждая из них может быть запущена непоследственно из отладчика):
+
+\begin{cppcode}
+// скаляр в узлах сетки
+void save_point_data(const IGrid& grid, const std::vector<double>& data);
+// скаляр в ячейках сетки
+void save_cell_data(const IGrid& grid, const std::vector<double>& data);
+// вектор в ячейках сетки
+void save_cell_vector(const IGrid& grid, const std::vector<Vector>& vec);
+// скаляр в расширенных точках коллокации (ячейки + граничные грани)
+void save_extended_colloc_data(const IGrid& grid, const std::vector<double>& data);
+// скаляр в гранях сетки
+void save_face_data(const IGrid& grid, const std::vector<double>& data);
+\end{cppcode}
+
+Все эти функции сохраняют данные в файл \ename{dbg.vtk} в текущую папку из которой запущена программа.
+
+\subsubsection{Профилирование}
+\label{sec:dbg-tictoc}
+Для профилирования (замера время исполнения участков кода) можно пользоваться
+набором глобальных функций, определённых в файле
+\ename{debug/tictoc.hpp}.
+
+\paragraph{Простой замер времени}
+Измерение времени исполнения участка кода:
+\begin{cppcode}
+#include "cfd/debug/tictoc.hpp"
+...
+
+dbg::Tic("process1");   // начать замер (блок с именем process1)
+// ... код, время исполнение которого требуется замерить
+std::this_thread::sleep_for(std::chrono::milliseconds(40));
+dbg::Toc("process1");   // окончить замер
+\end{cppcode}
+
+По окончанию работы программы в терминал будет распечатан
+отчёт о времени исполнения каждого блока (в миллисекундах)
+\begin{shelloutput}
+------ Tictoc report (ms)
+Process        Total time    Calls count  Time per call
+-------------------------------------------------------
+process1               40              1             40
+\end{shelloutput}
+
+Названия секций может быть произвольным и может повторяться. В последнем случае
+программа будет выводить как общее время исполнение этого блока, так и среднее время по запускам:
+
+\begin{cppcode}
+dbg::Tic("process1");
+std::this_thread::sleep_for(std::chrono::milliseconds(40));
+dbg::Toc("process1");
+
+dbg::Tic("process1");
+std::this_thread::sleep_for(std::chrono::milliseconds(50));
+dbg::Toc("process1");
+\end{cppcode}
+
+\begin{shelloutput}
+------ Tictoc report (ms)
+Process        Total time    Calls count  Time per call
+-------------------------------------------------------
+process1               90              2             45
+\end{shelloutput}
+
+\paragraph{Замер времени внутри области видимости}
+Чтобы не писать \cvar{Toc} для остановки таймера
+можно использовать замер внутри текущей области видимомости (внутри текущих фигурных скобок) используя
+метод \cvar{ScopedTic}.
+Например, чтобы замерить время работы метода можно написать
+\begin{cppcode}
+void heavy_func(){
+    auto tic = dbg::ScopedTic("heavy_func");
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    // объект tic удалится при выходы из области видимости
+    // и таймер для процесса heavy_func будет остановлен
+}
+\end{cppcode}
+
+\paragraph{Индексированные процессы}
+Иногда бывает полезно разбить один процесс
+на несколько подпроцессов. Для этого можно воспользоваться индексированными
+именами. В отчёт при этом
+пойдет как время исполнения каждого шага процесса, так и общее время.
+\begin{cppcode}
+{
+    auto tic = dbg::ScopedTic("process", 1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+}
+{
+    auto tic = dbg::ScopedTic("process", 2);
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+}
+{
+    auto tic = dbg::ScopedTic("process", 3);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+}
+\end{cppcode}
+\begin{shelloutput}
+------ Tictoc report (ms)
+Process        Total time    Calls count  Time per call
+-------------------------------------------------------
+process                80              3             26
+process-1              50              1             50
+process-2              20              1             20
+process-3              10              1             10
+\end{shelloutput}
+
+Это механизм удобно использовать для замера
+времени исполнения тела цикла (если кол-во итераций небольшое)
+\begin{cppcode}
+for (size_t i=0; i<3; ++i){
+    dbg::Tic("loop", i);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50-i));
+    dbg::Toc("loop", i);
+}
+\end{cppcode}
+
+\paragraph{Печать отчётов}
+По умолчанию программа печатает
+финальный отчёт о выполнении по окончании
+работы программы.
+Если требуется распечатать отчёт раньше, можно
+явно вызывать метод \cvar{dbg::Report} или
+\cvar{dbg::FinReport}.
+Последний обнуляет все таймеры и может быть удобен
+при запуске нескольких расчётов с разными параметрами:
+\begin{cppcode}
+for (size_t n_cells: {10, 20, 50}){
+    calculate(n_cells);
+    FinReport();  // печать отчёта о профилировании только для текущего расчёта
+}
+\end{cppcode}

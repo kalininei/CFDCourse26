@@ -110,7 +110,7 @@ $ p^0 = \rho U^2 $, [Па].
 введём релаксацию по диагональному параметру с коэффициентом $\alpha_u$:
 \begin{equation}
 \label{eq:ns2d_linearized_u}
-\frac{1}{\alpha_u} a^u_{ii}\hat u_i = -\sum_{j\neq i} a^u_{ij} \hat u_j -\dfr{\hat p}{x} + \frac{\alpha_u - 1}{\alpha_u} a^u_{ii} u_i
+\frac{1}{\alpha_u} a^u_{ii}\hat u_i = -\sum_{j\neq i} a^u_{ij} \hat u_j -\dfr{\hat p}{x} + \frac{1 - \alpha_u}{\alpha_u} a^u_{ii} u_i
 \end{equation}
 
 \subsubsection{Связывание давления и скорости}
@@ -131,9 +131,9 @@ $ p^0 = \rho U^2 $, [Па].
 Пусть введённое выше поле $u^*$ удовлетворяет уравнению
 \begin{align}
     \label{eq:ns2d_ustar}
-    &\frac{1}{\alpha_u} a^u_{ii} u^*_i = -\sum_{j\neq i} a^u_{ij} u^*_j - \dfr{p}{x} + \frac{\alpha_u - 1}{\alpha_u} a^u_{ii} u_i, \\[5pt]
+    &\frac{1}{\alpha_u} a^u_{ii} u^*_i = -\sum_{j\neq i} a^u_{ij} u^*_j - \dfr{p}{x} + \frac{1 - \alpha_u}{\alpha_u} a^u_{ii} u_i, \\[5pt]
     \label{eq:ns2d_vstar}
-    &\frac{1}{\alpha_u} a^v_{ii} v^*_i = -\sum_{j\neq i} a^v_{ij} v^*_j - \dfr{p}{y} + \frac{\alpha_u - 1}{\alpha_u} a^v_{ii} v_i,
+    &\frac{1}{\alpha_u} a^v_{ii} v^*_i = -\sum_{j\neq i} a^v_{ij} v^*_j - \dfr{p}{y} + \frac{1 - \alpha_u}{\alpha_u} a^v_{ii} v_i,
 \end{align}
 
 Тогда уравнение для поправки скорости запишем вычтя последнее выражение из
@@ -372,7 +372,7 @@ $\left(i, j+\tfrac12\right)$:
 Подставим полученные выражения в конвективную часть выражения \eqref{eq:ns2d_ustar_discr}.
 Множитель при диагональном элементе $u^*_{i,j+\tfrac12}$ будет равен:
 \begin{align*}
-        \frac{\tau}{4}\Biggl(
+        \frac{1}{4}\Biggl(
          \underbrace{\frac{u_{i,j+\tfrac12} - u_{i-1,j+\tfrac12}}{h_x}}_{\left.\ddfr{u}{x}\right|_{i-\tfrac12,j+\tfrac12}}
         +\underbrace{\frac{u_{i+1,j+\tfrac12} - u_{i,j+\tfrac12}}{h_x}}_{\left.\ddfr{u}{x}\right|_{i+\tfrac12,j+\tfrac12}}
         +\underbrace{\frac{v_{i+\tfrac12,j+1} - v_{i+\tfrac12,j}}{h_y}}_{\left.\ddfr{v}{y}\right|_{i+\tfrac12,j+\tfrac12}}
@@ -431,7 +431,7 @@ $\left(i, j+\tfrac12\right)$:
 Правая часть аппроксимируется в виде
 \begin{equation*}
     b^{u}[k(i, j+\tfrac12)] = - \frac{1}{h_x}\left(p_{i+\tfrac12,j+\tfrac12} - p_{i-\tfrac12,j+\tfrac12}\right)
-        + \frac{\alpha_u-1}{\alpha_u}\frac{2}{\Ren}\left(\frac{1}{h_x^2} + \frac{1}{h_y^2}\right) u_{i, j+\tfrac12}.
+        + \frac{1 - \alpha_u}{\alpha_u}\frac{2}{\Ren}\left(\frac{1}{h_x^2} + \frac{1}{h_y^2}\right) u_{i, j+\tfrac12}.
 \end{equation*}
 Здесь $k(i,j)$ -- функция перевода двумерного индекса в сквозной \eqref{eq:ns2d_kijp}.
 
@@ -481,7 +481,7 @@ $\left(i, j+\tfrac12\right)$:
 Правая часть аппроксимируется в виде
 \begin{equation*}
     b^{v}[k(i+\tfrac12, j)] =  - \frac{1}{h_y}\left(p_{i+\tfrac12, j+\tfrac12} - p_{i+\tfrac12,j-\tfrac12}\right)
-        + \frac{\alpha_u-1}{\alpha_u}\frac{2}{\Ren}\left(\frac{1}{h_x^2} + \frac{1}{h_y^2}\right) v_{i, j+\tfrac12}.
+        + \frac{1 - \alpha_u}{\alpha_u}\frac{2}{\Ren}\left(\frac{1}{h_x^2} + \frac{1}{h_y^2}\right) v_{i, j+\tfrac12}.
 \end{equation*}
 Используется функция перевода двумерного индекса в сквозной из \eqref{eq:ns2d_kipj}.
 
@@ -713,7 +713,7 @@ $[k(i, \tfrac12), k(i, -\tfrac12)]$, который, очевидно, не пр
 которая, исходя из выражения \eqref{eq:ns2d_uprime_approx} пропорциональна граничному значению $u'$,
 то есть, вспоминая \eqref{eq:ns2d_usplit_bc}, равна нулю:
 \begin{equation*}
-\left. \dfr{p'}{x} \right|_{0,j+\tfrac12} = -\frac{1}{\tau d^u} u'_{0,j+\tfrac12} = 0.
+\left. \dfr{p'}{x} \right|_{0,j+\tfrac12} = -\frac{1}{d^u} u'_{0,j+\tfrac12} = 0.
 \end{equation*}
 
 То есть добавлять слагаемые, соответствующие фиктивным узлам, в матрицу $A^p$ не нужно.
@@ -751,14 +751,14 @@ $[k(i, \tfrac12), k(i, -\tfrac12)]$, который, очевидно, не пр
 расчётных полей (разнесённая сетка) нельзя.
 Вместо этого в набор искомых полей решения добавляется
 нормальная к грани скорость течения, определённая для центров граней (между $i$-ой и $j$-ой точками коллокаций): $\unij$.
-Для её нахождения используется специальный алгоритм Rhie-Chow, учитывающий текущее давления.
+Для её нахождения используется специальный алгоритм Rhie--Chow, учитывающий текущее давления.
 Кроме того отдельно вычисляется градиент давления в центрах ячеек $(\nabla p)_i$.
 
 \subsubsection{Определяющие соотношения}
 Запишем конечнообъёмную аппроксимацию линеаризованного уравнения сохранения импульса (аналог \cref{eq:ns2d_linearized_u}):
 \begin{equation}
 \label{eq:ns2d_fvmsimple_momentum}
-\frac{1}{\alpha_u} a_{ii}\hat{\vec u_i} = -\sum_{j\neq i} a_{ij} \hat{\vec u_j} - m_i \left(\nabla \hat p\right)_i + \frac{\alpha_u - 1}{\alpha_u} a_{ii} \vec u_i.
+\frac{1}{\alpha_u} a_{ii}\hat{\vec u_i} = -\sum_{j\neq i} a_{ij} \hat{\vec u_j} - m_i \left(\nabla \hat p\right)_i + \frac{1 - \alpha_u}{\alpha_u} a_{ii} \vec u_i.
 \end{equation}
 Здесь $m_i$ -- элемент матрицы масс, равный объёму ячейки $|E_i|$.
 Далее следуя методике \secref{sec:ns2d_segragated}
@@ -766,7 +766,7 @@ $[k(i, \tfrac12), k(i, -\tfrac12)]$, который, очевидно, не пр
 и запишем аналоги уравнений для пробной скорости \cref{eq:ns2d_ustar,eq:ns2d_vstar}:
 \begin{equation}
 \label{eq:ns2d_fvm_ustar}
-\frac{1}{\alpha_u} a_{ii} \vec u^*_i = -\sum_{j\neq i} a_{ij} \vec u^*_j - m_i (\nabla p)_i + \frac{\alpha_u - 1}{\alpha_u} a_{ii} \vec u_i,
+\frac{1}{\alpha_u} a_{ii} \vec u^*_i = -\sum_{j\neq i} a_{ij} \vec u^*_j - m_i (\nabla p)_i + \frac{1 - \alpha_u}{\alpha_u} a_{ii} \vec u_i,
 \end{equation}
 и поправки \cref{eq:ns2d_uprime_approx,eq:ns2d_vprime_approx}:
 \begin{equation}
@@ -792,15 +792,14 @@ $[k(i, \tfrac12), k(i, -\tfrac12)]$, который, очевидно, не пр
 \arint{\nabla\cdot \vec u^*}{E_i}{\vec x} = \sum_{j\in I^i} \unij^* |\gamma_{ij}|.
 \end{equation}
 Вычисление нормальной скорости на грани по наивной формуле приведёт к шахматным осцилляциям. То есть
-\begin{equation}
-\label{eq:ns2d_fvm_illegal_unij}
+\begin{equation*}
 \unij^* \neq \frac{\vec u^*_i + \vec u^*_j}{2} \vec n_{ij}.
-\end{equation}
+\end{equation*}
 Вместо этого выразим $u^*$ из соотношения \cref{eq:ns2d_fvm_ustar}:
 \begin{equation}
 \label{eq:ns2d_fvm_ustar2}
 \vec u^* = \tilde{\vec u} - d (\nabla p), \qquad
-\tilde{\vec u}_i = -\frac{\alpha_u}{a_{ii}}\sum_{j\neq i} a_{ij} \vec u^*_j + \left(\alpha_u - 1\right) \vec u_i.
+\tilde{\vec u}_i = -\frac{\alpha_u}{a_{ii}}\sum_{j\neq i} a_{ij} \vec u^*_j + \left(1 - \alpha_u\right) \vec u_i.
 \end{equation}
 Далее спроецируем это выражение на нормаль к грани $\gamma_{ij}$:
 \begin{equation*}
@@ -890,26 +889,26 @@ $$\dfr{u}{t} \approx \frac{\hat u - \check u}{\dt}. $$
 \begin{equation}
     \label{eq:ns2d_piso_decomp}
 \begin{array}{l}
-    \hat{\vec u} = \vec u^* + \vec u' + \vec u'' + \vec u''' + \dots,\\
-    \hat p = p + p' + p'' + p''' + \dots.
+    \hat{\vec u} = \vec u^* + \vec u' + \vec u'' + \vec u''' + \dots + \vec u^{(k)},\\
+    \hat p = p + p' + p'' + p''' + \dots + \vec p^{(k)}.
 \end{array}
 \end{equation}
 Подставим его в исходное уравнение
 моментов
-\label{eq:ns2d_fvmsimple_momentum}.
+\cref{eq:ns2d_fvmsimple_momentum}.
 Итоговое уравнение разобьъём слудующим образом
 \begin{equation}
 \label{eq:ns2d_piso_momentum}
 \begin{array}{llll}
-\frac{1}{\alpha_u} a_{ii} \vec u^*_i = &-\sum_{j\neq i} a_{ij} \vec u^*_j &- m_i (\nabla p)_i  &+ \frac{\alpha_u - 1}{\alpha_u} a_{ii} \vec u_i + \frac{m_i}{\dt}\check{\vec u}_i, \\[10pt]
+\frac{1}{\alpha_u} a_{ii} \vec u^*_i = &-\sum_{j\neq i} a_{ij} \vec u^*_j &- m_i (\nabla p)_i  &+ \frac{1 - \alpha_u}{\alpha_u} a_{ii} \vec u_i + \frac{m_i}{\dt}\check{\vec u}_i, \\[10pt]
 \frac{1}{\alpha_u} a_{ii} \vec u'_i  = &                                  &- m_i (\nabla p')_i &\\[10pt]
 \frac{1}{\alpha_u} a_{ii} \vec u''_i = &-\sum_{j\neq i} a_{ij} \vec u'_j   &- m_i (\nabla p'')_i &\\[10pt]
 \dots &&&\\[10pt]
 \frac{1}{\alpha_u} a_{ii} \vec u^{(k)}_i =&-\sum_{j\neq i} a_{ij} \vec u^{(k-1)}_j &- m_i (\nabla p^{(k)})_i &\\[10pt]
 \end{array}
 \end{equation}
-Мы по прежнему используем факторы релаксаций для общности в исходным SIMPLE алгоритмом. Кроме того такая записть будет использована
-в следующей модификации PIMPLE.
+Мы по прежнему используем факторы релаксаций сохраняя общность обозначений с исходным SIMPLE алгоритмом и имея ввиду, что для PISO $alpha_u = alpha_p = 1$.
+Кроме того такая записть будет использована в следующей модификации PIMPLE.
 
 Уравнение неразрывности удовлетворим в виде:
 \begin{equation}
@@ -924,7 +923,7 @@ $$\dfr{u}{t} \approx \frac{\hat u - \check u}{\dt}. $$
 При этом в качестве начального приближения возьмём значения с предыдущего временного слоя.
 Далее будем вычислять последовательные приближения искомых параметров в цикле PISO:
 \begin{enumerate}
-\item Пусть мы находимся на $k$ шаге PISO итерации и значения $u^(k-1)$, $p^{(k-1)}$ нам известны.
+\item Пусть мы находимся на $k$ шаге PISO итерации и значения $u^{(k-1)}$, $p^{(k-1)}$ нам известны.
 \item Применим к последнему из уравнений \cref{eq:ns2d_piso_momentum} оператор дивергенции.
       С учётом \cref{eq:ns2d_piso_incomp} выпишем и решим уравнение для поправки давления
 \begin{equation*}
