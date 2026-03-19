@@ -86,15 +86,19 @@ p
 Учесть, что длины векторов равны:
 \begin{cppcode}
 // вектора rhs_u, r_u, u, y_u
-size_t nu = 2*grid_.n_cells() + 2 * grid_.n_points;
+// Две компоненты скорости, каждая из которых задана
+// на трёх узлах треугольников и bubble-точке
+size_t nu = 2 * grid_.n_cells() + 2 * grid_.n_points();
 // вектора rhs_p, r_p, p, y_p
-size_t np = grid_.n_points;
+// Заданы только в узлах треугольных ячеек
+size_t np = grid_.n_points();
 \end{cppcode}
 Для получения подмассива из сплошного вектора можно воспользоваться арифметикой указателей
 \begin{cppcode}
-const double* u = uvp_.data() + 0;
-const double* p = uvp_.data() + nu;
+const double* u = uvp_.data() + 0;  // без сдвига от начала uvp_
+const double* p = uvp_.data() + nu; // сдвиг на nu элементов
 
+// Умножение матрицы на вектор
 std::vector<double> Au = A_->mult_vec_p(u);
 \end{cppcode}
 
@@ -120,7 +124,7 @@ x = r
 потом вызывается решатель, для нахождения неизвестного вектора $x$ в левой части.
 Полученная матрица имеет проблему седловой точки (нули на диагоналях),
 поэтому её нельзя решить общими итерационными методами.
-Для её решения испльзуется точный решатель \cvar{UmfMatrixSolver}.
+Для её решения исплользуется точный решатель \cvar{UmfpackSolver}.
 Предлагается решать эту систему с следующем порядке
 \begin{equation*}
 \left(
@@ -174,9 +178,9 @@ y_p
 &x_u = y_u - H B^T x_p
 \end{align*}
 Для вычисления $y$ воспользоваться матричным решателем.
-Сначала точным (\cvar{UmfMatrixSolver}),
+Сначала точным (\cvar{UmfpackSolver}),
 потом, если всё работает, можно перейти на итерационный
-и сравнить время работы \cvar{AmgcMatrixSolver}.
+(\cvar{AmgcMatrixSolver}) и сравнить время работы.
 
 \item п. 4
 Метод BiCGStab с учётом предобуславливателя приведён в \secref{sec:bicgstab}.
@@ -188,7 +192,7 @@ y_p
 матричного решателя (делать один раз) и непосредственно решени (делать три раза)
 \begin{cppcode}
 // инициализация
-UmfMatrixSolver slv_A;
+UmfpackSolver slv_A;
 slv_A.set_matrix(A_);
 // решения
 std::vector<double> r0_prime;
