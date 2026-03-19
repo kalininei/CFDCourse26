@@ -5,6 +5,7 @@
 #include "cfd/mat/lodmat.hpp"
 #include "cfd/mat/matrix_iter.hpp"
 #include "cfd/mat/sparse_matrix_solver.hpp"
+#include "cfd/mat/umfpack_solver.hpp"
 #include "cfd26_test.hpp"
 
 using namespace cfd;
@@ -58,15 +59,76 @@ TEST_CASE("CsrMatrix", "[csrmat]") {
     CHECK(m.value(2, 2) == Approx(3));
 
     // SLAE solution
-    AmgcMatrixSolver solver;
-    solver.set_matrix(m);
-    std::vector<double> rhs{1, 1, 1};
-    std::vector<double> x;
-    solver.solve(rhs, x);
+    {
+        // AMGC
+        AmgcMatrixSolver solver;
+        solver.set_matrix(m);
+        std::vector<double> rhs{1, 1, 1};
+        std::vector<double> x;
+        solver.solve(rhs, x);
 
-    CHECK(x[0] == Approx(1.0));
-    CHECK(x[1] == Approx(0.333333));
-    CHECK(x[2] == Approx(0));
+        CHECK(x[0] == Approx(1.0));
+        CHECK(x[1] == Approx(0.333333));
+        CHECK(x[2] == Approx(0));
+    }
+    {
+        // UMFPack solution
+        UmfpackSolver solver;
+        solver.set_matrix(m);
+        std::vector<double> rhs{1, 1, 1};
+        std::vector<double> x;
+        solver.solve(rhs, x);
+
+        CHECK(x[0] == Approx(1.0));
+        CHECK(x[1] == Approx(0.333333));
+        CHECK(x[2] == Approx(0));
+    }
+}
+
+TEST_CASE("CsrMatrix", "[csr-mult]"){
+    // A
+    // [1, *, *]
+    // [*, 3, 1]
+    // [1, *, 3]
+    std::vector<size_t> a_addr{0, 1, 3, 5};
+    std::vector<size_t> a_cols{0, 1, 2, 0, 2};
+    std::vector<double> a_vals{1, 3, 1, 1, 3};
+
+    // B
+    // [1, *]
+    // [*, 3]
+    // [1, *]
+    std::vector<size_t> b_addr{0, 1, 2, 3};
+    std::vector<size_t> b_cols{0, 1, 0};
+    std::vector<double> b_vals{1, 3, 1};
+
+    CsrMatrix A(std::move(a_addr), std::move(a_cols), std::move(a_vals));
+    CsrMatrix B(std::move(b_addr), std::move(b_cols), std::move(b_vals));
+
+    CsrMatrix C = mat_multiply(A, B);
+    CHECK(C.value(0, 0) == Approx(1.0));
+    CHECK(C.is_in_stencil(0, 1) == false);
+    CHECK(C.value(1, 0) == Approx(1.0));
+    CHECK(C.value(1, 1) == Approx(9.0));
+    CHECK(C.value(2, 0) == Approx(4.0));
+    CHECK(C.is_in_stencil(2, 1) == false);
+}
+
+TEST_CASE("CsrMatrix", "[csr-transpose]"){
+    // [1, *, *]
+    // [*, 3, 1]
+    // [1, *, 3]
+    std::vector<size_t> a_addr{0, 1, 3, 5};
+    std::vector<size_t> a_cols{0, 1, 2, 0, 2};
+    std::vector<double> a_vals{1, 3, 1, 1, 3};
+
+    CsrMatrix A(std::move(a_addr), std::move(a_cols), std::move(a_vals));
+
+    CsrMatrix At = mat_transpose(A);
+
+    CHECK(At.addr() == std::vector<size_t>{0, 2, 3, 5});
+    CHECK(At.cols() == std::vector<size_t>{0, 2, 1, 1, 2});
+    CHECK(At.vals() == std::vector<double>{1.0, 1.0, 3.0, 1.0, 3.0});
 }
 
 TEST_CASE("Block matrix", "[block_matrix]") {

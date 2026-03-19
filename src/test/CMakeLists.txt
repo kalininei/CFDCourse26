@@ -19,6 +19,9 @@ set(SRC
     poiseuille_fvm_test.cpp
     cylinder_fvm_test.cpp
     cavity_fvm_coupled_test.cpp
+    cavity_fem_direct_test.cpp
+    cavity_fem_simple_test.cpp
+    heat_fem_simple_test.cpp
 )
 
 set(HEADERS

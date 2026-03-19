@@ -141,4 +141,24 @@ void cfd::dbg::save_cell_vector(const IGrid& grid, const std::vector<Vector>& ve
     VtkUtils::add_cell_vector(d2, dbg_vtk_cap, dbg_vtk_filename);
 }
 
+void cfd::dbg::save_sparse_matrix(const ISparseMatrix& mat){
+    size_t col0 = 0;
+    size_t col1 = mat.n_cols();
+    std::ofstream ofs("dbg.txt");
+    ofs << " SIZE = " << mat.n_rows() << "x" << mat.n_cols() << std::endl;
+
+    for (size_t irow=0; irow<mat.n_rows(); ++irow){
+        ofs << "-- ROW = " << irow << std::endl;
+        for (size_t icol = col0; icol < col1; ++icol) {
+            if (mat.is_in_stencil(irow, icol)) {
+                ofs << "   [" << std::setw(4) << icol << "] ";
+                ofs << mat.value(irow, icol);
+                ofs << std::endl;
+            }
+        }
+    }
+
+}
+
 void cfd::dbg::ping_saver_cpp() {}
+

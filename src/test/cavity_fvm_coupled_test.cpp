@@ -43,8 +43,6 @@ double tvd_upwind_weight(const double* u, const std::vector<Vector>& grad_u, Vec
     return 1 - phi / 2;
 }
 
-} // namespace
-
 struct CavityFvmCoupledWorker {
     CavityFvmCoupledWorker(const IGrid& grid, double Re, double tau);
     void initialize_saver(std::string stem);
@@ -487,6 +485,8 @@ std::vector<double> CavityFvmCoupledWorker::compute_un_rhie_chow() const {
 
     return ret;
 }
+
+} // namespace
 
 TEST_CASE("Cavity FVM-SIMPLE coupled algorithm", "[cavity-fvm-coupled]") {
     std::cout << std::endl << "--- cfd26_test [cavity-fvm-coupled] --- " << std::endl;

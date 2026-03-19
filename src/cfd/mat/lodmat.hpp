@@ -90,6 +90,7 @@ public:
 
     // overrides
     size_t n_rows() const override;
+    size_t n_cols() const override;
     double value(size_t irow, size_t icol) const override;
     size_t n_nonzeros() const override;
     bool is_in_stencil(size_t irow, size_t icol) const override;

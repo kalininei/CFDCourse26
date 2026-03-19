@@ -5,6 +5,7 @@ set(SRC
     mat/densemat.cpp
     mat/sparse_matrix_solver.cpp
     mat/algebraic_bc.cpp
+    mat/umfpack_solver.cpp
     geom/simplex.cpp
     geom/searcher.cpp
     geom/jacobi.cpp
@@ -28,6 +29,7 @@ set(SRC
     fvm/fvm_dfdn.cpp
     fem/fem_element.cpp
     fem/fem_assembler.cpp
+    fem/fem_cross_assembler.cpp
     fem/fem_sorted_cell_info.cpp
     fem/elem1d/segment_linear.cpp
     fem/elem1d/segment_quadratic.cpp
@@ -52,6 +54,7 @@ set(HEADERS
     mat/densemat.hpp
     mat/matrix_iter.hpp
     mat/algebraic_bc.hpp
+    mat/umfpack_solver.hpp
     geom/point.hpp
     geom/simplex.hpp
     geom/searcher.hpp
@@ -77,6 +80,7 @@ set(HEADERS
     fvm/fvm_dfdn.hpp
     fem/fem_element.hpp
     fem/fem_assembler.hpp
+    fem/fem_cross_assembler.hpp
     fem/fem_boundary.hpp
     fem/fem_sorted_cell_info.hpp
     fem/elem1d/segment_linear.hpp
@@ -92,4 +96,18 @@ add_library(
     STATIC
     ${SRC}
     ${HEADERS}
+)
+
+set(UMFPACK_LIBRARIES
+    /usr/lib/x86_64-linux-gnu/libumfpack.so
+    /usr/lib/x86_64-linux-gnu/libamd.so
+    /usr/lib/x86_64-linux-gnu/libcholmod.so
+    /usr/lib/x86_64-linux-gnu/libcolamd.so
+    /usr/lib/x86_64-linux-gnu/libsuitesparseconfig.so
+    /usr/lib/x86_64-linux-gnu/libblas.so
+    m
+)
+
+target_link_libraries(${CFD_TARGET} PRIVATE
+    ${UMFPACK_LIBRARIES}
 )

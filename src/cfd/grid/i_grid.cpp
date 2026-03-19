@@ -91,3 +91,21 @@ std::vector<size_t> IGrid::tab_point_cell(size_t ipoint) const {
     _cache.need_point_cell(*this);
     return _cache.point_cell[ipoint];
 }
+
+std::pair<Point, Point> IGrid::box() const{
+    Point pmin = point(0);
+    Point pmax = point(0);
+    
+    for (size_t i: boundary_points()){
+        Point pi = point(i);
+        pmin.x = std::min(pmin.x, pi.x);
+        pmin.y = std::min(pmin.y, pi.y);
+        pmin.z = std::min(pmin.z, pi.z);
+
+        pmax.x = std::max(pmax.x, pi.x);
+        pmax.y = std::max(pmax.y, pi.y);
+        pmax.z = std::max(pmax.z, pi.z);
+    }
+
+    return {pmin, pmax};
+}

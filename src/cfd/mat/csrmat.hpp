@@ -46,6 +46,7 @@ public:
 
     // overrides
     size_t n_rows() const override;
+    size_t n_cols() const override;
     size_t n_nonzeros() const override;
     bool is_in_stencil(size_t irow, size_t icol) const override;
     double value(size_t irow, size_t icol) const override;
@@ -92,6 +93,7 @@ public:
     double row_sum(size_t irow) const;
     void clear_row(size_t irow);
     void add_value(size_t irow, size_t icol, double value);
+    void set_value(size_t irow, size_t icol, double value);
 
     // overrides
     void validate() const override;
@@ -105,12 +107,16 @@ private:
     std::vector<double> vals_;
 };
 
+CsrMatrix assemble_block_matrix(const std::vector<std::vector<const CsrMatrix*>>& blocks);
+
 CsrMatrix assemble_block_matrix(size_t block_n_rows, size_t block_n_cols,
                                 const std::vector<std::vector<const CsrMatrix*>>& blocks);
-
 class LodMatrix;
 CsrMatrix assemble_block_matrix(size_t block_n_rows, size_t block_n_cols,
                                 const std::vector<std::vector<const LodMatrix*>>& blocks);
+
+CsrMatrix mat_multiply(const CsrMatrix& A, const CsrMatrix& B);
+CsrMatrix mat_transpose(const CsrMatrix& A);
 
 } // namespace cfd
 

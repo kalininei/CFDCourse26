@@ -33,6 +33,14 @@ public:
     std::vector<Vector> grad(Point xi) const override;
 };
 
+class TriangleLinearBubbleBasis : public IElementBasis {
+public:
+    size_t size() const override;
+    std::vector<Point> parametric_reference_points() const override;
+    std::vector<double> value(Point xi) const override;
+    std::vector<Vector> grad(Point xi) const override;
+};
+
 } // namespace cfd
 
 #endif

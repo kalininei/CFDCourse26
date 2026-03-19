@@ -8,9 +8,10 @@ using namespace cfd;
 
 void dbg::print(const ISparseMatrix& mat) {
     size_t n = mat.n_rows();
+    size_t m = mat.n_cols();
     std::cout << "-- SIZE = " << n << "x" << n << std::endl;
     for (size_t irow = 0; irow < n; ++irow) {
-        for (size_t icol = 0; icol < n; ++icol) {
+        for (size_t icol = 0; icol < m; ++icol) {
             std::cout << std::setw(6);
             if (mat.is_in_stencil(irow, icol)) {
                 std::cout << mat.value(irow, icol);
@@ -24,7 +25,7 @@ void dbg::print(const ISparseMatrix& mat) {
 }
 
 void dbg::print(size_t irow, const ISparseMatrix& mat) {
-    dbg::print(irow, mat, 0, mat.n_rows());
+    dbg::print(irow, mat, 0, mat.n_cols());
 }
 
 void dbg::print(size_t irow, const ISparseMatrix& mat, size_t col0, size_t col1) {

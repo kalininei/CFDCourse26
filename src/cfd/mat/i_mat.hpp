@@ -15,6 +15,9 @@ public:
     /// @brief number of rows
     virtual size_t n_rows() const = 0;
 
+    /// @brief number of columns
+    virtual size_t n_cols() const = 0;
+
     /// @brief gets value at given address
     virtual double value(size_t irow, size_t icol) const = 0;
 

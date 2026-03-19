@@ -86,6 +86,7 @@ public:
     virtual std::vector<size_t> boundary_faces() const;
     virtual std::vector<size_t> boundary_points() const;
     virtual std::vector<size_t> boundary_cells() const;
+    virtual std::pair<Point, Point> box() const;
 
     /**
      * @brief Saves grid to vtk format

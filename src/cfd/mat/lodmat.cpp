@@ -4,6 +4,16 @@ using namespace cfd;
 
 LodMatrix::LodMatrix(size_t n_rows) : data_(n_rows) {}
 
+size_t LodMatrix::n_cols() const{
+    size_t ret = 0;
+    for (const auto& d: data_){
+        for (const auto& [i, _]: d){
+            ret = std::max(ret, i);
+        }
+    }
+    return ret + 1;
+}
+
 const std::map<size_t, double>& LodMatrix::row(size_t i_row) const {
     return data_.at(i_row);
 }

@@ -71,3 +71,50 @@ u^{n+1} = u^{n} + A^{-1}(f - A u^n) = A^{-1} f
 внутриннем, поэтому не будет требовать глубокой сходимости.
 Зачастую для обращения предобуславливателя достаточно сделать 2-3 поверхностные итерации
 одним из простых методов из \secref{sec:sae_simple}.
+
+\subsubsection{Методы подпространств Крылова}
+
+\subsubsubsection{Итерационный процесс BiCGStab с предобуславливателем}
+\label{sec:bicgstab}
+
+Инициализация
+\begin{enumerate}
+\item есть начальное приближение $u^0$
+\item вычисляем невязку
+$$r_0 = f - \mat A u_0$$
+\item предобуславливаем невязку
+$$r_0' = \matinv{M}r_0$$
+\item запоминаем начальную невязку
+$$\tilde r = r_0'$$
+\item инициализируем
+$$p_0' = r_0'$$
+\end{enumerate}
+
+Далее на $k$-ой итерации
+
+\begin{enumerate}
+\item проецируем текущую невязку на начальную
+$$\rho_k = \tilde r^T \cdot r'_{k-1}$$
+\item коэффициент $\beta$:
+$$\beta_k = \frac{\rho_k}{\rho_{k-1}} \frac{\alpha_{k-1}}{\omega_{k-1}}$$
+\item Обновляем направление
+$$p'_k = r'_{k-1} + \beta_k \left( p'_{k-1} - \omega_{k-1} v'_{k-1} \right)$$
+\item
+$$v_k'=\matinv{M}\mat A p_k'$$
+\item коэффициент $\alpha$
+$$\alpha_k = \frac{\rho_k}{\tilde r^T \cdot v'_k}$$
+\item Промежуточный вектор $s$:
+$$s'_k =  r'_{k-1} - \alpha_k v'_k$$
+\item Промежуточный вектор $t$
+$$t'_k = \matinv{M}\mat{A}s_k'$$
+\item множитель $\omega$
+$$\omega_k = \frac{ (t_k')^T \cdot s'_k} { (t_k')^T \cdot t_k' }.$$
+\item обновляем невязку и решение
+\begin{equation}
+\label{eq:schwarz_bicgstab}
+\begin{aligned}
+& u_k = u_{k-1} + \alpha_k p'_k + \omega_k s'_k, \\
+& r'_k = s'_k - \omega_k t'_k
+\end{aligned}
+\end{equation}
+\end{enumerate}

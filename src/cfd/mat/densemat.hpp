@@ -18,11 +18,11 @@ public:
     DenseMatrix mult_mat(const DenseMatrix& mat) const;
     DenseMatrix inverse() const;
 
-    size_t n_cols() const;
     const std::vector<double>& vals() const;
 
     // overriden
     size_t n_rows() const override;
+    size_t n_cols() const override;
     double value(size_t irow, size_t icol) const override;
     std::vector<double> mult_vec_p(const double* u) const override;
     double mult_vec_p(size_t irow, const double* u) const override;
