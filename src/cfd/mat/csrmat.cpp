@@ -238,10 +238,10 @@ CsrMatrix cfd::assemble_block_matrix(const std::vector<std::vector<const CsrMatr
     std::vector<size_t> block_n_rows;
     std::vector<size_t> block_n_cols;
     size_t nrows = 0;
-    for (auto& b: blocks){
+    for (auto& b: blocks) {
         bool found = false;
-        for (auto& m: b){
-            if (m!= nullptr){
+        for (auto& m: b) {
+            if (m != nullptr) {
                 nrows += m->n_rows();
                 block_n_rows.push_back(m->n_rows());
                 block_n_cols.push_back(m->n_cols());
@@ -249,7 +249,7 @@ CsrMatrix cfd::assemble_block_matrix(const std::vector<std::vector<const CsrMatr
                 break;
             }
         }
-        if (!found){
+        if (!found) {
             throw std::runtime_error("At least one matrix per block row should be defined");
         }
     }
@@ -390,35 +390,35 @@ CsrMatrix cfd::mat_multiply(const CsrMatrix& A, const CsrMatrix& B) {
     size_t m = A.n_rows();
     // B columns
     size_t n = *std::max_element(B.cols().begin(), B.cols().end()) + 1;
-    
+
     // Результирующая матрица
     std::vector<size_t> C_addr;
     std::vector<size_t> C_cols;
     std::vector<double> C_vals;
-    
+
     // Временные массивы для накопления одной строки
     std::vector<double> row_vals(n, 0.0);
-    std::vector<int> row_mark(n, -1);  // для отметки какие колонки не нулевые
+    std::vector<int> row_mark(n, -1); // для отметки какие колонки не нулевые
     std::vector<size_t> row_cols;
-    
+
     C_addr.resize(m + 1, 0);
-    
+
     // Проходим по строкам A
     for (size_t i = 0; i < m; ++i) {
         row_cols.clear();
-        
+
         // Для каждого ненуля в строке A
         for (size_t ja = A.addr()[i]; ja < A.addr()[i + 1]; ++ja) {
-            size_t col_a = A.cols()[ja];   // k
+            size_t col_a = A.cols()[ja]; // k
             double val_a = A.vals()[ja];
-            
+
             // Умножаем на строку col_a из B (внимание: B в CSR, поэтому это строка col_a матрицы B)
             for (size_t jb = B.addr()[col_a]; jb < B.addr()[col_a + 1]; ++jb) {
-                size_t col_b = B.cols()[jb];  // j
+                size_t col_b = B.cols()[jb]; // j
                 double val_b = B.vals()[jb];
-                
+
                 double prod = val_a * val_b;
-                
+
                 if (row_mark[col_b] == -1) {
                     // Первый раз встречаем эту колонку
                     row_mark[col_b] = (int)row_cols.size();
@@ -430,25 +430,25 @@ CsrMatrix cfd::mat_multiply(const CsrMatrix& A, const CsrMatrix& B) {
                 }
             }
         }
-        
+
         // Сортируем колонки по возрастанию (требование для CSR)
         std::sort(row_cols.begin(), row_cols.end());
-        
+
         // Записываем строку в C
-        for (size_t col : row_cols) {
+        for (size_t col: row_cols) {
             C_cols.push_back(col);
             C_vals.push_back(row_vals[col]);
-            row_vals[col] = 0.0;          // очищаем
-            row_mark[col] = -1;            // сбрасываем маркер
+            row_vals[col] = 0.0; // очищаем
+            row_mark[col] = -1;  // сбрасываем маркер
         }
-        
+
         C_addr[i + 1] = C_vals.size();
     }
-    
+
     return CsrMatrix(std::move(C_addr), std::move(C_cols), std::move(C_vals));
 }
 
-CsrMatrix cfd::mat_transpose(const CsrMatrix& A){
+CsrMatrix cfd::mat_transpose(const CsrMatrix& A) {
     size_t n_rows = A.n_rows();
     size_t n_cols = A.n_cols();
     size_t nnz = A.n_nonzeros();
@@ -468,7 +468,7 @@ CsrMatrix cfd::mat_transpose(const CsrMatrix& A){
 
     for (size_t i = 0; i < nnz; ++i) {
         size_t col = A_cols[i];
-        At_addr[col + 1]++;  // увеличиваем счетчик для следующей строки At
+        At_addr[col + 1]++; // увеличиваем счетчик для следующей строки At
     }
 
     // Шаг 2: Префиксные суммы - получаем начала строк
@@ -481,19 +481,19 @@ CsrMatrix cfd::mat_transpose(const CsrMatrix& A){
     At_vals.resize(nnz);
 
     // Вектор для отслеживания текущей позиции в каждой строке At
-    std::vector<size_t> position = At_addr;  // копия начал строк
+    std::vector<size_t> position = At_addr; // копия начал строк
 
     // Проходим по строкам исходной A
     for (size_t row = 0; row < n_rows; ++row) {
         for (size_t j = A_addr[row]; j < A_addr[row + 1]; ++j) {
-            size_t col = A_cols[j];      // колонка A = строка At
+            size_t col = A_cols[j]; // колонка A = строка At
             double val = A_vals[j];
 
             // Вставляем в At
             size_t pos = position[col];
-            At_cols[pos] = row;           // индекс колонки At = строка A
+            At_cols[pos] = row; // индекс колонки At = строка A
             At_vals[pos] = val;
-            position[col]++;               // двигаем указатель в этой строке
+            position[col]++; // двигаем указатель в этой строке
         }
     }
 

@@ -4,10 +4,10 @@ using namespace cfd;
 
 LodMatrix::LodMatrix(size_t n_rows) : data_(n_rows) {}
 
-size_t LodMatrix::n_cols() const{
+size_t LodMatrix::n_cols() const {
     size_t ret = 0;
-    for (const auto& d: data_){
-        for (const auto& [i, _]: d){
+    for (const auto& d: data_) {
+        for (const auto& [i, _]: d) {
             ret = std::max(ret, i);
         }
     }

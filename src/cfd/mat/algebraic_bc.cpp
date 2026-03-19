@@ -16,7 +16,8 @@ void cfd::algebraic_bc_dirichlet(const std::map<size_t, double>& vals, std::vect
     }
 }
 
-void cfd::symmetric_algebraic_bc_dirichlet(const std::map<size_t, double>& vals, CsrMatrix& lhs, std::vector<double>& rhs){
+void cfd::symmetric_algebraic_bc_dirichlet(const std::map<size_t, double>& vals, CsrMatrix& lhs,
+                                           std::vector<double>& rhs) {
     for (auto [i, v]: vals) {
         algebraic_bc_exclude_column(i, v, lhs, rhs.data());
         lhs.set_unit_row(i);
@@ -24,10 +25,10 @@ void cfd::symmetric_algebraic_bc_dirichlet(const std::map<size_t, double>& vals,
     }
 }
 
-void cfd::algebraic_bc_exclude_column(size_t icol, double value, CsrMatrix& mat, double* rhs){
-    for (size_t irow = 0; irow < mat.n_rows(); ++irow){
+void cfd::algebraic_bc_exclude_column(size_t icol, double value, CsrMatrix& mat, double* rhs) {
+    for (size_t irow = 0; irow < mat.n_rows(); ++irow) {
         size_t a = mat.get_address(irow, icol);
-        if (a != INVALID_INDEX){
+        if (a != INVALID_INDEX) {
             rhs[irow] -= mat.vals()[a] * value;
             mat.vals()[a] = 0;
         }

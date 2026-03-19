@@ -47,7 +47,7 @@ public:
 std::shared_ptr<IElementGeometry> build_geometry_from_basis(std::shared_ptr<IElementBasis> geometry_basis,
                                                             const std::vector<Point>& x);
 
-class CompaundBasis: public IElementBasis{
+class CompaundBasis : public IElementBasis {
 public:
     CompaundBasis(std::vector<std::shared_ptr<IElementBasis>> bases);
 
@@ -56,6 +56,7 @@ public:
     std::vector<double> value(Point) const override;
     std::vector<Vector> grad(Point) const override;
     std::vector<std::array<double, 6>> upper_hessian(Point) const override;
+
 private:
     std::vector<std::shared_ptr<IElementBasis>> bases_;
 };

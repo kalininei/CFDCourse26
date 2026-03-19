@@ -81,7 +81,7 @@ HeatFemSimpleWorker::HeatFemSimpleWorker(const IGrid& grid, double Re, double Pe
         double r = vector_abs(p);
         if (p.y > ymax - 0.0001){
             cooler_nodes_.push_back(inode);
-        } else if (r < 1.001){
+        } else if (r < 0.5001){
             heater_nodes_.push_back(inode);
         }
     }

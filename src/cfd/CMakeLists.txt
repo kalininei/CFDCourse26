@@ -108,6 +108,4 @@ set(UMFPACK_LIBRARIES
     m
 )
 
-target_link_libraries(${CFD_TARGET} PRIVATE
-    ${UMFPACK_LIBRARIES}
-)
+target_link_libraries(${CFD_TARGET} PRIVATE ${UMFPACK_LIBRARIES})

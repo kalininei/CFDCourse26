@@ -85,7 +85,7 @@ TEST_CASE("CsrMatrix", "[csrmat]") {
     }
 }
 
-TEST_CASE("CsrMatrix", "[csr-mult]"){
+TEST_CASE("CsrMatrix", "[csr-mult]") {
     // A
     // [1, *, *]
     // [*, 3, 1]
@@ -114,7 +114,7 @@ TEST_CASE("CsrMatrix", "[csr-mult]"){
     CHECK(C.is_in_stencil(2, 1) == false);
 }
 
-TEST_CASE("CsrMatrix", "[csr-transpose]"){
+TEST_CASE("CsrMatrix", "[csr-transpose]") {
     // [1, *, *]
     // [*, 3, 1]
     // [1, *, 3]

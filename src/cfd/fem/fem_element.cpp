@@ -100,7 +100,7 @@ Vector FemElementValue::interpolate(const std::vector<Vector>& f) const {
     return ret;
 }
 
-double FemElementValue::subrange_interpolate(size_t istart, size_t iend, const std::vector<double>& f) const{
+double FemElementValue::subrange_interpolate(size_t istart, size_t iend, const std::vector<double>& f) const {
     double ret = 0;
     for (size_t i = istart; i < iend; ++i) {
         ret += phi(i) * f[i];
@@ -169,48 +169,50 @@ std::shared_ptr<IElementGeometry> cfd::build_geometry_from_basis(std::shared_ptr
     return std::make_shared<BasedGeometry>(geometry_basis, x);
 }
 
-CompaundBasis::CompaundBasis(std::vector<std::shared_ptr<IElementBasis>> bases): bases_(std::move(bases)){}
+CompaundBasis::CompaundBasis(std::vector<std::shared_ptr<IElementBasis>> bases) : bases_(std::move(bases)) {}
 
-size_t CompaundBasis::size() const{
+size_t CompaundBasis::size() const {
     size_t ret = 0;
-    for (auto& b: bases_){ ret+= b->size(); }
+    for (auto& b: bases_) {
+        ret += b->size();
+    }
     return ret;
 }
 
-std::vector<Point> CompaundBasis::parametric_reference_points() const{
+std::vector<Point> CompaundBasis::parametric_reference_points() const {
     std::vector<Point> ret;
-    for (const auto& b: bases_){
-        for (const Point& p: b->parametric_reference_points()){
+    for (const auto& b: bases_) {
+        for (const Point& p: b->parametric_reference_points()) {
             ret.push_back(p);
         }
     }
     return ret;
 }
 
-std::vector<double> CompaundBasis::value(Point p) const{
+std::vector<double> CompaundBasis::value(Point p) const {
     std::vector<double> ret;
-    for (const auto& b: bases_){
-        for (double x: b->value(p)){
+    for (const auto& b: bases_) {
+        for (double x: b->value(p)) {
             ret.push_back(x);
         }
     }
     return ret;
 }
 
-std::vector<Vector> CompaundBasis::grad(Point p) const{
+std::vector<Vector> CompaundBasis::grad(Point p) const {
     std::vector<Vector> ret;
-    for (const auto& b: bases_){
-        for (Vector x: b->grad(p)){
+    for (const auto& b: bases_) {
+        for (Vector x: b->grad(p)) {
             ret.push_back(x);
         }
     }
     return ret;
 }
 
-std::vector<std::array<double, 6>> CompaundBasis::upper_hessian(Point p) const{
+std::vector<std::array<double, 6>> CompaundBasis::upper_hessian(Point p) const {
     std::vector<std::array<double, 6>> ret;
-    for (const auto& b: bases_){
-        for (const auto& x: b->upper_hessian(p)){
+    for (const auto& b: bases_) {
+        for (const auto& x: b->upper_hessian(p)) {
             ret.push_back(x);
         }
     }
