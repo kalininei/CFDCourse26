@@ -1,0 +1,94 @@
+\section{Упрощенный учёт сжимаемости}
+\subsection{Учёт теплового расширения. Гипотеза Буссинеска}
+
+\subsection{Схемы с искусственной сжимаемостью}
+
+\subsection{Многофазное течение. Модель Эйлер--Эйлер}
+Рассмотрим несколько несжимаемых фаз $k=0,1,\dots$ в одном потоке.
+Каждай фаза имеет свою вязкость $\mu_k$, постоянную плотность $\rho_k = \const$
+и объёмную концентрацию $\phi_k \in [0, 1]$.
+\begin{equation}
+\label{eq:euler-euler-unitsum}
+\sum_k \phi_k = 1.
+\end{equation}
+Для каждой фазы будут справедливы закон сохранения импульса и закон сохранения массы:
+\begin{align}
+\label{eq:euler-euler-mom}
+&\frac{\partial (\phi_k \rho_k \mathbf{u}_k)}{\partial t} + \nabla \cdot (\phi_k \rho_k \mathbf{u}_k \mathbf{u}_k) = 
+-\phi_k \nabla p + \nabla \cdot (\phi_k \boldsymbol{\tau}_k) + \mathbf{M}_k + \phi_k \rho_k \mathbf{g}, \\
+\label{eq:euler-euler-mass}
+&\dfr{\rho_k \phi_k}{t} + \nabla\cdot\left(\rho_k \phi_k \vec u_k\right) = 0,
+\end{align}
+где \(\boldsymbol{\tau}_k = \mu_k\left(\nabla\vec u + \nabla^T \vec u\right)\) — тензор вязких напряжений для фазы \(k\),
+а $\vec M_k$ -- силы межфазного взаимодействия, действующие на фазу $k$.
+
+\subsubsection{Модель сопротивления дисперсной фазы}
+\label{sec:schiller-naumann}
+Такая модель не учитывает жёсткую границу между фазами и допускает взаимопроникновение фаз
+в одной единице объёма. Поэтому с её помощью часто считают мелкодисперсные системы.
+Основной силой межфазного взаимодействия в этом случае будет сила сопротивления
+дисперсных фаз ($k>0$) несущей фазе ($k=0$).
+Для дисперсных фаз сила сопротивления запишется в виде
+\[
+\vec M_k = \frac{3}{4} \phi_k \rho_0 \frac{C_D}{d_k} 
+|\mathbf{u}_0 - \mathbf{u}_k| (\mathbf{u}_0 - \mathbf{u}_k),
+\]
+где коэффициент сопротивления \(C_D\) определяется по корреляции Шиллера–Неймана через характерный размер дисперсной частицы $d_k$:
+\[
+C_D = 
+\begin{cases}
+\dfrac{24}{Re_k} \left(1 + 0.15\, Re_k^{0.687}\right), & Re_k \le 800, \\[10pt]
+0.44, & Re_k > 800,
+\end{cases}
+\]
+\[
+Re_k = \frac{\rho_0 |\mathbf{u}_0 - \mathbf{u}_k| d_k}{\mu_0}.
+\]
+Для несущей фазы:
+\[
+\vec M_0 = -\sum_{k>0} \vec M_k.
+\]
+
+\subsubsection{Схема решения SIMPLE}
+\label{sec:euler-euler-simple}
+В случае несжимаемых фаз уравнения сохранения масс \cref{eq:euler-euler-mass} упростятся
+до уравнений для $\phi_k$:
+\begin{equation}
+\label{eq:euler-euler-phi}
+\dfr{\phi_k}{t} + \nabla\cdot\left(\phi_k \vec u_k\right) = 0,
+\end{equation}
+Если суммировать эти уравнения по фазам и воспользоваться равентсвом \cref{eq:euler-euler-unitsum},
+получим уравнение неразрывности для смеси:
+\begin{equation}
+\label{eq:euler-euler-incomp}
+\nabla\cdot\sum_k\left(\phi_k \vec u_k\right) = 0,
+\end{equation}
+
+Шаг итерации SIMPLE начинается с определения
+фазовых концентраций из уравнений \cref{eq:euler-euler-phi}
+для всех фаз кроме одной (например, кроме первой).
+Оставшаяся фаза вычисляется  из \cref{eq:euler-euler-unitsum}.
+
+Далее для каждой фазы решается
+уравнения моментов вида
+\begin{equation}
+A_k \vec u^*_k = -M \phi_k \nabla p + f
+\end{equation}
+полученным в результате аппроксимации \cref{eq:euler-euler-mom}.
+Полученные решения будем называть пробной фазовой скоростью $\vec u^*_k$.
+
+Уравнения для поправок скорости получаются по аналогии с \cref{eq:ns2d_uprime}:
+\begin{equation}
+\label{eq:euler-euler-uprime}
+\vec u'_k \approx -\vec d_k \nabla p', \quad \vec (d_k)_i = \frac{m_i \phi_k}{(a_k)_{ii}}.
+\end{equation}
+
+Сложим все уравнения \cref{eq:euler-euler-uprime} с коэффициентами $\phi_k$.
+Далее возьмём градиент и воспользуемся уравнением неразрывности \cref{eq:euler-euler-incomp}.
+Тогда получим уравнение для поправки давления
+\begin{equation}
+\label{eq:euler-euler-pprime}
+-\nabla\cdot \sum_k\left(\phi_k \vec d_k\right) \nabla p' = -\nabla\cdot\sum_k\left(\phi_k \vec u^*_k\right).
+\end{equation}
+На итерационном шаге сначала решается уравнение \cref{eq:euler-euler-pprime},
+а затем по найденной поправке давления находится поправка скорости по \cref{eq:euler-euler-uprime}.

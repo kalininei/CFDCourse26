@@ -22,6 +22,7 @@ set(SRC
     cavity_fem_direct_test.cpp
     cavity_fem_simple_test.cpp
     heat_fem_simple_test.cpp
+    gravity_multiphase_test.cpp
 )
 
 set(HEADERS

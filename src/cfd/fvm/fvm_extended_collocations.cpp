@@ -100,3 +100,15 @@ size_t FvmExtendedCollocations::near_boundary_colloc(size_t iface) const {
         throw std::runtime_error("not a boundary face: " + std::to_string(iface));
     }
 }
+
+double FvmExtendedCollocations::face_approx(size_t iface, const std::vector<double>& dat) const {
+    bool is_extended_dat = (dat.size() == size());
+    auto [i, j] = tab_face_colloc(iface);
+    if (is_boundary_colloc(i)) {
+        return (is_extended_dat) ? dat[i] : dat[j];
+    }
+    if (is_boundary_colloc(j)) {
+        return (is_extended_dat) ? dat[j] : dat[i];
+    }
+    return (dat[i] + dat[j]) / 2;
+}

@@ -1,0 +1,73 @@
+\subsection{Лекция 20 (21.03.26) Многофазное течение. Гравитационная сегрегация}
+В тесте \cvar{[gravity-mf]} из файла \ename{gravity_multiphase_test.cpp}
+реализована конечнообъёмная схема решения нестационарной задачи
+о гравитационной сегрегации двухфазной жидкости в единичном квадрате с непроницаемыми стенками.
+В начальный момент более тяжёлая жидкость занимает верхнюю половину области и со временем спускается вниз.
+
+Схема расчёта в целом соответствует методике \secref{sec:euler-euler-simple}, но пренебрегает слагаемым
+$\nabla^T \vec u$ в уравнении моментов и не учитывает силы межфазного взаимодействия.
+
+Необходимо:
+\begin{enumerate}
+\item  Провести расчёт до установления. Нарисовать график изменения потенциальной энергии системы во времени:
+       \begin{equation*}
+       E_p = -\int_\Omega \rho_m \, (\vec x) \vec x \cdot \vec g \, d\vec x,
+       \end{equation*}
+       где $\rho_m(\vec x) = \phi_1(\vec x) \rho_1 + \phi_2(\vec x) \rho_2$ -- плотность смеси, $\vec g$ -- вектор силы тяжести.
+\item Повернуть вектор $\vec g$. Сравнить полученный график $E_p(t)$ с исходным. 
+\item Учесть слагаемое $\nabla^T \vec u$. Сравнить полученный график $E_p(t)$ с исходным.
+\item Учесть силы межфазного взаимодействия. Применить модель Шилера-Неймана (\secref{sec:schiller-naumann}) выбрав малый радиус капель дисперсной фазы (например $d_1 = 10^{-3}$). Сравнить полученный график $E_p(t)$ с исходным.
+\item Добавить третью фазу. Сравнить $E_p(t)$.
+\end{enumerate}
+
+\paragraph{Рекомендации к программированию}
+\begin{itemize}
+\item п. 2
+Для поворота силы тяжести следует изменить константы \cvar{GX, GY}. При этом следить, чтобы вектор $\vec g$ оставался единичным.
+\item п. 3
+Слагаемое $\nabla^T \vec u$ следует учитывать явно, используя $\vec u$ с прошлой итерации.
+Например, в правой части уравнения для $x$ компоненты скорости оно распишется в виде
+\begin{equation*}
+\int_{E_i} \nabla\cdot(\mu \phi \nabla^T \vec u)_x \, d\vec x = 
+\int_{\partial E_i} \mu \phi \left(\dfr{u}{x} n_x + \dfr{v}{x} n_y\right) =
+\sum_j |\gamma_{ij}| \mu \phi_{ij}\left( \left(\dfr{u}{x}\right)_{ij} (n_{ij})_x + \left(\dfr{v}{x}\right)_{ij} (n_{ij})_y \right).
+\end{equation*}
+Добавлять это слагаемое следует к правой части (\cvar{rhs_x} и аналог к \cvar{rhs_y})
+в цикле по граням в методе \cvar{assemble_momentum_slae}.
+Значение $\phi_{ij}$ следует взять из \cvar{sol.phi_face[iface]},
+а производные скорости посчитать следующим образом:
+\begin{cppcode}
+// считаем производные в центрах ячеек методом Гаусса
+std::vector<Vector> du = grad_computer_.compute(sol.u);
+std::vector<Vector> dv = grad_computer_.compute(sol.v);
+// меняем формат хранения
+std::vector<double> dudx(grid_.n_cells()), dudy(grid_.n_cells());
+std::vector<double> dvdx(grid_.n_cells()), dvdy(grid_.n_cells());
+for (size_t i=0; i<grid_.n_cells(); ++i){
+    dudx[i] = du[i].x;
+    dudy[i] = du[i].y;
+    dvdx[i] = dv[i].x;
+    dvdy[i] = dv[i].y;
+}
+// начало цикла сборки по граням
+for (size_t iface = 0; iface < grid_->n_faces(); ++iface) {
+    // ....
+    // интерполируем значения производных на грань простой полусуммой
+    double dudx_ij = ecolloc_.face_approx(iface, dudx);
+    // ...
+}
+\end{cppcode}
+Компоненты нормали $(n_{ij})_{x,y}$ вычисляются методом \cvar{grid_->face_normal(iface)},
+площадь грани $|\gamma_{ij}|$ -- методом \cvar{grid_->face_area(iface)}.
+\item п.4 Учитывать сопротивление следует также неявно, беря скорость с предыдущей итерации.
+\item п.5 При наличии трёх фаз следует решить два уравнения для концентраций: $\phi_1$ и $\phi_2$.
+Дополнительно следует обработать ситуацию, когда сумма двух этих фаз больше единицы в какой-то ячейке:
+\begin{cppcode}
+double phi12 = phi1 + phi2;
+if (phi12 > 1 - PHI_EPS){
+    phi1 = phi1 * (1 - PHI_EPS) / phi12;
+    phi2 = phi2 * (1 - PHI_EPS) / phi12;
+}
+\end{cppcode}
+
+\end{itemize}

@@ -46,6 +46,8 @@ public:
     bool is_boundary_colloc(size_t icolloc) const;
     bool is_internal_colloc(size_t icolloc) const;
 
+    double face_approx(size_t iface, const std::vector<double>& dat) const;
+
 private:
     std::vector<std::array<size_t, 2>> tab_face_colloc_;
     std::vector<std::vector<size_t>> tab_colloc_colloc_;
