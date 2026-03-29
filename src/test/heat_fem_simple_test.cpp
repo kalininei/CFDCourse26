@@ -24,7 +24,40 @@ constexpr double ALPHA_U = 0.8;
 constexpr double ALPHA_P = 0.3;
 constexpr int GAUSS_POWER = 3;
 
-struct HeatFemSimpleWorker {
+class IMatrixProblem {
+public:
+    virtual ~IMatrixProblem() = default;
+
+    // => Ax
+    virtual std::vector<double> use_A(const std::vector<double>& x) const = 0;
+    // => P^(-1)x
+    virtual std::vector<double> use_preconditioner(const std::vector<double>& x) const = 0;
+    // => f - Ax
+    virtual std::vector<double> compute_residual(const std::vector<double>& x) const = 0;
+};
+
+class IIterator {
+public:
+    virtual ~IIterator() = default;
+
+    virtual void init(const std::vector<double>& x) = 0;
+    virtual std::vector<double> compute_correction(const std::vector<double>& x) = 0;
+};
+
+class StationaryIterator : public IIterator {
+public:
+    StationaryIterator(const IMatrixProblem* prob) : prob_(prob) {}
+    void init(const std::vector<double>&) override {};
+    std::vector<double> compute_correction(const std::vector<double>& x) override {
+        std::vector<double> residual = prob_->compute_residual(x);
+        return prob_->use_preconditioner(residual);
+    }
+
+private:
+    const IMatrixProblem* prob_;
+};
+
+struct HeatFemSimpleWorker : public IMatrixProblem {
     HeatFemSimpleWorker(const IGrid& grid, double Re, double Pe, double delta_t);
     void initialize_saver(std::string stem, double timestep);
     void init_timestep();
@@ -53,6 +86,8 @@ private:
     double* v_;
     double* p_;
 
+    std::shared_ptr<IIterator> iterator_;
+
     std::shared_ptr<VtkUtils::TimeSeriesWriter> writer_;
 
     void assemble_slae();
@@ -60,8 +95,9 @@ private:
     CsrMatrix assemble_A() const;
     CsrMatrix assemble_B() const;
     std::vector<double> assemble_rhs() const;
-    std::vector<double> use_preconditioner(const std::vector<double>& r) const;
-    std::vector<double> compute_residual() const;
+    std::vector<double> use_preconditioner(const std::vector<double>& r) const override;
+    std::vector<double> compute_residual(const std::vector<double>& x) const override;
+    std::vector<double> use_A(const std::vector<double>& r) const override;
 
     static FemAssembler build_fem_a(const IGrid& grid);
     static FemAssembler build_fem_b(const IGrid& grid);
@@ -74,7 +110,8 @@ HeatFemSimpleWorker::HeatFemSimpleWorker(const IGrid& grid, double Re, double Pe
       delta_t_(delta_t),
       fem_a_(build_fem_a(grid_)),
       fem_b_(build_fem_b(grid_)),
-      fem_cross_(fem_b_, fem_a_) {
+      fem_cross_(fem_b_, fem_a_),
+      iterator_(std::make_shared<StationaryIterator>(this)) {
 
     // boundary nodes
     double ymax = grid_.box().second.y;
@@ -178,15 +215,14 @@ CsrMatrix HeatFemSimpleWorker::assemble_A() const {
 
     for (size_t ielem = 0; ielem < fem_a_.n_elements(); ++ielem) {
         const FemElement& el = fem_a_.element(ielem);
-        std::vector<double> local_uv_old = fem_a_.local_vector(ielem, uvp_);
+        std::vector<double> local_uv = fem_a_.local_vector(ielem, uvp_);
 
         auto fun = [&](Point p) -> std::vector<double> {
             const size_t n = el.basis->size();
             std::vector<double> loc(n * n, 0.0);
             auto val = FemElementValue(&el, p);
             // convection velocity
-            const Vector a = {val.subrange_interpolate(0, 4, local_uv_old),
-                              val.subrange_interpolate(4, 8, local_uv_old)};
+            const Vector a = {val.subrange_interpolate(0, 4, local_uv), val.subrange_interpolate(4, 8, local_uv)};
             // u
             for (size_t ibas = 0; ibas < 4; ++ibas) {
                 Vector g1 = val.grad_phi(ibas);
@@ -268,7 +304,7 @@ std::vector<double> HeatFemSimpleWorker::assemble_rhs() const {
     for (size_t ielem = 0; ielem < fem_a_.n_elements(); ++ielem) {
         const FemElement& el_a = fem_a_.element(ielem);
         const FemElement& el_b = fem_b_.element(ielem);
-        std::vector<double> local_uv_old = fem_a_.local_vector(ielem, uvp_);
+        std::vector<double> local_uv_old = fem_a_.local_vector(ielem, uvp_old_);
         std::vector<double> local_temp = fem_b_.local_vector(ielem, temperature_);
 
         auto fun = [&](Point p) -> std::vector<double> {
@@ -307,12 +343,6 @@ std::vector<double> HeatFemSimpleWorker::use_preconditioner(const std::vector<do
     UmfpackSolver::solve_slae(precond, r, x);
 
     return x;
-}
-
-void HeatFemSimpleWorker::init_timestep() {
-    temperature_old_ = temperature_;
-    uvp_old_ = uvp_;
-    solve_temperature_problem();
 }
 
 void HeatFemSimpleWorker::solve_temperature_problem() {
@@ -418,32 +448,40 @@ void HeatFemSimpleWorker::assemble_slae() {
     Schur_.set_value(0, 0, Schur_.value(0, 0) - 1.0); // <- p[0] = 0
 }
 
+std::vector<double> HeatFemSimpleWorker::use_A(const std::vector<double>& r) const {
+    CsrMatrix mat = assemble_block_matrix({{&A_, &Bt_}, {&B_, &Z_}});
+    return mat.mult_vec(r);
+}
+
+std::vector<double> HeatFemSimpleWorker::compute_residual(const std::vector<double>& x) const {
+    std::vector<double> ax = use_A(x);
+    std::vector<double> ret(ax.size());
+    for (size_t i = 0; i < ax.size(); ++i) {
+        ret[i] = rhs_[i] - ax[i];
+    }
+    return ret;
+}
+
+void HeatFemSimpleWorker::init_timestep() {
+    temperature_old_ = temperature_;
+    uvp_old_ = uvp_;
+    solve_temperature_problem();
+}
+
 double HeatFemSimpleWorker::init_step() {
     assemble_slae();
-
+    iterator_->init(uvp_);
     // return max(|residual|)
     double rmax = 0;
-    for (double r: compute_residual()) {
+    for (double r: compute_residual(uvp_)) {
         rmax = std::max(rmax, std::abs(r));
     }
     return rmax;
 }
 
-std::vector<double> HeatFemSimpleWorker::compute_residual() const {
-    CsrMatrix mat = assemble_block_matrix({{&A_, &Bt_}, {&B_, &Z_}});
-    // compute residual: rhs_ - M*uvp
-    std::vector<double> residual = rhs_;
-    for (auto [i, j, aij]: matrix_iter::ijv(mat)) {
-        residual[i] -= aij * uvp_[j];
-    }
-    return residual;
-}
-
 void HeatFemSimpleWorker::step() {
-    std::vector<double> residual = compute_residual();
-
     // compute correction
-    std::vector<double> delta_uvp = use_preconditioner(residual);
+    std::vector<double> delta_uvp = iterator_->compute_correction(uvp_);
 
     // use correction
     for (size_t i = 0; i < uvp_.size(); ++i) {
@@ -507,5 +545,5 @@ TEST_CASE("Heat FEM-SIMPLE", "[heat-fem-simple]") {
         worker.save_current_fields(tm);
         tm += dt;
     }
-    CHECK(nrm == Approx(0.0009008417));
+    CHECK(nrm == Approx(0.0004349495));
 }
