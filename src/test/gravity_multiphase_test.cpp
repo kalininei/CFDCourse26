@@ -11,8 +11,8 @@ using namespace cfd;
 
 namespace {
 
-const double GX = M_SQRT1_2;
-const double GY = -M_SQRT1_2;
+const double GX = 0;
+const double GY = -1;
 const double PHI_EPS = 1e-6;
 const double ALPHA_P = 0.3;
 const double ALPHA_U = 0.8;
@@ -73,9 +73,10 @@ struct UvSlae {
 
 class Worker {
 public:
-    Worker(Physics physics1, Physics physics2, std::shared_ptr<IGrid> grid, double dt)
+    Worker(Physics physics1, Physics physics2, Physics physics3, std::shared_ptr<IGrid> grid, double dt)
         : phys1_(physics1),
           phys2_(physics2),
+          phys3_(physics3),
           dt_(dt),
           grid_(grid),
           ecolloc_(*grid_),
@@ -83,33 +84,55 @@ public:
           dfdn_computer_(*grid_, ecolloc_),
           sol1_(ecolloc_.size(), grid_->n_faces()),
           sol2_(ecolloc_.size(), grid_->n_faces()),
+          sol3_(ecolloc_.size(), grid_->n_faces()),
           sol1_old_(ecolloc_.size(), grid_->n_faces()),
-          sol2_old_(ecolloc_.size(), grid_->n_faces()) {
+          sol2_old_(ecolloc_.size(), grid_->n_faces()),
+          sol3_old_(ecolloc_.size(), grid_->n_faces()) {
 
         p_.resize(ecolloc_.size(), 0);
         // Initial condition
         for (size_t i = 0; i < ecolloc_.points.size(); i++) {
-            if (ecolloc_.points[i].y <= 0.5) {
+            if (ecolloc_.points[i].y <= 0.3) {
+                sol2_.phi[i] = PHI_EPS;
                 sol1_.phi[i] = PHI_EPS;
+                sol3_.phi[i] = 1.0 - sol2_.phi[i] - sol1_.phi[i];
+            } else if (ecolloc_.points[i].y <= 0.65) {
+                sol1_.phi[i] = PHI_EPS;
+                sol3_.phi[i] = PHI_EPS;
+                sol2_.phi[i] = 1.0 - sol1_.phi[i] - sol3_.phi[i];
             } else {
-                sol1_.phi[i] = 1.0 - PHI_EPS;
+                sol3_.phi[i] = PHI_EPS;
+                sol2_.phi[i] = PHI_EPS;
+                sol1_.phi[i] = 1.0 - sol3_.phi[i] - sol2_.phi[i];
             }
-            sol2_.phi[i] = 1.0 - sol1_.phi[i];
         }
     }
 
     void init_time_step() {
         sol1_old_ = sol1_;
         sol2_old_ = sol2_;
+        sol3_old_ = sol3_;
+
         // Compute phi1, phi2
         sol1_.phi = compute_phi_explicit(sol1_old_.un, sol1_old_.phi);
+        sol2_.phi = compute_phi_explicit(sol2_old_.un, sol2_old_.phi);
+
         for (size_t i = 0; i < sol1_.size(); i++) {
             sol1_.phi[i] = std::clamp(sol1_.phi[i], 0.0 + PHI_EPS, 1.0 - PHI_EPS);
-            sol2_.phi[i] = 1 - sol1_.phi[i];
+            sol2_.phi[i] = std::clamp(sol2_.phi[i], 0.0 + PHI_EPS, 1.0 - PHI_EPS);
+
+            double phi12 = sol1_.phi[i] + sol2_.phi[i];
+            if (phi12 > 1 - PHI_EPS) {
+                sol1_.phi[i] = sol1_.phi[i] * (1 - PHI_EPS) / phi12;
+                sol2_.phi[i] = sol2_.phi[i] * (1 - PHI_EPS) / phi12;
+            }
+
+            sol3_.phi[i] = 1 - sol1_.phi[i] - sol2_.phi[i];
         }
         for (size_t i = 0; i < grid_->n_faces(); ++i) {
             sol1_.phi_face[i] = ecolloc_.face_approx(i, sol1_.phi);
             sol2_.phi_face[i] = ecolloc_.face_approx(i, sol2_.phi);
+            sol3_.phi_face[i] = ecolloc_.face_approx(i, sol3_.phi);
         }
     }
 
@@ -117,28 +140,35 @@ public:
         // Momentum matrix assemble
         slae1_ = assemble_momentum_slae(sol1_, sol1_old_, phys1_);
         slae2_ = assemble_momentum_slae(sol2_, sol2_old_, phys2_);
-
+        slae3_ = assemble_momentum_slae(sol3_, sol3_old_, phys3_);
         // compute norms
         double r1 = slae1_.norm_res(sol1_.u, sol1_.v, *grid_);
         double r2 = slae2_.norm_res(sol2_.u, sol2_.v, *grid_);
+        double r3 = slae3_.norm_res(sol3_.u, sol3_.v, *grid_);
 
-        return std::max(r1, r2);
+        return std::max(std::max(r1, r2), r3);
     }
 
     void step() {
         // 1. Ustar
-        std::vector<double> u1star(sol1_.u), u2star(sol1_.u), v1star(sol1_.u), v2star(sol1_.u);
+        std::vector<double> u1star(sol1_.u), u2star(sol1_.u), u3star(sol3_.u), v1star(sol1_.u), v2star(sol1_.u),
+            v3star(sol3_.u);
         slae1_.solve(u1star, v1star);
         slae2_.solve(u2star, v2star);
+        slae3_.solve(u3star, v3star);
         // 2. Un_star
         std::vector<double> un1_face_star = compute_un_face_rhie_chow(slae1_, u1star, v1star);
         std::vector<double> un2_face_star = compute_un_face_rhie_chow(slae2_, u2star, v2star);
+        std::vector<double> un3_face_star = compute_un_face_rhie_chow(slae3_, u3star, v3star);
+
         // 3. p_prime
-        std::vector<double> p_prime = compute_pressure(un1_face_star, un2_face_star);
+        std::vector<double> p_prime = compute_pressure(un1_face_star, un2_face_star, un3_face_star);
         std::vector<Vector> grad_p_prime = grad_computer_.compute(p_prime);
         // 4. U'
         auto [u1_prime, v1_prime] = compute_u_prime(slae1_, grad_p_prime);
         auto [u2_prime, v2_prime] = compute_u_prime(slae2_, grad_p_prime);
+        auto [u3_prime, v3_prime] = compute_u_prime(slae3_, grad_p_prime);
+
         // 5. Assemble current values
         for (size_t i = 0; i < ecolloc_.size(); ++i) {
             p_[i] += ALPHA_P * p_prime[i];
@@ -146,14 +176,18 @@ public:
             sol1_.v[i] = v1star[i] + v1_prime[i];
             sol2_.u[i] = u2star[i] + u2_prime[i];
             sol2_.v[i] = v2star[i] + v2_prime[i];
+            sol3_.u[i] = u3star[i] + u3_prime[i];
+            sol3_.v[i] = v3star[i] + v3_prime[i];
         }
         for (size_t iface = 0; iface < grid_->n_faces(); ++iface) {
             double dp_prime_dn = dfdn_computer_.compute(iface, p_prime);
             double un1_face_prime = -slae1_.d_face[iface] * dp_prime_dn;
             double un2_face_prime = -slae2_.d_face[iface] * dp_prime_dn;
+            double un3_face_prime = -slae3_.d_face[iface] * dp_prime_dn;
 
             sol1_.un[iface] = un1_face_star[iface] + un1_face_prime;
             sol2_.un[iface] = un2_face_star[iface] + un2_face_prime;
+            sol3_.un[iface] = un3_face_star[iface] + un3_face_prime;
         }
     }
 
@@ -163,10 +197,12 @@ public:
             grid_->save_vtk(fname);
             VtkUtils::add_cell_data(sol1_.phi, "phi1", fname, grid_->n_cells());
             VtkUtils::add_cell_data(sol2_.phi, "phi2", fname, grid_->n_cells());
+            VtkUtils::add_cell_data(sol3_.phi, "phi3", fname, grid_->n_cells());
             VtkUtils::add_cell_data(p_, "p", fname, grid_->n_cells());
 
             VtkUtils::add_cell_vector(sol1_.u, sol1_.v, "u1", fname, grid_->n_cells());
             VtkUtils::add_cell_vector(sol2_.u, sol2_.v, "u2", fname, grid_->n_cells());
+            VtkUtils::add_cell_vector(sol3_.u, sol2_.v, "u3", fname, grid_->n_cells());
         }
     }
 
@@ -176,15 +212,29 @@ public:
             double x = grid_->cell_center(i).x;
             double y = grid_->cell_center(i).y;
 
-            Ep += (sol1_.phi[i] * phys1_.rho + sol2_.phi[i] * phys2_.rho) * (GX * x + GY * y) * grid_->cell_volume(i);
+            Ep += (sol1_.phi[i] * phys1_.rho + sol2_.phi[i] * phys2_.rho + sol3_.phi[i] * phys3_.rho) *
+                  (GX * x + GY * y) * grid_->cell_volume(i);
         }
 
         return -Ep;
     }
 
+    double get_mass() const {
+        double m = 0;
+        for (size_t i = 0; i < grid_->n_cells(); ++i) {
+
+            m += (sol1_.phi[i] * phys1_.rho + sol2_.phi[i] * phys2_.rho + sol3_.phi[i] * phys3_.rho) *
+                 grid_->cell_volume(i);
+        }
+
+        return m;
+    }
+
 private:
     const Physics phys1_;
     const Physics phys2_;
+    const Physics phys3_;
+
     const double dt_;
     const std::shared_ptr<IGrid> grid_;
     const FvmExtendedCollocations ecolloc_;
@@ -193,12 +243,16 @@ private:
 
     Uvphi sol1_;
     Uvphi sol2_;
+    Uvphi sol3_;
+
     std::vector<double> p_;
     Uvphi sol1_old_;
     Uvphi sol2_old_;
+    Uvphi sol3_old_;
 
     UvSlae slae1_;
     UvSlae slae2_;
+    UvSlae slae3_;
 
     std::vector<double> compute_phi_explicit(const std::vector<double>& un, const std::vector<double>& phi_old) const {
         std::vector<double> phi = phi_old;
@@ -365,7 +419,8 @@ private:
         return ret;
     }
     std::vector<double> compute_pressure(const std::vector<double>& un_face_star1,
-                                         const std::vector<double>& un_face_star2) const {
+                                         const std::vector<double>& un_face_star2,
+                                         const std::vector<double>& un_face_star3) const {
         LodMatrix mat(ecolloc_.size());
         std::vector<double> rhs(ecolloc_.size(), 0);
 
@@ -375,15 +430,20 @@ private:
             // diffusion (left)
             double d1 = slae1_.d_face[iface];
             double d2 = slae2_.d_face[iface];
+            double d3 = slae3_.d_face[iface];
+
             double phi1 = sol1_.phi_face[iface];
             double phi2 = sol2_.phi_face[iface];
-            double d_ij = phi1 * d1 + phi2 * d2;
+            double phi3 = sol3_.phi_face[iface];
+
+            double d_ij = phi1 * d1 + phi2 * d2 + phi3 * d3;
             for (auto [icol, coef]: dfdn_computer_.linear_combination(iface)) {
                 mat.add_value(i, icol, -coef * d_ij * area);
                 mat.add_value(j, icol, coef * d_ij * area);
             }
-            double un_star =
-                un_face_star1[iface] * sol1_.phi_face[iface] + un_face_star2[iface] * sol2_.phi_face[iface];
+            double un_star = un_face_star1[iface] * sol1_.phi_face[iface] +
+                             un_face_star2[iface] * sol2_.phi_face[iface] +
+                             un_face_star3[iface] * sol3_.phi_face[iface];
             // right
             if (!ecolloc_.is_boundary_colloc(i)) {
                 rhs[i] -= un_star * area;
@@ -419,17 +479,18 @@ TEST_CASE("Multiphase gravity segragation", "[gravity-mf]") {
 
     Physics water{1.0, 1.0 / 200.0};
     Physics oil{0.8, 1.0 / 100.0};
+    Physics benzin{0.7, 1.0 / 150.0};
 
-    double dt = 2e-2;
+    double dt = 1e-2;
     double end_time = 1000;
     double simple_eps = 1e-3;
     size_t max_simple_steps = 50;
 
     auto grid = std::make_shared<RegularGrid2D>(0, 1, 0, 1, 30, 30);
 
-    Worker worker(water, oil, grid, dt);
+    Worker worker(water, oil, benzin, grid, dt);
 
-    VtkUtils::TimeSeriesWriter writer("gravity-mf-45t");
+    VtkUtils::TimeSeriesWriter writer("gravity-mf-3phases");
     writer.set_time_step(0.5);
 
     double time = 0;
@@ -444,7 +505,7 @@ TEST_CASE("Multiphase gravity segragation", "[gravity-mf]") {
             worker.step();
             if (it > 0) {
                 if (nrm < simple_eps) {
-                    std::cout << time << "," << worker.get_potential() << std::endl;
+                    std::cout << time << "," << worker.get_mass() << std::endl;
                     break;
                 } else if (it >= max_simple_steps) {
                     std::cout << "WARNING: failed to converge with residual = " << nrm << std::endl;
