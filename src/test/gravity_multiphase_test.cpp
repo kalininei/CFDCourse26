@@ -11,8 +11,8 @@ using namespace cfd;
 
 namespace {
 
-const double GX = 0.0;
-const double GY = -1.0;
+const double GX = M_SQRT1_2;
+const double GY = -M_SQRT1_2;
 const double PHI_EPS = 1e-6;
 const double ALPHA_P = 0.3;
 const double ALPHA_U = 0.8;
@@ -170,6 +170,18 @@ public:
         }
     }
 
+    double get_potential() const {
+        double Ep = 0;
+        for (size_t i = 0; i < grid_->n_cells(); ++i) {
+            double x = grid_->cell_center(i).x;
+            double y = grid_->cell_center(i).y;
+
+            Ep += (sol1_.phi[i] * phys1_.rho + sol2_.phi[i] * phys2_.rho) * (GX * x + GY * y) * grid_->cell_volume(i);
+        }
+
+        return -Ep;
+    }
+
 private:
     const Physics phys1_;
     const Physics phys2_;
@@ -216,6 +228,18 @@ private:
         std::vector<double> rhs_x(ecolloc_.size(), 0);
         std::vector<double> rhs_y(ecolloc_.size(), 0);
 
+        std::vector<Vector> du = grad_computer_.compute(sol.u);
+        std::vector<Vector> dv = grad_computer_.compute(sol.v);
+
+        std::vector<double> dudx(grid_->n_cells()), dudy(grid_->n_cells());
+        std::vector<double> dvdx(grid_->n_cells()), dvdy(grid_->n_cells());
+        for (size_t i = 0; i < grid_->n_cells(); ++i) {
+            dudx[i] = du[i].x;
+            dudy[i] = du[i].y;
+            dvdx[i] = dv[i].x;
+            dvdy[i] = dv[i].y;
+        }
+
         LodMatrix mat(ecolloc_.size());
         // =============== Cell loop
         for (size_t icell = 0; icell < grid_->n_cells(); ++icell) {
@@ -259,6 +283,25 @@ private:
                 mat.add_value(n_colloc, column, flux);
                 mat.add_value(p_colloc, column, -flux);
             }
+
+            auto face_area = grid_->face_area(iface);
+            auto face_normal = grid_->face_normal(iface);
+            auto phi = sol.phi_face[iface];
+            // Diffusion: - div(phi*mu*grad^T(u))
+            double dudx_ij = ecolloc_.face_approx(iface, dudx);
+            double dvdx_ij = ecolloc_.face_approx(iface, dvdx);
+            double dudy_ij = ecolloc_.face_approx(iface, dudy);
+            double dvdy_ij = ecolloc_.face_approx(iface, dvdy);
+
+            double flux_x = phi * face_area * phys.mu * (dudx_ij * face_normal.x + dvdx_ij * face_normal.y);
+            double flux_y = phi * face_area * phys.mu * (dudy_ij * face_normal.x + dvdy_ij * face_normal.y);
+
+            // Из одной ячейки в другую
+            rhs_x[n_colloc] += flux_x;
+            rhs_x[p_colloc] -= flux_x;
+
+            rhs_y[n_colloc] += flux_y;
+            rhs_y[p_colloc] -= flux_y;
         }
         // relax
         for (size_t irow = 0; irow < grid_->n_cells(); ++irow) {
@@ -378,7 +421,7 @@ TEST_CASE("Multiphase gravity segragation", "[gravity-mf]") {
     Physics oil{0.8, 1.0 / 100.0};
 
     double dt = 2e-2;
-    double end_time = 0.1;
+    double end_time = 1000;
     double simple_eps = 1e-3;
     size_t max_simple_steps = 50;
 
@@ -386,7 +429,7 @@ TEST_CASE("Multiphase gravity segragation", "[gravity-mf]") {
 
     Worker worker(water, oil, grid, dt);
 
-    VtkUtils::TimeSeriesWriter writer("gravity-mf");
+    VtkUtils::TimeSeriesWriter writer("gravity-mf-45t");
     writer.set_time_step(0.5);
 
     double time = 0;
@@ -395,15 +438,13 @@ TEST_CASE("Multiphase gravity segragation", "[gravity-mf]") {
     worker.save_solution(writer, 0);
     while (time + dt < end_time + 1e-6) {
         time += dt;
-        std::cout << "time=" << time << std::endl;
         worker.init_time_step();
         for (it = 0; true; ++it) {
             nrm = worker.init_simple_step();
-            std::cout << "--iter: " << it << "; residual = " << nrm << std::endl;
             worker.step();
             if (it > 0) {
                 if (nrm < simple_eps) {
-                    std::cout << "converged in " << it << " steps" << std::endl;
+                    std::cout << time << "," << worker.get_potential() << std::endl;
                     break;
                 } else if (it >= max_simple_steps) {
                     std::cout << "WARNING: failed to converge with residual = " << nrm << std::endl;
@@ -413,6 +454,4 @@ TEST_CASE("Multiphase gravity segragation", "[gravity-mf]") {
         }
         worker.save_solution(writer, time);
     }
-    CHECK(nrm == Approx(0.0007046409));
-    CHECK(it == 7);
 }

@@ -99,12 +99,12 @@ add_library(
 )
 
 set(UMFPACK_LIBRARIES
-    /usr/lib/x86_64-linux-gnu/libumfpack.so
-    /usr/lib/x86_64-linux-gnu/libamd.so
-    /usr/lib/x86_64-linux-gnu/libcholmod.so
-    /usr/lib/x86_64-linux-gnu/libcolamd.so
-    /usr/lib/x86_64-linux-gnu/libsuitesparseconfig.so
-    /usr/lib/x86_64-linux-gnu/libblas.so
+    /usr/lib/aarch64-linux-gnu/libumfpack.so
+    /usr/lib/aarch64-linux-gnu/libamd.so
+    /usr/lib/aarch64-linux-gnu/libcholmod.so
+    /usr/lib/aarch64-linux-gnu/libcolamd.so
+    /usr/lib/aarch64-linux-gnu/libsuitesparseconfig.so
+    /usr/lib/aarch64-linux-gnu/libblas.so
     m
 )
 
